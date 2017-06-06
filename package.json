@@ -1,0 +1,15 @@
+{
+  "name": "real-time",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "atomTestRunner": "atom-mocha-test-runner",
+  "devDependencies": {
+    "atom-mocha-test-runner": "^1.0.1"
+  }
+}
