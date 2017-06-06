@@ -14,14 +14,20 @@ describe('BufferBinding', () => {
       {type: 'delete', position: 0, extent: 5},
       {type: 'insert', position: 6, text: 'cruel\n'}
     ])
-
     assert.equal(buffer.getText(), 'goodbye\ncruel\nworld')
     assert.equal(sharedBuffer.text, 'goodbye\ncruel\nworld')
 
     buffer.setTextInRange([[1, 0], [1, 5]], 'wonderful')
-
     assert.equal(buffer.getText(), 'goodbye\nwonderful\nworld')
     assert.equal(sharedBuffer.text, 'goodbye\nwonderful\nworld')
+
+    buffer.transact(() => {
+      buffer.insert([0, 0], '1) ')
+      buffer.insert([1, 0], '2) ')
+      buffer.insert([2, 0], '3) ')
+    })
+    assert.equal(buffer.getText(), '1) goodbye\n2) wonderful\n3) world')
+    assert.equal(sharedBuffer.text, '1) goodbye\n2) wonderful\n3) world')
   })
 
   class FakeSharedBuffer {
