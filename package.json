@@ -14,6 +14,6 @@
     "atom-mocha-test-runner": "^1.0.1"
   },
   "dependencies": {
-    "@atom-team/real-time-client": "^0.1.0"
+    "@atom-team/real-time-client": "^0.1.1"
   }
 }
