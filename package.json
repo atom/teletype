@@ -10,10 +10,11 @@
   "license": "MIT",
   "atomTestRunner": "atom-mocha-test-runner",
   "devDependencies": {
-    "@atom-team/real-time-server": "^0.1.4",
-    "atom-mocha-test-runner": "^1.0.1"
+    "@atom-team/real-time-server": "^0.2.0",
+    "atom-mocha-test-runner": "^1.0.1",
+    "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom-team/real-time-client": "^0.1.1"
+    "@atom-team/real-time-client": "^0.2.0"
   }
 }
