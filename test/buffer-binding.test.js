@@ -6,7 +6,7 @@ describe('BufferBinding', () => {
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding(buffer)
-    const sharedBuffer = new FakeSharedBuffer(binding)
+    const sharedBuffer = new FakeSharedBuffer(binding, buffer.getText())
     binding.setSharedBuffer(sharedBuffer)
 
     sharedBuffer.simulateRemoteOperations([
@@ -31,9 +31,9 @@ describe('BufferBinding', () => {
   })
 
   class FakeSharedBuffer {
-    constructor (delegate) {
+    constructor (delegate, text) {
       this.delegate = delegate
-      this.text = this.delegate.getText()
+      this.text = text
     }
 
     simulateRemoteOperations (operations) {
