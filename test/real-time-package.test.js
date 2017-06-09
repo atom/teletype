@@ -56,8 +56,8 @@ suite('RealTimePackage', () => {
     const env1Editor = await env1.workspace.open(temp.path({extension: '.js'}))
     env1Editor.setText('const hello = "world"')
 
-    await env1Package.shareBuffer(env1Editor.getBuffer())
-    await env2Package.joinBuffer(clipboardText)
+    await env1Package.shareEditor(env1Editor)
+    await env2Package.joinEditor(clipboardText)
 
     const env2Editor = env2.workspace.getActiveTextEditor()
     assert.equal(env2Editor.getText(), env1Editor.getText())
