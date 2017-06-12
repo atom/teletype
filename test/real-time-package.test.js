@@ -136,7 +136,14 @@ suite('RealTimePackage', () => {
     env2WorkspaceElement.style.height = env1Editor.getLineHeightInPixels() * 4 + 'px'
 
     env1Editor.setCursorBufferPosition([6, 0])
+    await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
     await condition(() => env2Editor.getFirstVisibleScreenRow() < 6 && 6 < env2Editor.getLastVisibleScreenRow())
+    assert(env2Editor.getFirstVisibleScreenRow() < 6 && 6 < env2Editor.getLastVisibleScreenRow())
+
+    const env1PreviousScrollTopRow = env1Editor.getScrollTopRow()
+    env2Editor.setCursorBufferPosition([0, 4])
+    await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
+    assert.equal(env1Editor.getScrollTopRow(), env1PreviousScrollTopRow)
   })
 })
 
