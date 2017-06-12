@@ -15,7 +15,7 @@ suite('RealTimePackage', () => {
 
   suiteSetup(async () => {
     const {startTestServer} = require('@atom-team/real-time-server')
-    testServer = await startTestServer({databaseURL: 'postgres://localhost:5432/real-time-test'})
+    testServer = await startTestServer({databaseURL: 'postgres://localhost:5432/real-time-server-test'})
   })
 
   suiteTeardown(() => {
