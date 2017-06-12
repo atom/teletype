@@ -127,13 +127,14 @@ suite('RealTimePackage', () => {
     const env2Editor = env2.workspace.getActiveTextEditor()
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
 
+    const maxVisibleRows = 4
     const env1WorkspaceElement = env1.workspace.getElement()
     containerElement.appendChild(env1WorkspaceElement)
-    env1WorkspaceElement.style.height = env1Editor.getLineHeightInPixels() * 4 + 'px'
+    env1WorkspaceElement.style.height = maxVisibleRows * env1Editor.getLineHeightInPixels() + 'px'
 
     const env2WorkspaceElement = env2.workspace.getElement()
     containerElement.appendChild(env2WorkspaceElement)
-    env2WorkspaceElement.style.height = env1Editor.getLineHeightInPixels() * 4 + 'px'
+    env2WorkspaceElement.style.height = maxVisibleRows * env2Editor.getLineHeightInPixels() + 'px'
 
     env1Editor.setCursorBufferPosition([6, 0])
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
