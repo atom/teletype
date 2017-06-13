@@ -57,23 +57,34 @@ describe('EditorBinding', () => {
     const sharedEditor = new FakeSharedEditor(binding)
     binding.setSharedEditor(sharedEditor)
 
-    let localSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
-    let remoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
-    binding.setSelectionMarkerLayerForSiteId(2, {1: remoteSelection})
+    const originalLocalSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
+    const originalRemoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
+    binding.setSelectionMarkerLayerForSiteId(2, {1: originalRemoteSelection})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        localSelection,
-        remoteSelection
+        originalLocalSelection,
+        originalRemoteSelection
       ]
     )
 
-    editor.getBuffer().delete(remoteSelection)
+    editor.getBuffer().delete(originalRemoteSelection)
+    const remoteSelectionAfterDelete = {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        localSelection,
-        {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
+        originalLocalSelection,
+        remoteSelectionAfterDelete
+      ]
+    )
+
+    editor.getBuffer().insert(remoteSelectionAfterDelete, 'a')
+    const remoteSelectionAfterInsert = {start: {row: 1, column: 0}, end: {row: 1, column: 1}}
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        originalLocalSelection,
+        remoteSelectionAfterInsert
       ]
     )
   })
