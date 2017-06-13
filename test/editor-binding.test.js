@@ -49,15 +49,15 @@ describe('EditorBinding', () => {
   })
 
   it('updates the scroll position based on the position of the last cursor on the host', () => {
-    const editor = new TextEditor()
-    editor.setText(SAMPLE_TEXT)
-    editor.setCursorBufferPosition([0, 0])
+    const guestEditor = new TextEditor()
+    guestEditor.setText(SAMPLE_TEXT)
+    guestEditor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(editor)
+    const binding = new EditorBinding(guestEditor)
     binding.setSharedEditor(new FakeSharedEditor(binding))
 
     const scrollRequests = []
-    editor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
+    guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
 
     binding.setSelectionMarkerLayerForSiteId(1, {
       1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
@@ -78,6 +78,18 @@ describe('EditorBinding', () => {
       1: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}
     })
     assert.deepEqual(scrollRequests, [])
+
+    binding.setFollowHostCursor(false)
+    binding.setSelectionMarkerLayerForSiteId(1, {
+      1: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}
+    })
+    assert.deepEqual(scrollRequests, [])
+
+    binding.setFollowHostCursor(true)
+    binding.setSelectionMarkerLayerForSiteId(1, {
+      1: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}
+    })
+    assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
   })
 
   function getCursorDecoratedRanges (editor) {
