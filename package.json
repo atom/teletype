@@ -16,6 +16,6 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom-team/real-time-client": "^0.4.2"
+    "@atom-team/real-time-client": "^0.4.3"
   }
 }
