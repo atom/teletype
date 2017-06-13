@@ -127,7 +127,7 @@ suite('RealTimePackage', () => {
     const env2Editor = env2.workspace.getActiveTextEditor()
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
 
-    const maxVisibleRows = 4
+    const maxVisibleRows = 5
     const env1WorkspaceElement = env1.workspace.getElement()
     containerElement.appendChild(env1WorkspaceElement)
     env1WorkspaceElement.style.height = maxVisibleRows * env1Editor.getLineHeightInPixels() + 'px'
@@ -136,16 +136,23 @@ suite('RealTimePackage', () => {
     containerElement.appendChild(env2WorkspaceElement)
     env2WorkspaceElement.style.height = maxVisibleRows * env2Editor.getLineHeightInPixels() + 'px'
 
-    const env2PreviousScrollTopRow = env2Editor.getScrollTopRow()
-    env1Editor.setCursorBufferPosition([6, 0])
+    let env2PreviousScrollTopRow = env2Editor.getScrollTopRow()
+    env1Editor.setCursorBufferPosition([10, 0])
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
     await condition(() => env2Editor.getScrollTopRow() != env2PreviousScrollTopRow)
-    assert(env2Editor.getFirstVisibleScreenRow() < 6 && 6 < env2Editor.getLastVisibleScreenRow())
+    assert(env2Editor.getFirstVisibleScreenRow() < 10 && 10 < env2Editor.getLastVisibleScreenRow())
 
     const env1PreviousScrollTopRow = env1Editor.getScrollTopRow()
-    env2Editor.setCursorBufferPosition([0, 4])
+    env2Editor.setCursorBufferPosition([20, 0])
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
     assert.equal(env1Editor.getScrollTopRow(), env1PreviousScrollTopRow)
+
+    // TODO: Consider moving this into its own test
+    env2PreviousScrollTopRow = env2Editor.getScrollTopRow()
+    env1Editor.addCursorAtBufferPosition([30, 0])
+    await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
+    await condition(() => env2Editor.getScrollTopRow() != env2PreviousScrollTopRow)
+    assert(env2Editor.getFirstVisibleScreenRow() < 30 && 30 < env2Editor.getLastVisibleScreenRow())
   })
 })
 
