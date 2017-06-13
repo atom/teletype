@@ -86,6 +86,10 @@ suite('RealTimePackage', () => {
       [[0, 5], [0, 7]]
     ])
     await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
+
+    assert(env2Package.bindingForEditor(env2Editor).isFollowingHostCursor())
+    env2Package.toggleFollowHostCursor(env2Editor)
+    assert(!env2Package.bindingForEditor(env2Editor).isFollowingHostCursor())
   })
 })
 
