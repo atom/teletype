@@ -48,6 +48,36 @@ describe('EditorBinding', () => {
     )
   })
 
+  it('relays changes to local selections associated with a text change', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding(editor)
+    const sharedEditor = new FakeSharedEditor(binding)
+    binding.setSharedEditor(sharedEditor)
+
+    let localSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
+    let remoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
+    binding.setSelectionMarkerLayerForSiteId(2, {1: remoteSelection})
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        localSelection,
+        remoteSelection
+      ]
+    )
+
+    editor.getBuffer().delete(remoteSelection)
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        localSelection,
+        {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
+      ]
+    )
+  })
+
   it('updates the scroll position based on the position of the last cursor on the host', () => {
     const guestEditor = new TextEditor()
     guestEditor.setText(SAMPLE_TEXT)
