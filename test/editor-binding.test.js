@@ -48,7 +48,7 @@ describe('EditorBinding', () => {
     )
   })
 
-  it('relays changes to local selections associated with a text change', () => {
+  it('clears the tail of remote selection markers when they become empty', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -70,6 +70,7 @@ describe('EditorBinding', () => {
 
     editor.getBuffer().delete(originalRemoteSelection)
     const remoteSelectionAfterDelete = {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
+    binding.setSelectionMarkerLayerForSiteId(2, {1: remoteSelectionAfterDelete})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
@@ -78,8 +79,8 @@ describe('EditorBinding', () => {
       ]
     )
 
-    editor.getBuffer().insert(remoteSelectionAfterDelete, 'a')
-    const remoteSelectionAfterInsert = {start: {row: 1, column: 0}, end: {row: 1, column: 1}}
+    editor.getBuffer().insert(remoteSelectionAfterDelete.start, 'a')
+    const remoteSelectionAfterInsert = {start: {row: 1, column: 1}, end: {row: 1, column: 1}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
@@ -87,6 +88,26 @@ describe('EditorBinding', () => {
         remoteSelectionAfterInsert
       ]
     )
+  })
+
+  it('does not relay local selection changes if the associated marker moves because of a textual change', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding(editor)
+    const sharedEditor = new FakeSharedEditor(binding)
+    binding.setSharedEditor(sharedEditor)
+
+    sharedEditor.rangesByMarkerId = {}
+    editor.insertText('X')
+    assert.deepEqual(sharedEditor.rangesByMarkerId, {})
+
+    editor.setSelectedBufferRange([[0, 0], [0, 3]])
+    editor.delete()
+    assert.deepEqual(sharedEditor.rangesByMarkerId, {
+      1: {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
+    })
   })
 
   it('updates the scroll position based on the position of the last cursor on the host', () => {
