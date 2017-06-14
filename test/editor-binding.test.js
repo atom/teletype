@@ -93,16 +93,18 @@ describe('EditorBinding', () => {
   it('does not relay local selection changes if the associated marker moves because of a textual change', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
-    editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
     const sharedEditor = new FakeSharedEditor(binding)
     binding.setSharedEditor(sharedEditor)
 
+    editor.setCursorBufferPosition([0, 0])
     sharedEditor.rangesByMarkerId = {}
     editor.insertText('X')
     assert.deepEqual(sharedEditor.rangesByMarkerId, {})
 
+    // After deleting text in the selected range, the editor will set the cursor
+    // buffer position to the start of the selection.
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
     editor.delete()
     assert.deepEqual(sharedEditor.rangesByMarkerId, {
@@ -152,6 +154,21 @@ describe('EditorBinding', () => {
       1: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}
     })
     assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
+  })
+
+  it('does not try to update the scroll position when the host has no cursor', () => {
+    const guestEditor = new TextEditor()
+    guestEditor.setText(SAMPLE_TEXT)
+    guestEditor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding(guestEditor)
+    binding.setSharedEditor(new FakeSharedEditor(binding))
+
+    const scrollRequests = []
+    guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
+
+    binding.setSelectionMarkerLayerForSiteId(1, {})
+    assert.deepEqual(scrollRequests, [])
   })
 
   function getCursorDecoratedRanges (editor) {
