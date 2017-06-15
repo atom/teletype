@@ -64,13 +64,14 @@ suite('RealTimePackage', () => {
       }
     })
 
+    await env1Package.sharePortal()
+    await env2Package.joinPortal()
+
     const env1Editor = await env1.workspace.open(temp.path({extension: '.js'}))
     env1Editor.setText('const hello = "world"')
     env1Editor.setCursorBufferPosition([0, 4])
 
-    await env1Package.shareEditor(env1Editor)
-    await env2Package.joinEditor(clipboardText)
-
+    await condition(() => env2.workspace.getActiveTextEditor() != null)
     const env2Editor = env2.workspace.getActiveTextEditor()
     assert.equal(env2Editor.getText(), env1Editor.getText())
     assert.equal(env2Editor.getTitle(), `Remote Buffer: ${env1Editor.getTitle()}`)
