@@ -38,12 +38,12 @@ suite('RealTimePackage', () => {
 
   test('sharing and joining editors', async function () {
     let clipboardText
-    const env1 = buildAtomEnvironment()
-    const env1Package = new RealTimePackage({
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
-      workspace: env1.workspace,
-      commands: env1.commands,
+      workspace: hostEnv.workspace,
+      commands: hostEnv.commands,
       clipboard: {
         write (text) {
           clipboardText = text
@@ -51,12 +51,12 @@ suite('RealTimePackage', () => {
       }
     })
 
-    const env2 = buildAtomEnvironment()
-    const env2Package = new RealTimePackage({
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
-      workspace: env2.workspace,
-      commands: env2.commands,
+      workspace: guestEnv.workspace,
+      commands: guestEnv.commands,
       clipboard: {
         read () {
           return clipboardText
@@ -64,33 +64,33 @@ suite('RealTimePackage', () => {
       }
     })
 
-    await env1Package.sharePortal()
-    await env2Package.joinPortal()
+    await hostPackage.sharePortal()
+    await guestPackage.joinPortal()
 
-    const env1Editor = await env1.workspace.open(temp.path({extension: '.js'}))
-    env1Editor.setText('const hello = "world"')
-    env1Editor.setCursorBufferPosition([0, 4])
+    const hostEditor = await hostEnv.workspace.open(temp.path({extension: '.js'}))
+    hostEditor.setText('const hello = "world"')
+    hostEditor.setCursorBufferPosition([0, 4])
 
-    await condition(() => env2.workspace.getActiveTextEditor() != null)
-    const env2Editor = env2.workspace.getActiveTextEditor()
-    assert.equal(env2Editor.getText(), env1Editor.getText())
-    assert.equal(env2Editor.getTitle(), `Remote Buffer: ${env1Editor.getTitle()}`)
-    assert(!env2Editor.isModified())
-    await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor.getText(), hostEditor.getText())
+    assert.equal(guestEditor.getTitle(), `Remote Buffer: ${hostEditor.getTitle()}`)
+    assert(!guestEditor.isModified())
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
 
-    env1Editor.setSelectedBufferRanges([
+    hostEditor.setSelectedBufferRanges([
       [[0, 0], [0, 2]],
       [[0, 4], [0, 6]]
     ])
-    env2Editor.setSelectedBufferRanges([
+    guestEditor.setSelectedBufferRanges([
       [[0, 1], [0, 3]],
       [[0, 5], [0, 7]]
     ])
-    await condition(() => deepEqual(getCursorDecoratedRanges(env1Editor), getCursorDecoratedRanges(env2Editor)))
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
 
-    assert(env2Package.bindingForEditor(env2Editor).isFollowingHostCursor())
-    env2Package.toggleFollowHostCursor(env2Editor)
-    assert(!env2Package.bindingForEditor(env2Editor).isFollowingHostCursor())
+    assert(guestPackage.bindingForEditor(guestEditor).isFollowingHostCursor())
+    guestPackage.toggleFollowHostCursor(guestEditor)
+    assert(!guestPackage.bindingForEditor(guestEditor).isFollowingHostCursor())
   })
 })
 
