@@ -37,34 +37,14 @@ suite('RealTimePackage', () => {
   })
 
   test('sharing and joining a portal', async function () {
-    let clipboardText
+    const clipboard = new FakeClipboard()
+
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = new RealTimePackage({
-      restGateway: testServer.restGateway,
-      pubSubGateway: testServer.pubSubGateway,
-      workspace: hostEnv.workspace,
-      commands: hostEnv.commands,
-      clipboard: {
-        write (text) {
-          clipboardText = text
-        }
-      }
-    })
+    const hostPackage = buildPackage(hostEnv, clipboard)
+    await hostPackage.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = new RealTimePackage({
-      restGateway: testServer.restGateway,
-      pubSubGateway: testServer.pubSubGateway,
-      workspace: guestEnv.workspace,
-      commands: guestEnv.commands,
-      clipboard: {
-        read () {
-          return clipboardText
-        }
-      }
-    })
-
-    await hostPackage.sharePortal()
+    const guestPackage = buildPackage(guestEnv, clipboard)
     await guestPackage.joinPortal()
 
     const hostEditor1 = await hostEnv.workspace.open(temp.path({extension: '.js'}))
@@ -102,6 +82,16 @@ suite('RealTimePackage', () => {
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
   })
+
+  function buildPackage (env, clipboard) {
+    return new RealTimePackage({
+      restGateway: testServer.restGateway,
+      pubSubGateway: testServer.pubSubGateway,
+      workspace: env.workspace,
+      commands: env.commands,
+      clipboard: clipboard
+    })
+  }
 })
 
 function getCursorDecoratedRanges (editor) {
@@ -119,4 +109,18 @@ function condition (fn) {
   return new Promise((resolve) => {
     setInterval(() => fn() ? resolve() : null, 15)
   })
+}
+
+class FakeClipboard {
+  constructor () {
+    this.text = null
+  }
+
+  read () {
+    return this.text
+  }
+
+  write (text) {
+    this.text = text
+  }
 }
