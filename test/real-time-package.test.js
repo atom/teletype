@@ -18,7 +18,15 @@ suite('RealTimePackage', () => {
 
   suiteSetup(async () => {
     const {startTestServer} = require('@atom-team/real-time-server')
-    testServer = await startTestServer({databaseURL: 'postgres://localhost:5432/real-time-server-test'})
+    testServer = await startTestServer({
+      databaseURL: 'postgres://localhost:5432/real-time-server-test',
+      // Uncomment and provide credentials to test against Pusher.
+      // pusherCredentials: {
+      //   appId: '123',
+      //   key: '123',
+      //   secret: '123'
+      // }
+    })
   })
 
   suiteTeardown(() => {
@@ -81,6 +89,33 @@ suite('RealTimePackage', () => {
     assert.equal(guestEditor2.getText(), '# Hello, World')
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
+  })
+
+  test('preserving guest portal position in workspace', async function () {
+    const clipboard = new FakeClipboard()
+
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv, clipboard)
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv, clipboard)
+
+    await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
+
+    await hostPackage.sharePortal()
+    await guestPackage.joinPortal()
+
+    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
+    await condition(() => guestEnv.workspace.getActiveTextEditor().getTitle() === 'Remote Buffer: host-1')
+
+    await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
+    assert.deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2'])
+
+    await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-2', 'guest-2']))
+
+    hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
   })
 
   function buildPackage (env, clipboard) {
