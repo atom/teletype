@@ -36,7 +36,7 @@ suite('RealTimePackage', () => {
     containerElement.remove()
   })
 
-  test('sharing and joining editors', async function () {
+  test('sharing and joining a portal', async function () {
     let clipboardText
     const hostEnv = buildAtomEnvironment()
     const hostPackage = new RealTimePackage({
@@ -67,30 +67,40 @@ suite('RealTimePackage', () => {
     await hostPackage.sharePortal()
     await guestPackage.joinPortal()
 
-    const hostEditor = await hostEnv.workspace.open(temp.path({extension: '.js'}))
-    hostEditor.setText('const hello = "world"')
-    hostEditor.setCursorBufferPosition([0, 4])
+    const hostEditor1 = await hostEnv.workspace.open(temp.path({extension: '.js'}))
+    hostEditor1.setText('const hello = "world"')
+    hostEditor1.setCursorBufferPosition([0, 4])
 
     await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor = guestEnv.workspace.getActiveTextEditor()
-    assert.equal(guestEditor.getText(), hostEditor.getText())
-    assert.equal(guestEditor.getTitle(), `Remote Buffer: ${hostEditor.getTitle()}`)
-    assert(!guestEditor.isModified())
-    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
+    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor1.getText(), 'const hello = "world"')
+    assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
+    assert(!guestEditor1.isModified())
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
-    hostEditor.setSelectedBufferRanges([
+    hostEditor1.setSelectedBufferRanges([
       [[0, 0], [0, 2]],
       [[0, 4], [0, 6]]
     ])
-    guestEditor.setSelectedBufferRanges([
+    guestEditor1.setSelectedBufferRanges([
       [[0, 1], [0, 3]],
       [[0, 5], [0, 7]]
     ])
-    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
-    assert(guestPackage.bindingForEditor(guestEditor).isFollowingHostCursor())
-    guestPackage.toggleFollowHostCursor(guestEditor)
-    assert(!guestPackage.bindingForEditor(guestEditor).isFollowingHostCursor())
+    assert(guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
+    guestPackage.toggleFollowHostCursor(guestEditor1)
+    assert(!guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
+
+    const hostEditor2 = await hostEnv.workspace.open(temp.path({extension: '.md'}))
+    hostEditor2.setText('# Hello, World')
+    hostEditor2.setCursorBufferPosition([0, 2])
+
+    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
+    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor2.getText(), '# Hello, World')
+    assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
   })
 })
 
