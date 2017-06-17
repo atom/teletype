@@ -49,10 +49,14 @@ suite('RealTimePackage', () => {
 
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv, clipboard)
-    await hostPackage.sharePortal()
-
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv, clipboard)
+
+    let hostNotifications = []
+    hostEnv.notifications.onDidAddNotification((n) => {hostNotifications.push(n)})
+    await hostPackage.sharePortal()
+    assert(hostNotifications.find((n) => n.message.match(/portal id/i)))
+
     await guestPackage.joinPortal()
 
     const hostEditor1 = await hostEnv.workspace.open(temp.path({extension: '.js'}))
