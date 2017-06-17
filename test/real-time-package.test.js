@@ -55,7 +55,7 @@ suite('RealTimePackage', () => {
     let hostNotifications = []
     hostEnv.notifications.onDidAddNotification((n) => {hostNotifications.push(n)})
     await hostPackage.sharePortal()
-    assert(hostNotifications.find((n) => n.message.match(/portal id/i)))
+    assert(hostNotifications.find((n) => n.message.match(/portal/i)))
 
     await guestPackage.joinPortal()
 
