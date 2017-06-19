@@ -46,9 +46,9 @@ suite('RealTimePackage', () => {
 
   test('sharing and joining a portal', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, new FakeClipboard())
+    const hostPackage = buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, new FakeClipboard())
+    const guestPackage = buildPackage(guestEnv)
     const portalId = await hostPackage.sharePortal()
 
     guestPackage.joinPortal(portalId)
@@ -90,12 +90,11 @@ suite('RealTimePackage', () => {
   })
 
   test('preserving guest portal position in workspace', async function () {
-    const hostClipboard = new FakeClipboard()
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, hostClipboard)
+    const hostPackage = buildPackage(hostEnv)
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, new FakeClipboard())
+    const guestPackage = buildPackage(guestEnv)
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
 
@@ -115,13 +114,13 @@ suite('RealTimePackage', () => {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
   })
 
-  function buildPackage (env, clipboard) {
+  function buildPackage (env) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
       commandRegistry: env.commands,
-      clipboard: clipboard
+      clipboard: new FakeClipboard()
     })
   }
 })
