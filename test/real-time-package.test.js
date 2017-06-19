@@ -49,11 +49,7 @@ suite('RealTimePackage', () => {
     const hostPackage = buildPackage(hostEnv, new FakeClipboard())
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv, new FakeClipboard())
-
-    let hostNotifications = []
-    hostEnv.notifications.onDidAddNotification((n) => {hostNotifications.push(n)})
     const portalId = await hostPackage.sharePortal()
-    assert(hostNotifications.find((n) => n.message.match(/portal/i)))
 
     guestPackage.joinPortal(portalId)
 
