@@ -114,6 +114,27 @@ suite('RealTimePackage', () => {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
   })
 
+  test('closing guest portal editor when last editor is closed in host workspace', async function() {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    const portalId = await hostPackage.sharePortal()
+
+    await guestPackage.joinPortal(portalId)
+
+    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    assert.equal(guestEnv.workspace.getActiveTextEditor().getTitle(), 'Remote Buffer: some-file')
+
+    hostEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await condition(() => guestEnv.workspace.getActiveTextEditor() == null)
+
+    await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    assert.equal(guestEnv.workspace.getActiveTextEditor().getTitle(), 'Remote Buffer: some-file')
+  })
+
   function buildPackage (env) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
