@@ -120,7 +120,7 @@ suite('RealTimePackage', () => {
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
-      commands: env.commands,
+      commandRegistry: env.commands,
       clipboard: clipboard
     })
   }
