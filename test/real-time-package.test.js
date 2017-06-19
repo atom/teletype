@@ -45,19 +45,17 @@ suite('RealTimePackage', () => {
   })
 
   test('sharing and joining a portal', async function () {
-    const clipboard = new FakeClipboard()
-
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, clipboard)
+    const hostPackage = buildPackage(hostEnv, new FakeClipboard())
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, clipboard)
+    const guestPackage = buildPackage(guestEnv, new FakeClipboard())
 
     let hostNotifications = []
     hostEnv.notifications.onDidAddNotification((n) => {hostNotifications.push(n)})
-    await hostPackage.sharePortal()
+    const portalId = await hostPackage.sharePortal()
     assert(hostNotifications.find((n) => n.message.match(/portal/i)))
 
-    await guestPackage.joinPortal()
+    guestPackage.joinPortal(portalId)
 
     const hostEditor1 = await hostEnv.workspace.open(temp.path({extension: '.js'}))
     hostEditor1.setText('const hello = "world"')
@@ -96,18 +94,17 @@ suite('RealTimePackage', () => {
   })
 
   test('preserving guest portal position in workspace', async function () {
-    const clipboard = new FakeClipboard()
-
+    const hostClipboard = new FakeClipboard()
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, clipboard)
+    const hostPackage = buildPackage(hostEnv, hostClipboard)
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, clipboard)
+    const guestPackage = buildPackage(guestEnv, new FakeClipboard())
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
 
-    await hostPackage.sharePortal()
-    await guestPackage.joinPortal()
+    const portalId = await hostPackage.sharePortal()
+    await guestPackage.joinPortal(portalId)
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
     await condition(() => guestEnv.workspace.getActiveTextEditor().getTitle() === 'Remote Buffer: host-1')
