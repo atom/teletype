@@ -49,7 +49,7 @@ suite('RealTimePackage', () => {
     const hostPackage = buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
-    const portalId = await hostPackage.sharePortal()
+    const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
 
@@ -98,7 +98,7 @@ suite('RealTimePackage', () => {
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
 
-    const portalId = await hostPackage.sharePortal()
+    const portalId = (await hostPackage.sharePortal()).id
     await guestPackage.joinPortal(portalId)
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
@@ -119,7 +119,7 @@ suite('RealTimePackage', () => {
     const hostPackage = buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
-    const portalId = await hostPackage.sharePortal()
+    const portalId = (await hostPackage.sharePortal()).id
 
     await guestPackage.joinPortal(portalId)
 
@@ -135,13 +135,47 @@ suite('RealTimePackage', () => {
     assert.equal(guestEnv.workspace.getActiveTextEditor().getTitle(), 'Remote Buffer: some-file')
   })
 
-  function buildPackage (env) {
+  test('host disconnecting', async function () {
+    const HEARTBEAT_INTERVAL_IN_MS = 10
+    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
+    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
+
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const hostPortal = await hostPackage.sharePortal()
+
+    await guestPackage.joinPortal(hostPortal.id)
+
+    const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
+    hostEditor.setText('const hello = "world"')
+    hostEditor.setCursorBufferPosition([0, 4])
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+
+    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
+    guestEditor.setCursorBufferPosition([0, 5])
+
+    await hostPortal.simulateNetworkFailure()
+    await timeout(EVICTION_PERIOD_IN_MS)
+    testServer.heartbeatService.evictDeadSites()
+    await condition(() => guestEditor.getTitle() === 'untitled')
+    assert.equal(guestEditor.getText(), 'const hello = "world"')
+    assert(guestEditor.isModified())
+    assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
+      {start: {row: 0, column: 5}, end: {row: 0, column: 5}}
+    ])
+  })
+
+  function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
       commandRegistry: env.commands,
-      clipboard: new FakeClipboard()
+      clipboard: new FakeClipboard(),
+      heartbeatIntervalInMilliseconds,
     })
   }
 })
@@ -161,6 +195,10 @@ function condition (fn) {
   return new Promise((resolve) => {
     setInterval(() => fn() ? resolve() : null, 15)
   })
+}
+
+function timeout (ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 class FakeClipboard {

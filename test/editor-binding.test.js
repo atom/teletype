@@ -48,6 +48,41 @@ describe('EditorBinding', () => {
     )
   })
 
+  it('clears remote selections for disconnected remote site', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding(editor)
+    const sharedEditor = new FakeSharedEditor(binding)
+    binding.setSharedEditor(sharedEditor)
+
+    editor.setSelectedBufferRanges([
+      [[10, 0], [11, 4]],
+      [[20, 0], [20, 5]]
+    ])
+    binding.setSelectionMarkerLayerForSiteId(2, {
+      1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}
+    })
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
+        {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
+        {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+      ]
+    )
+
+    binding.setSelectionMarkerLayerForSiteId(2, null)
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
+        {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+      ]
+    )
+  })
+
   it('clears the tail of remote selection markers when they become empty', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
