@@ -14,7 +14,7 @@ const test = global.it
 const temp = require('temp').track()
 
 suite('RealTimePackage', () => {
-  let testServer, containerElement
+  let testServer, containerElement, portals
 
   suiteSetup(async () => {
     const {startTestServer} = require('@atom-team/real-time-server')
@@ -34,14 +34,18 @@ suite('RealTimePackage', () => {
   })
 
   setup(() => {
+    portals = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
 
     return testServer.reset()
   })
 
-  teardown(() => {
+  teardown(async () => {
     containerElement.remove()
+    for (const portal of portals) {
+      await portal.dispose()
+    }
   })
 
   test('sharing and joining a portal', async function () {
@@ -176,6 +180,7 @@ suite('RealTimePackage', () => {
       commandRegistry: env.commands,
       clipboard: new FakeClipboard(),
       heartbeatIntervalInMilliseconds,
+      didCreateOrJoinPortal: (portal) => portals.push(portal)
     })
   }
 })
