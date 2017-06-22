@@ -14,7 +14,7 @@ const test = global.it
 const temp = require('temp').track()
 
 suite('RealTimePackage', () => {
-  let testServer, containerElement, portals
+  let testServer, containerElement, portals, conditionErrorMessage
 
   suiteSetup(async () => {
     const {startTestServer} = require('@atom-team/real-time-server')
@@ -34,6 +34,7 @@ suite('RealTimePackage', () => {
   })
 
   setup(() => {
+    conditionErrorMessage = null
     portals = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
@@ -42,6 +43,10 @@ suite('RealTimePackage', () => {
   })
 
   teardown(async () => {
+    if (conditionErrorMessage) {
+      console.error('Condition failed with error message: ', conditionErrorMessage)
+    }
+
     containerElement.remove()
     for (const portal of portals) {
       await portal.dispose()
@@ -162,7 +167,10 @@ suite('RealTimePackage', () => {
     guestEditor.setCursorBufferPosition([0, 5])
 
     await hostPortal.simulateNetworkFailure()
-    await timeout(EVICTION_PERIOD_IN_MS)
+    await condition(async () => deepEqual(
+      await testServer.heartbeatService.findDeadSites(),
+      [{portalId: hostPortal.id, id: hostPortal.siteId}]
+    ))
     testServer.heartbeatService.evictDeadSites()
     await condition(() => guestEditor.getTitle() === 'untitled')
     assert.equal(guestEditor.getText(), 'const hello = "world"')
@@ -183,6 +191,26 @@ suite('RealTimePackage', () => {
       didCreateOrJoinPortal: (portal) => portals.push(portal)
     })
   }
+
+  function condition (fn, message) {
+    assert(!conditionErrorMessage, 'Cannot await on multiple conditions at the same time')
+
+    conditionErrorMessage = message
+    return new Promise((resolve) => {
+      async function callback () {
+        const resultOrPromise = fn()
+        const result = (resultOrPromise instanceof Promise) ? (await resultOrPromise) : resultOrPromise
+        if (result) {
+          conditionErrorMessage = null
+          resolve()
+        } else {
+          setTimeout(callback, 5)
+        }
+      }
+
+      callback()
+    })
+  }
 })
 
 function getCursorDecoratedRanges (editor) {
@@ -196,11 +224,6 @@ function getCursorDecoratedRanges (editor) {
   return ranges.sort((a, b) => a.compare(b))
 }
 
-function condition (fn) {
-  return new Promise((resolve) => {
-    setInterval(() => fn() ? resolve() : null, 15)
-  })
-}
 class FakeClipboard {
   constructor () {
     this.text = null
