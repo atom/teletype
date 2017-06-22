@@ -166,6 +166,9 @@ suite('RealTimePackage', () => {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
     guestEditor.setCursorBufferPosition([0, 5])
 
+    const guestEditorTitleChangeEvents = []
+    guestEditor.onDidChangeTitle((title) => guestEditorTitleChangeEvents.push(title))
+
     await hostPortal.simulateNetworkFailure()
     await condition(async () => deepEqual(
       await testServer.heartbeatService.findDeadSites(),
@@ -173,6 +176,7 @@ suite('RealTimePackage', () => {
     ))
     testServer.heartbeatService.evictDeadSites()
     await condition(() => guestEditor.getTitle() === 'untitled')
+    assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
     assert.equal(guestEditor.getText(), 'const hello = "world"')
     assert(guestEditor.isModified())
     assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
