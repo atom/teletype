@@ -201,11 +201,6 @@ function condition (fn) {
     setInterval(() => fn() ? resolve() : null, 15)
   })
 }
-
-function timeout (ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 class FakeClipboard {
   constructor () {
     this.text = null
