@@ -17,7 +17,7 @@ suite('RealTimePackage', () => {
   let testServer, containerElement, portals, conditionErrorMessage
 
   suiteSetup(async () => {
-    const {startTestServer} = require('@atom-team/real-time-server')
+    const {startTestServer} = require('@atom/real-time-server')
     testServer = await startTestServer({
       databaseURL: 'postgres://localhost:5432/real-time-server-test',
       // Uncomment and provide credentials to test against Pusher.
