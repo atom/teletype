@@ -157,13 +157,18 @@ suite('RealTimePackage', () => {
 
     await guestPackage.joinPortal(hostPortal.id)
 
-    const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    hostEditor.setText('const hello = "world"')
-    hostEditor.setCursorBufferPosition([0, 4])
+    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
+    hostEditor1.setText('const hello = "world"')
+    hostEditor1.setCursorBufferPosition([0, 4])
     await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
 
+    const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
+    hostEditor2.setText('const goodnight = "moon"')
+    hostEditor2.setCursorBufferPosition([0, 2])
+    await condition(() => guestEnv.workspace.getActiveTextEditor().getTitle() === 'Remote Buffer: file-2')
+
     const guestEditor = guestEnv.workspace.getActiveTextEditor()
-    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor)))
     guestEditor.setCursorBufferPosition([0, 5])
 
     const guestEditorTitleChangeEvents = []
@@ -177,7 +182,7 @@ suite('RealTimePackage', () => {
     testServer.heartbeatService.evictDeadSites()
     await condition(() => guestEditor.getTitle() === 'untitled')
     assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
-    assert.equal(guestEditor.getText(), 'const hello = "world"')
+    assert.equal(guestEditor.getText(), 'const goodnight = "moon"')
     assert(guestEditor.isModified())
     assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
       {start: {row: 0, column: 5}, end: {row: 0, column: 5}}
