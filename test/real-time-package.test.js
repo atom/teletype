@@ -189,6 +189,7 @@ suite('RealTimePackage', () => {
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
+      notificationManager: env.notifications,
       commandRegistry: env.commands,
       clipboard: new FakeClipboard(),
       heartbeatIntervalInMilliseconds,
