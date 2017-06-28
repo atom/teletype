@@ -2,7 +2,7 @@
 
 Welcome to the **TOP SECRET** real-time package!
 
-⚠️❗ **Important:** This package is super duper top secret for now. Please don't mention it to any non-Hubbers. ❗⚠️
+⚠️❗🔐 This package is super duper top secret for now. Please don't mention it to any non-Hubbers. 🔐❗⚠️
 
 ## Installation
 
