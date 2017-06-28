@@ -1,6 +1,6 @@
 # real-time
 
-Welcome to the **TOP SECRET** real-time package! If it's your first time here, please follow the steps below to get set up.
+Welcome to the **TOP SECRET** real-time package!
 
 ⚠️❗ **Important:** This package is super duper top secret for now. Please don't mention it to any non-Hubbers. ❗⚠️
 
