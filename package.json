@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
+  "repository": "https://github.com/atom/real-time",
   "scripts": {
     "test": "atom --test test"
   },
