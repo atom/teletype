@@ -1,0 +1,9 @@
+[submodule "node_modules/@atom/real-time-client"]
+	path = node_modules/@atom/real-time-client
+	url = https://github.com/atom/real-time-client.git
+[submodule "node_modules/@atom/real-time-server"]
+	path = node_modules/@atom/real-time-server
+	url = https://github.com/atom/real-time-server.git
+[submodule "node_modules/@atom/tachyon"]
+	path = node_modules/@atom/tachyon
+	url = https://github.com/atom/tachyon.git
