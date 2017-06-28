@@ -4,11 +4,15 @@ Welcome to the **TOP SECRET** real-time package! If it's your first time here, p
 
 ⚠️❗ **Important:** This package is super duper top secret for now. Please don't mention it to any non-Hubbers. ❗⚠️
 
-## Prerequisites
-
-For now, you must be a member of the [@atom/hubbers team in npm](https://www.npmjs.com/org/atom/team/hubbers#members). If you aren't, please drop a note in the [#atom channel][] and we'll add you.
-
 ## Installation
+
+```sh
+apm install --production https://github.com/atom/real-time
+```
+
+## Development
+
+**Prerequisites**: For now, you must be a member of the [@atom/hubbers team in npm](https://www.npmjs.com/org/atom/team/hubbers#members). If you aren't, please drop a note in the [#atom channel][#atom channel] and we'll add you.
 
 ```sh
 git clone https://github.com/atom/real-time
