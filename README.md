@@ -7,7 +7,7 @@ Welcome to the **TOP SECRET** real-time package! If it's your first time here, p
 ## Installation
 
 ```sh
-apm install --production https://github.com/atom/real-time
+apm install https://github.com/atom/real-time
 ```
 
 ## Development
@@ -16,13 +16,8 @@ apm install --production https://github.com/atom/real-time
 
 ```sh
 git clone https://github.com/atom/real-time
-
 cd real-time
-
-# Some of the NPM modules we use internally are private, and `apm install` does
-# not support private modules yet.
-npm install
-
+apm install
 apm link
 ```
 
