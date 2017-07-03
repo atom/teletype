@@ -1,4 +1,8 @@
-language: objective-c
+os: osx
+
+language: node_js
+
+node_js: "7"
 
 notifications:
   email:
