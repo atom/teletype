@@ -3,7 +3,7 @@
 echo "Downloading latest Atom master build..."
 mkdir atom
 artifact_url=$(script/last-atom-master-artifact-url.js)
-curl -L $artifact_url \
+curl -s -L $artifact_url \
     -H 'Accept: application/octet-stream' \
     -o "atom.zip"
 unzip -q atom.zip -d atom
@@ -28,7 +28,6 @@ echo "Using NPM version:"
 npm --version
 
 echo "Downloading package dependencies..."
-"${APM_SCRIPT_PATH}" clean
 "${APM_SCRIPT_PATH}" install
 
 echo "Running specs..."
