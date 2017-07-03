@@ -9,7 +9,9 @@ const teardown = global.afterEach
 const suite = global.describe
 const test = global.it
 
-suite('JoinPortalDialog', () => {
+suite('JoinPortalDialog', function () {
+  if (process.env.CI) this.timeout(10000)
+
   let atomEnv
 
   setup(() => {

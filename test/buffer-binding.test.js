@@ -2,7 +2,9 @@ const assert = require('assert')
 const {TextBuffer, Point} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 
-describe('BufferBinding', () => {
+describe('BufferBinding', function () {
+  if (process.env.CI) this.timeout(10000)
+
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding(buffer)
