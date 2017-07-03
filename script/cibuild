@@ -17,19 +17,20 @@ export PATH="${PATH}:${TRAVIS_BUILD_DIR}/atom/${ATOM_APP_NAME}/Contents/Resource
 
 echo "Using Atom version:"
 "${ATOM_SCRIPT_PATH}" -v
+
 echo "Using APM version:"
 "${APM_SCRIPT_PATH}" -v
 
-echo "Downloading package dependencies..."
-"${APM_SCRIPT_PATH}" clean
-
-export NPM_SCRIPT_PATH="npm"
-"${APM_SCRIPT_PATH}" install --production
-
 echo "Using Node version:"
 node --version
+
 echo "Using NPM version:"
 npm --version
+
+echo "Downloading package dependencies..."
+"${APM_SCRIPT_PATH}" clean
+"${APM_SCRIPT_PATH}" install
+
 echo "Running specs..."
 "${ATOM_SCRIPT_PATH}" --test test
 
