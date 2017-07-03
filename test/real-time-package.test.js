@@ -13,10 +13,12 @@ const suite = global.describe
 const test = global.it
 const temp = require('temp').track()
 
-suite('RealTimePackage', () => {
+suite('RealTimePackage', function () {
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+
   let testServer, containerElement, portals, conditionErrorMessage
 
-  suiteSetup(async () => {
+  suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
     testServer = await startTestServer({
       databaseURL: 'postgres://localhost:5432/real-time-server-test',

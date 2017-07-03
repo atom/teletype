@@ -5,7 +5,9 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 
-describe('EditorBinding', () => {
+describe('EditorBinding', function () {
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+
   it('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
