@@ -13,7 +13,7 @@ before_script:
   - createuser -s postgres
   - createdb real-time-server-test
 
-script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | ATOM_CHANNEL=beta sh'
+script: script/cibuild
 
 git:
   depth: 10

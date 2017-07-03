@@ -1,0 +1,36 @@
+#!/bin/sh
+
+echo "Downloading latest Atom master build..."
+mkdir atom
+artifact_url=$(script/last-atom-master-artifact-url.js)
+curl -L $artifact_url \
+    -H 'Accept: application/octet-stream' \
+    -o "atom.zip"
+unzip -q atom.zip -d atom
+export ATOM_APP_NAME="Atom.app"
+export ATOM_SCRIPT_NAME="atom.sh"
+export ATOM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/atom.sh"
+export ATOM_PATH="./atom"
+export APM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/apm"
+export NPM_SCRIPT_PATH="./atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin/npm"
+export PATH="${PATH}:${TRAVIS_BUILD_DIR}/atom/${ATOM_APP_NAME}/Contents/Resources/app/apm/node_modules/.bin"
+
+echo "Using Atom version:"
+"${ATOM_SCRIPT_PATH}" -v
+echo "Using APM version:"
+"${APM_SCRIPT_PATH}" -v
+
+echo "Downloading package dependencies..."
+"${APM_SCRIPT_PATH}" clean
+
+export NPM_SCRIPT_PATH="npm"
+"${APM_SCRIPT_PATH}" install --production
+
+echo "Using Node version:"
+node --version
+echo "Using NPM version:"
+npm --version
+echo "Running specs..."
+"${ATOM_SCRIPT_PATH}" --test test
+
+exit

@@ -1,5 +1,4 @@
 const assert = require('assert')
-const {allowUnsafeEval} = require('loophole')
 
 const RealTimePackage = require('../lib/real-time-package')
 
@@ -18,22 +17,16 @@ suite('RealTimePackage', () => {
   let testServer, containerElement, portals, conditionErrorMessage
 
   suiteSetup(async () => {
-    // Bypass CSP errors caused by an Express.js dependency.
-    // TODO: Remove this once Atom 1.20 reaches stable.
-    let testServerPromise
-    allowUnsafeEval(() => {
-      const {startTestServer} = require('@atom/real-time-server')
-      testServerPromise = startTestServer({
-        databaseURL: 'postgres://localhost:5432/real-time-server-test',
-        // Uncomment and provide credentials to test against Pusher.
-        // pusherCredentials: {
-        //   appId: '123',
-        //   key: '123',
-        //   secret: '123'
-        // }
-      })
+    const {startTestServer} = require('@atom/real-time-server')
+    testServer = await startTestServer({
+      databaseURL: 'postgres://localhost:5432/real-time-server-test',
+      // Uncomment and provide credentials to test against Pusher.
+      // pusherCredentials: {
+      //   appId: '123',
+      //   key: '123',
+      //   secret: '123'
+      // }
     })
-    testServer = await testServerPromise
   })
 
   suiteTeardown(() => {
