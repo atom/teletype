@@ -6,9 +6,12 @@ Welcome to the **TOP SECRET** real-time package!
 
 ## Installation
 
-```sh
-apm install atom/real-time
-```
+1. Install [Atom 1.19 Beta](https://atom.io/beta) or newer
+2. In the terminal, install the package via apm:
+
+    ```sh
+    apm install atom/real-time
+    ```
 
 ## Development
 
