@@ -14,7 +14,7 @@ const test = global.it
 const temp = require('temp').track()
 
 suite('RealTimePackage', function () {
-  if (process.env.CI) this.timeout(10000)
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
   let testServer, containerElement, portals, conditionErrorMessage
 

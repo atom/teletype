@@ -6,7 +6,7 @@ const {TextEditor} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 
 describe('EditorBinding', function () {
-  if (process.env.CI) this.timeout(10000)
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
   it('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
     const editor = new TextEditor()

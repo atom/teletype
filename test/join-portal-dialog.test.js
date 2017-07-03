@@ -10,7 +10,7 @@ const suite = global.describe
 const test = global.it
 
 suite('JoinPortalDialog', function () {
-  if (process.env.CI) this.timeout(10000)
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
   let atomEnv
 

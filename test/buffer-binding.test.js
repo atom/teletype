@@ -3,7 +3,7 @@ const {TextBuffer, Point} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 
 describe('BufferBinding', function () {
-  if (process.env.CI) this.timeout(10000)
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
