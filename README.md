@@ -7,7 +7,7 @@ Welcome to the **TOP SECRET** real-time package!
 ## Installation
 
 ```sh
-apm install https://github.com/atom/real-time
+apm install atom/real-time
 ```
 
 ## Development
