@@ -191,6 +191,28 @@ suite('RealTimePackage', function () {
     ])
   })
 
+  test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    const hostEditor = await hostEnv.workspace.open()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+
+    hostEditor.transact(() => {
+      hostEditor.setText('abc\ndef')
+      hostEditor.transact(() => {
+        hostEditor.setCursorBufferPosition([1, 2])
+      })
+    })
+
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
+  })
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
