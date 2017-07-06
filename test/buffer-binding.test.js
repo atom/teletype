@@ -32,6 +32,17 @@ describe('BufferBinding', function () {
     assert.equal(sharedBuffer.text, 'bye\nbye\nworms')
   })
 
+  it('does not relay empty changes to the shared buffer', () => {
+    const buffer = new TextBuffer('hello\nworld')
+    const binding = new BufferBinding(buffer)
+    const sharedBuffer = new FakeSharedBuffer(binding, buffer.getText())
+    binding.setSharedBuffer(sharedBuffer)
+
+    buffer.setTextInRange([[0, 0], [0, 0]], '')
+    assert.equal(buffer.getText(), 'hello\nworld')
+    assert.equal(sharedBuffer.text, 'hello\nworld')
+  })
+
   class FakeSharedBuffer {
     constructor (delegate, text) {
       this.delegate = delegate
@@ -44,6 +55,7 @@ describe('BufferBinding', function () {
     }
 
     applyMany (operations) {
+      assert(operations.length > 0, 'Must send at least one operation')
       for (let i = 0; i < operations.length; i++) {
         const op = operations[i]
         switch (op.type) {
