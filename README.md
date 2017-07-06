@@ -20,6 +20,10 @@ Once you've installed the package, you're ready to start collaborating in real-t
 - To share your workspace, open the command palette and run the _Real Time: Share Portal_ command. Then, use Slack to send the portal ID to the GitHubbers that you want to collaborate with.
 - To join a portal,  open the command palette, run the _Real Time: Join Portal_ command, and enter the portal ID.
 
+## Demo
+
+[![Real-time Collaboration in Atom](https://github-talks.s3.amazonaws.com/uploads/138/1089/e52cacb3-2d21-4974-b24e-545a33a684ef.embed_cover.jpg)](https://githubber.tv/jasonrudolph/real-time-collaboration-in-atom)
+
 ## Known issues
 
 It's super early days for the real-time package, so there are a few things you'll want to keep in mind:
