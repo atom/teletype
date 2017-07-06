@@ -189,6 +189,14 @@ suite('RealTimePackage', function () {
     assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
       {start: {row: 0, column: 5}, end: {row: 0, column: 5}}
     ])
+
+    // Ensure that the guest can still edit the buffer or modify selections.
+    guestEditor.getBuffer().setTextInRange([[0, 0], [0, 5]], 'let')
+    guestEditor.setCursorBufferPosition([0, 7])
+    assert.equal(guestEditor.getText(), 'let goodnight = "moon"')
+    assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
+      {start: {row: 0, column: 7}, end: {row: 0, column: 7}}
+    ])
   })
 
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
