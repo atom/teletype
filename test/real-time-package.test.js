@@ -113,7 +113,7 @@ suite('RealTimePackage', function () {
     await guestPackage.joinPortal(portalId)
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
-    await condition(() => guestEnv.workspace.getActiveTextEditor().getTitle() === 'Remote Buffer: host-1')
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1']))
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
     assert.deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2'])
@@ -125,7 +125,7 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
   })
 
-  test('closing guest portal editor when last editor is closed in host workspace', async function() {
+  test('host without an active text editor', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
@@ -133,17 +133,16 @@ suite('RealTimePackage', function () {
     const portalId = (await hostPackage.sharePortal()).id
 
     await guestPackage.joinPortal(portalId)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    assert.equal(guestEnv.workspace.getActiveTextEditor().getTitle(), 'Remote Buffer: some-file')
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
 
     hostEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => guestEnv.workspace.getActiveTextEditor() == null)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
 
     await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    assert.equal(guestEnv.workspace.getActiveTextEditor().getTitle(), 'Remote Buffer: some-file')
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
   })
 
   test('host disconnecting', async function () {
