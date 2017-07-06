@@ -213,6 +213,38 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
   })
 
+  test('autoscrolling to the host cursor position when changing the active editor', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    // Attach the workspace element to the DOM, and give it an extremely small
+    // height so that we can be sure that the editor will be scrollable.
+    const guestWorkspaceElement = guestEnv.views.getView(guestEnv.workspace)
+    guestWorkspaceElement.style.height = '10px'
+    containerElement.appendChild(guestWorkspaceElement)
+
+    const portal = await hostPackage.sharePortal()
+    guestPackage.joinPortal(portal.id)
+
+    const hostEditor1 = await hostEnv.workspace.open()
+    hostEditor1.setText('abc\ndef\nghi')
+    hostEditor1.setCursorBufferPosition([2, 0])
+
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor1.getScrollTopRow(), 2)
+
+    const hostEditor2 = await hostEnv.workspace.open()
+    hostEditor2.setText('jkl\nmno\npqr\nstu')
+    hostEditor2.setCursorBufferPosition([3, 0])
+
+    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
+    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor2.getScrollTopRow(), 3)
+  })
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
