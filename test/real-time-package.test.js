@@ -145,7 +145,21 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
   })
 
-  test('host disconnecting while there is an active shared editor', async function () {
+  test('host closing portal', async function () {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+
+    hostPackage.closePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+  })
+
+  test('host losing connection while there is an active shared editor', async function () {
     const HEARTBEAT_INTERVAL_IN_MS = 10
     const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
     testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
@@ -198,7 +212,7 @@ suite('RealTimePackage', function () {
     ])
   })
 
-  test('host disconnecting while there is no active shared editor', async function () {
+  test('host losing connection while there is no active shared editor', async function () {
     const HEARTBEAT_INTERVAL_IN_MS = 10
     const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
     testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
