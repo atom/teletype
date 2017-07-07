@@ -19,5 +19,12 @@
   "dependencies": {
     "@atom/real-time-client": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/real-time-client/tarball/v0.7.12",
     "loophole": "^1.1.0"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
   }
 }

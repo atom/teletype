@@ -275,6 +275,44 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor2.getScrollTopRow(), 3)
   })
 
+  test('status bar indicator', async () => {
+    const HEARTBEAT_INTERVAL_IN_MS = 10
+    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
+    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
+
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const hostStatusBar = new FakeStatusBar()
+    hostPackage.consumeStatusBar(hostStatusBar)
+
+    const hostPortal = await hostPackage.sharePortal()
+    assert.equal(hostStatusBar.getRightTiles().length, 1)
+
+    hostPackage.clipboard.write('')
+    hostStatusBar.getRightTiles()[0].item.click()
+    assert.equal(hostPackage.clipboard.read(), hostPortal.id)
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const guestStatusBar = new FakeStatusBar()
+    guestPackage.consumeStatusBar(guestStatusBar)
+
+    await guestPackage.joinPortal(hostPortal.id)
+    assert.equal(guestStatusBar.getRightTiles().length, 1)
+
+    guestPackage.clipboard.write('')
+    guestStatusBar.getRightTiles()[0].item.click()
+    assert.equal(guestPackage.clipboard.read(), hostPortal.id)
+
+    await hostPortal.simulateNetworkFailure()
+    await condition(async () => deepEqual(
+      await testServer.heartbeatService.findDeadSites(),
+      [{portalId: hostPortal.id, id: hostPortal.siteId}]
+    ))
+    testServer.heartbeatService.evictDeadSites()
+    await condition(() => guestStatusBar.getRightTiles().length === 0)
+  })
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
@@ -282,6 +320,7 @@ suite('RealTimePackage', function () {
       workspace: env.workspace,
       notificationManager: env.notifications,
       commandRegistry: env.commands,
+      tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
       heartbeatIntervalInMilliseconds,
       didCreateOrJoinPortal: (portal) => portals.push(portal)
@@ -331,5 +370,25 @@ class FakeClipboard {
 
   write (text) {
     this.text = text
+  }
+}
+
+class FakeStatusBar {
+  constructor () {
+    this.rightTiles = []
+  }
+
+  getRightTiles () {
+    return this.rightTiles
+  }
+
+  addRightTile (tile) {
+    this.rightTiles.push(tile)
+    return {
+      destroy: () => {
+        const index = this.rightTiles.indexOf(tile)
+        this.rightTiles.splice(index, 1)
+      }
+    }
   }
 }
