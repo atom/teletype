@@ -290,9 +290,10 @@ suite('RealTimePackage', function () {
 
     const host1Portal = await host1Package.sharePortal()
     assert.equal(host1StatusBar.getRightTiles().length, 1)
+    assert(host1StatusBar.getRightTiles()[0].item.element.classList.contains('focused'))
 
     host1Package.clipboard.write('')
-    host1StatusBar.getRightTiles()[0].item.click()
+    host1StatusBar.getRightTiles()[0].item.element.click()
     assert.equal(host1Package.clipboard.read(), host1Portal.id)
 
     const host2Env = buildAtomEnvironment()
@@ -309,13 +310,23 @@ suite('RealTimePackage', function () {
 
     assert.equal(guestStatusBar.getRightTiles().length, 2)
     const [host1Tile, host2Tile] = guestStatusBar.getRightTiles()
+    assert(!host1Tile.item.element.classList.contains('focused'))
+    assert(host2Tile.item.element.classList.contains('focused'))
+
+    guestEnv.workspace.getActivePane().activateItemAtIndex(0)
+    assert(host1Tile.item.element.classList.contains('focused'))
+    assert(!host2Tile.item.element.classList.contains('focused'))
+
+    await guestEnv.workspace.open()
+    assert(!host1Tile.item.element.classList.contains('focused'))
+    assert(!host2Tile.item.element.classList.contains('focused'))
 
     guestPackage.clipboard.write('')
-    host1Tile.item.click()
+    host1Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host1Portal.id)
 
     guestPackage.clipboard.write('')
-    host2Tile.item.click()
+    host2Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
     await host1Portal.simulateNetworkFailure()
@@ -399,6 +410,7 @@ class FakeStatusBar {
   addRightTile (tile) {
     this.rightTiles.push(tile)
     return {
+      getItem: () => tile.item,
       destroy: () => {
         const index = this.rightTiles.indexOf(tile)
         this.rightTiles.splice(index, 1)
