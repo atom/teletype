@@ -13,6 +13,9 @@ const suite = global.describe
 const test = global.it
 const temp = require('temp').track()
 
+// TODO: For tests that aren't directly related to heartbeat logic, replace
+// usage of eviction via heartbeat with explicit closing of a portal.
+
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
