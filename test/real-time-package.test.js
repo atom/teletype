@@ -283,37 +283,48 @@ suite('RealTimePackage', function () {
     const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
     testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
 
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
-    const hostStatusBar = new FakeStatusBar()
-    hostPackage.consumeStatusBar(hostStatusBar)
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host1StatusBar = new FakeStatusBar()
+    host1Package.consumeStatusBar(host1StatusBar)
 
-    const hostPortal = await hostPackage.sharePortal()
-    assert.equal(hostStatusBar.getRightTiles().length, 1)
+    const host1Portal = await host1Package.sharePortal()
+    assert.equal(host1StatusBar.getRightTiles().length, 1)
 
-    hostPackage.clipboard.write('')
-    hostStatusBar.getRightTiles()[0].item.click()
-    assert.equal(hostPackage.clipboard.read(), hostPortal.id)
+    host1Package.clipboard.write('')
+    host1StatusBar.getRightTiles()[0].item.click()
+    assert.equal(host1Package.clipboard.read(), host1Portal.id)
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host2Portal = await host2Package.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
     const guestStatusBar = new FakeStatusBar()
     guestPackage.consumeStatusBar(guestStatusBar)
 
-    await guestPackage.joinPortal(hostPortal.id)
-    assert.equal(guestStatusBar.getRightTiles().length, 1)
+    await guestPackage.joinPortal(host1Portal.id)
+    await guestPackage.joinPortal(host2Portal.id)
+
+    assert.equal(guestStatusBar.getRightTiles().length, 2)
+    const [host1Tile, host2Tile] = guestStatusBar.getRightTiles()
 
     guestPackage.clipboard.write('')
-    guestStatusBar.getRightTiles()[0].item.click()
-    assert.equal(guestPackage.clipboard.read(), hostPortal.id)
+    host1Tile.item.click()
+    assert.equal(guestPackage.clipboard.read(), host1Portal.id)
 
-    await hostPortal.simulateNetworkFailure()
+    guestPackage.clipboard.write('')
+    host2Tile.item.click()
+    assert.equal(guestPackage.clipboard.read(), host2Portal.id)
+
+    await host1Portal.simulateNetworkFailure()
     await condition(async () => deepEqual(
       await testServer.heartbeatService.findDeadSites(),
-      [{portalId: hostPortal.id, id: hostPortal.siteId}]
+      [{portalId: host1Portal.id, id: host1Portal.siteId}]
     ))
     testServer.heartbeatService.evictDeadSites()
-    await condition(() => guestStatusBar.getRightTiles().length === 0)
+    await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
   })
 
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
