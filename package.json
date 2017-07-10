@@ -26,5 +26,8 @@
         "^1.0.0": "consumeStatusBar"
       }
     }
+  },
+  "engines": {
+    "atom": ">=1.19.0"
   }
 }

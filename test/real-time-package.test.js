@@ -264,7 +264,7 @@ suite('RealTimePackage', function () {
 
     await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
     const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
-    assert.equal(guestEditor1.getScrollTopRow(), 2)
+    await condition(() => guestEditor1.getScrollTopRow() === 2)
 
     const hostEditor2 = await hostEnv.workspace.open()
     hostEditor2.setText('jkl\nmno\npqr\nstu')
@@ -272,7 +272,7 @@ suite('RealTimePackage', function () {
 
     await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
     const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
-    assert.equal(guestEditor2.getScrollTopRow(), 3)
+    await condition(() => guestEditor2.getScrollTopRow() === 3)
   })
 
   test('status bar indicator', async () => {
