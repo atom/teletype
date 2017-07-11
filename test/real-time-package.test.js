@@ -13,6 +13,9 @@ const suite = global.describe
 const test = global.it
 const temp = require('temp').track()
 
+// TODO: For tests that aren't directly related to heartbeat logic, replace
+// usage of eviction via heartbeat with explicit closing of a portal.
+
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
@@ -275,6 +278,66 @@ suite('RealTimePackage', function () {
     await condition(() => guestEditor2.getScrollTopRow() === 3)
   })
 
+  test('status bar indicator', async () => {
+    const HEARTBEAT_INTERVAL_IN_MS = 10
+    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
+    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
+
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host1StatusBar = new FakeStatusBar()
+    host1Package.consumeStatusBar(host1StatusBar)
+
+    const host1Portal = await host1Package.sharePortal()
+    assert.equal(host1StatusBar.getRightTiles().length, 1)
+    assert(host1StatusBar.getRightTiles()[0].item.element.classList.contains('focused'))
+
+    host1Package.clipboard.write('')
+    host1StatusBar.getRightTiles()[0].item.element.click()
+    assert.equal(host1Package.clipboard.read(), host1Portal.id)
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host2Portal = await host2Package.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const guestStatusBar = new FakeStatusBar()
+    guestPackage.consumeStatusBar(guestStatusBar)
+
+    await guestPackage.joinPortal(host1Portal.id)
+    await guestPackage.joinPortal(host2Portal.id)
+
+    assert.equal(guestStatusBar.getRightTiles().length, 2)
+    const [host1Tile, host2Tile] = guestStatusBar.getRightTiles()
+    assert(!host1Tile.item.element.classList.contains('focused'))
+    assert(host2Tile.item.element.classList.contains('focused'))
+
+    guestEnv.workspace.getActivePane().activateItemAtIndex(0)
+    assert(host1Tile.item.element.classList.contains('focused'))
+    assert(!host2Tile.item.element.classList.contains('focused'))
+
+    await guestEnv.workspace.open()
+    assert(!host1Tile.item.element.classList.contains('focused'))
+    assert(!host2Tile.item.element.classList.contains('focused'))
+
+    guestPackage.clipboard.write('')
+    host1Tile.item.element.click()
+    assert.equal(guestPackage.clipboard.read(), host1Portal.id)
+
+    guestPackage.clipboard.write('')
+    host2Tile.item.element.click()
+    assert.equal(guestPackage.clipboard.read(), host2Portal.id)
+
+    await host1Portal.simulateNetworkFailure()
+    await condition(async () => deepEqual(
+      await testServer.heartbeatService.findDeadSites(),
+      [{portalId: host1Portal.id, id: host1Portal.siteId}]
+    ))
+    testServer.heartbeatService.evictDeadSites()
+    await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
+  })
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
@@ -282,6 +345,7 @@ suite('RealTimePackage', function () {
       workspace: env.workspace,
       notificationManager: env.notifications,
       commandRegistry: env.commands,
+      tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
       heartbeatIntervalInMilliseconds,
       didCreateOrJoinPortal: (portal) => portals.push(portal)
@@ -331,5 +395,26 @@ class FakeClipboard {
 
   write (text) {
     this.text = text
+  }
+}
+
+class FakeStatusBar {
+  constructor () {
+    this.rightTiles = []
+  }
+
+  getRightTiles () {
+    return this.rightTiles
+  }
+
+  addRightTile (tile) {
+    this.rightTiles.push(tile)
+    return {
+      getItem: () => tile.item,
+      destroy: () => {
+        const index = this.rightTiles.indexOf(tile)
+        this.rightTiles.splice(index, 1)
+      }
+    }
   }
 }
