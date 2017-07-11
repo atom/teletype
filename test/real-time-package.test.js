@@ -148,17 +148,47 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
   })
 
-  test('host disconnecting while there is an active shared editor', async function () {
+  test('host closing portal', async function () {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    guestPackage.joinPortal(hostPortal.id)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+
+    hostPackage.closePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+  })
+
+  test('host losing connection', async function () {
     const HEARTBEAT_INTERVAL_IN_MS = 10
     const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
     testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
 
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
-    const hostPortal = await hostPackage.sharePortal()
+    guestPackage.joinPortal(hostPortal.id)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
 
+    await hostPortal.simulateNetworkFailure()
+    await condition(async () => deepEqual(
+      await testServer.heartbeatService.findDeadSites(),
+      [{portalId: hostPortal.id, id: hostPortal.siteId}]
+    ))
+    testServer.heartbeatService.evictDeadSites()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+  })
+
+  test('host disconnecting while there is an active shared editor', async function () {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    const hostPortal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(hostPortal.id)
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
@@ -178,12 +208,7 @@ suite('RealTimePackage', function () {
     const guestEditorTitleChangeEvents = []
     guestEditor.onDidChangeTitle((title) => guestEditorTitleChangeEvents.push(title))
 
-    await hostPortal.simulateNetworkFailure()
-    await condition(async () => deepEqual(
-      await testServer.heartbeatService.findDeadSites(),
-      [{portalId: hostPortal.id, id: hostPortal.siteId}]
-    ))
-    testServer.heartbeatService.evictDeadSites()
+    hostPackage.closePortal()
     await condition(() => guestEditor.getTitle() === 'untitled')
     assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
     assert.equal(guestEditor.getText(), 'const goodnight = "moon"')
@@ -199,29 +224,6 @@ suite('RealTimePackage', function () {
     assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
       {start: {row: 0, column: 7}, end: {row: 0, column: 7}}
     ])
-  })
-
-  test('host disconnecting while there is no active shared editor', async function () {
-    const HEARTBEAT_INTERVAL_IN_MS = 10
-    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
-    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
-
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
-    const hostPortal = await hostPackage.sharePortal()
-
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
-    await guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
-
-    await hostPortal.simulateNetworkFailure()
-    await condition(async () => deepEqual(
-      await testServer.heartbeatService.findDeadSites(),
-      [{portalId: hostPortal.id, id: hostPortal.siteId}]
-    ))
-    testServer.heartbeatService.evictDeadSites()
-    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
