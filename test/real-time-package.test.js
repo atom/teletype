@@ -325,6 +325,7 @@ suite('RealTimePackage', function () {
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
     host1Package.closePortal()
+    assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
   })
 
