@@ -7,7 +7,7 @@ set -o pipefail
 echo "Downloading latest Atom master build..."
 mkdir atom
 artifact_url=$(script/last-atom-master-artifact-url.js)
-wget --retry-connrefused --waitretry=1 --output-document="atom.zip" $artifact_url
+wget --tries=42 --retry-connrefused --output-document="atom.zip" $artifact_url
 unzip -q atom.zip -d atom
 export ATOM_APP_NAME="Atom.app"
 export ATOM_SCRIPT_NAME="atom.sh"
