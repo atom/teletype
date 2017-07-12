@@ -7,7 +7,7 @@ set -o pipefail
 echo "Downloading latest Atom master build..."
 mkdir atom
 artifact_url=$(script/last-atom-master-artifact-url.js)
-curl -s -L $artifact_url \
+curl -L $artifact_url \
     -H 'Accept: application/octet-stream' \
     -o "atom.zip"
 unzip -q atom.zip -d atom
