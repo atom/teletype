@@ -337,9 +337,10 @@ suite('RealTimePackage', function () {
     assert(host1Tile.item.element.classList.contains('focused'))
     assert(!host2Tile.item.element.classList.contains('focused'))
 
-    await guestEnv.workspace.open()
+    const localEditor = await guestEnv.workspace.open()
     assert(!host1Tile.item.element.classList.contains('focused'))
     assert(!host2Tile.item.element.classList.contains('focused'))
+    localEditor.destroy()
 
     guestPackage.clipboard.write('')
     host1Tile.item.element.click()
@@ -352,6 +353,9 @@ suite('RealTimePackage', function () {
     host1Package.closePortal()
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
+
+    guestPackage.leavePortal()
+    assert.equal(guestStatusBar.getRightTiles().length, 0)
   })
 
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
