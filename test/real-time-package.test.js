@@ -145,6 +145,30 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
   })
 
+  test('guest leaving portal', async function () {
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env)
+    const host1Portal = await host1Package.sharePortal()
+    await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+    await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+
+    await guestPackage.joinPortal(host1Portal.id)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: host-1']))
+
+    await guestPackage.joinPortal(host2Portal.id)
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
+
+    guestPackage.leavePortal()
+    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: host-1']))
+  })
+
   test('host closing portal', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
