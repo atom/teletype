@@ -8,4 +8,9 @@
   &.focused {
     color: @text-color-success;
   }
+
+  // Remove margin on the icon since there is no text that follows
+  &&&:before {
+    margin-right: 0;
+  }
 }
