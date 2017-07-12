@@ -13,9 +13,6 @@ const suite = global.describe
 const test = global.it
 const temp = require('temp').track()
 
-// TODO: For tests that aren't directly related to heartbeat logic, replace
-// usage of eviction via heartbeat with explicit closing of a portal.
-
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
@@ -281,12 +278,8 @@ suite('RealTimePackage', function () {
   })
 
   test('status bar indicator', async () => {
-    const HEARTBEAT_INTERVAL_IN_MS = 10
-    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
-    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
-
     const host1Env = buildAtomEnvironment()
-    const host1Package = buildPackage(host1Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host1Package = buildPackage(host1Env)
     const host1StatusBar = new FakeStatusBar()
     host1Package.consumeStatusBar(host1StatusBar)
 
@@ -299,11 +292,11 @@ suite('RealTimePackage', function () {
     assert.equal(host1Package.clipboard.read(), host1Portal.id)
 
     const host2Env = buildAtomEnvironment()
-    const host2Package = buildPackage(host2Env, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const host2Package = buildPackage(host2Env)
     const host2Portal = await host2Package.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const guestPackage = buildPackage(guestEnv)
     const guestStatusBar = new FakeStatusBar()
     guestPackage.consumeStatusBar(guestStatusBar)
 
@@ -331,12 +324,7 @@ suite('RealTimePackage', function () {
     host2Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
-    await host1Portal.simulateNetworkFailure()
-    await condition(async () => deepEqual(
-      await testServer.heartbeatService.findDeadSites(),
-      [{portalId: host1Portal.id, id: host1Portal.siteId}]
-    ))
-    testServer.heartbeatService.evictDeadSites()
+    host1Package.closePortal()
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
   })
 
