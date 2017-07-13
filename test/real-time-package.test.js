@@ -113,16 +113,16 @@ suite('RealTimePackage', function () {
     await guestPackage.joinPortal(portalId)
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1']))
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
-    assert.deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2'])
+    assert.deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1', 'guest-2'])
 
     await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-2', 'guest-2']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-2', 'guest-2']))
 
     hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
   })
 
   test('host without an active text editor', async function () {
@@ -133,16 +133,41 @@ suite('RealTimePackage', function () {
     const portalId = (await hostPackage.sharePortal()).id
 
     await guestPackage.joinPortal(portalId)
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
 
     hostEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
     await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Remote Buffer: some-file']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
+  })
+
+  test('guest leaving portal', async function () {
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env)
+    const host1Portal = await host1Package.sharePortal()
+    await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+    await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+
+    await guestPackage.joinPortal(host1Portal.id)
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+
+    await guestPackage.joinPortal(host2Portal.id)
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
+
+    guestPackage.leavePortal()
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
   })
 
   test('host closing portal', async function () {
@@ -152,7 +177,7 @@ suite('RealTimePackage', function () {
     const guestPackage = buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
     hostPackage.closePortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
@@ -169,7 +194,7 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(guestEnv.workspace.getPaneItems().map((i) => i.getTitle()), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
     await hostPortal.simulateNetworkFailure()
     await condition(async () => deepEqual(
@@ -312,9 +337,10 @@ suite('RealTimePackage', function () {
     assert(host1Tile.item.element.classList.contains('focused'))
     assert(!host2Tile.item.element.classList.contains('focused'))
 
-    await guestEnv.workspace.open()
+    const localEditor = await guestEnv.workspace.open()
     assert(!host1Tile.item.element.classList.contains('focused'))
     assert(!host2Tile.item.element.classList.contains('focused'))
+    localEditor.destroy()
 
     guestPackage.clipboard.write('')
     host1Tile.item.element.click()
@@ -327,6 +353,39 @@ suite('RealTimePackage', function () {
     host1Package.closePortal()
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
+
+    guestPackage.leavePortal()
+    assert.equal(guestStatusBar.getRightTiles().length, 0)
+  })
+
+  test('workspace element classes', async () => {
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env)
+    const host1Portal = await host1Package.sharePortal()
+    assert(host1Env.workspace.getElement().classList.contains('portal-host'))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+
+    guestPackage.joinPortal(host1Portal.id)
+    guestPackage.joinPortal(host2Portal.id)
+    await condition(() => guestEnv.workspace.getPaneItems().length === 2)
+    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    guestPackage.leavePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 1)
+    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    guestPackage.leavePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+    assert(!guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    host1Package.closePortal()
+    assert(!host1Env.workspace.getElement().classList.contains('portal-host'))
   })
 
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
@@ -363,6 +422,10 @@ suite('RealTimePackage', function () {
     })
   }
 })
+
+function getPaneItemTitles (environment) {
+  return environment.workspace.getPaneItems().map((i) => i.getTitle())
+}
 
 function getCursorDecoratedRanges (editor) {
   const {decorationManager} = editor
