@@ -358,6 +358,36 @@ suite('RealTimePackage', function () {
     assert.equal(guestStatusBar.getRightTiles().length, 0)
   })
 
+  test('workspace element classes', async () => {
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env)
+    const host1Portal = await host1Package.sharePortal()
+    assert(host1Env.workspace.getElement().classList.contains('portal-host'))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+
+    guestPackage.joinPortal(host1Portal.id)
+    guestPackage.joinPortal(host2Portal.id)
+    await condition(() => guestEnv.workspace.getPaneItems().length === 2)
+    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    guestPackage.leavePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 1)
+    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    guestPackage.leavePortal()
+    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+    assert(!guestEnv.workspace.getElement().classList.contains('portal-guest'))
+
+    host1Package.closePortal()
+    assert(!host1Env.workspace.getElement().classList.contains('portal-host'))
+  })
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
     return new RealTimePackage({
       restGateway: testServer.restGateway,
