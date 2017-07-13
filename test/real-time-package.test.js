@@ -159,15 +159,16 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
 
-    await guestPackage.joinPortal(host1Portal.id)
+    const guestPortal1 = await guestPackage.joinPortal(host1Portal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
 
-    await guestPackage.joinPortal(host2Portal.id)
+    const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
 
     guestPackage.leavePortal()
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+    assert(guestPortal2.disposed)
   })
 
   test('host closing portal', async function () {
