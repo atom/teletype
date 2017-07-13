@@ -1,5 +1,8 @@
 const assert = require('assert')
 
+const {ipcRenderer} = require('electron')
+ipcRenderer.setMaxListeners(15)
+
 const RealTimePackage = require('../lib/real-time-package')
 
 const deepEqual = require('deep-equal')
@@ -16,7 +19,7 @@ const temp = require('temp').track()
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  let testServer, containerElement, portals, conditionErrorMessage
+  let testServer, containerElement, environments, packages, portals, conditionErrorMessage
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
@@ -37,6 +40,8 @@ suite('RealTimePackage', function () {
 
   setup(() => {
     conditionErrorMessage = null
+    environments = []
+    packages = []
     portals = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
@@ -50,8 +55,15 @@ suite('RealTimePackage', function () {
     }
 
     containerElement.remove()
+
+    for (const pack of packages) {
+      pack.dispose()
+    }
     for (const portal of portals) {
       await portal.dispose()
+    }
+    for (const env of environments) {
+      await env.destroy()
     }
   })
 
@@ -389,8 +401,14 @@ suite('RealTimePackage', function () {
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
+  function buildAtomEnvironment () {
+    const env = global.buildAtomEnvironment()
+    environments.push(env)
+    return env
+  }
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
-    return new RealTimePackage({
+    package = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
@@ -401,6 +419,10 @@ suite('RealTimePackage', function () {
       heartbeatIntervalInMilliseconds,
       didCreateOrJoinPortal: (portal) => portals.push(portal)
     })
+
+    packages.push(package)
+
+    return package
   }
 
   function condition (fn, message) {
