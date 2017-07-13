@@ -363,7 +363,7 @@ suite('RealTimePackage', function () {
     const host1Env = buildAtomEnvironment()
     const host1Package = buildPackage(host1Env)
     const host1Portal = await host1Package.sharePortal()
-    assert(host1Env.workspace.getElement().classList.contains('portal-host'))
+    assert(host1Env.workspace.getElement().classList.contains('realtime-Host'))
 
     const host2Env = buildAtomEnvironment()
     const host2Package = buildPackage(host2Env)
@@ -375,18 +375,18 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(host1Portal.id)
     guestPackage.joinPortal(host2Portal.id)
     await condition(() => guestEnv.workspace.getPaneItems().length === 2)
-    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+    assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
     guestPackage.leavePortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 1)
-    assert(guestEnv.workspace.getElement().classList.contains('portal-guest'))
+    assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
     guestPackage.leavePortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
-    assert(!guestEnv.workspace.getElement().classList.contains('portal-guest'))
+    assert(!guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
     host1Package.closePortal()
-    assert(!host1Env.workspace.getElement().classList.contains('portal-host'))
+    assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
