@@ -303,6 +303,27 @@ suite('RealTimePackage', function () {
     await condition(() => guestEditor2.getScrollTopRow() === 3)
   })
 
+  test('guest portal file path', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(hostPortal.id)
+
+    const projectPath = path.join(temp.mkdirSync(), 'some-project')
+    const projectSubDirPath = path.join(projectPath, 'sub-dir')
+    fs.mkdirSync(projectPath)
+    fs.mkdirSync(projectSubDirPath)
+    hostEnv.workspace.project.setPaths([projectPath])
+    hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
+    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:some-project/sub-dir/file.js')
+
+    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
+    hostEnv.workspace.open(standaloneFilePath)
+    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:' + standaloneFilePath)
+  })
+
   test('status bar indicator', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = buildPackage(host1Env)
@@ -426,6 +447,11 @@ suite('RealTimePackage', function () {
 
 function getPaneItemTitles (environment) {
   return environment.workspace.getPaneItems().map((i) => i.getTitle())
+}
+
+function getActivePaneItemPath (environment) {
+  const item = environment.workspace.getActivePaneItem()
+  return item && item.getPath && item.getPath()
 }
 
 function getCursorDecoratedRanges (editor) {
