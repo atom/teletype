@@ -1,8 +1,6 @@
+require('./setup')
+
 const assert = require('assert')
-
-const {ipcRenderer} = require('electron')
-ipcRenderer.setMaxListeners(15)
-
 const RealTimePackage = require('../lib/real-time-package')
 
 const deepEqual = require('deep-equal')
