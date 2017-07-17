@@ -1,8 +1,8 @@
 require('./setup')
 
-const assert = require('assert')
 const RealTimePackage = require('../lib/real-time-package')
 
+const assert = require('assert')
 const deepEqual = require('deep-equal')
 const fs = require('fs')
 const path = require('path')
