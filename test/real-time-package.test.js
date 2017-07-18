@@ -311,6 +311,9 @@ suite('RealTimePackage', function () {
     const guestPackage = buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
 
+    const unsavedFileEditor = await hostEnv.workspace.open()
+    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:untitled')
+
     const projectPath = path.join(temp.mkdirSync(), 'some-project')
     const projectSubDirPath = path.join(projectPath, 'sub-dir')
     fs.mkdirSync(projectPath)
