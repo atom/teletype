@@ -312,11 +312,13 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(hostPortal.id)
 
     const unsavedFileEditor = await hostEnv.workspace.open()
-    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:untitled')
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: untitled'))
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:untitled')
 
     const standaloneFilePath = path.join(temp.path(), 'standalone.js')
     hostEnv.workspace.open(standaloneFilePath)
-    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:' + standaloneFilePath)
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: standalone.js'))
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:' + standaloneFilePath)
 
     const projectPath = path.join(temp.mkdirSync(), 'some-project')
     const projectSubDirPath = path.join(projectPath, 'sub-dir')
@@ -324,7 +326,8 @@ suite('RealTimePackage', function () {
     fs.mkdirSync(projectSubDirPath)
     hostEnv.workspace.project.setPaths([projectPath])
     hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
-    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:some-project/sub-dir/file.js')
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: file.js'))
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:some-project/sub-dir/file.js')
   })
 
   test('status bar indicator', async () => {
@@ -450,11 +453,6 @@ suite('RealTimePackage', function () {
 
 function getPaneItemTitles (environment) {
   return environment.workspace.getPaneItems().map((i) => i.getTitle())
-}
-
-function getActivePaneItemPath (environment) {
-  const item = environment.workspace.getActivePaneItem()
-  return item && item.getPath && item.getPath()
 }
 
 function getCursorDecoratedRanges (editor) {
