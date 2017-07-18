@@ -368,8 +368,13 @@ suite('RealTimePackage', function () {
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
+    guestPackage.leavePortal()
+    assert.equal(guestStatusBar.getRightTiles().length, 0)
+
+    await guestPackage.joinPortal(host2Portal.id)
+    await condition(() => guestStatusBar.getRightTiles().length === 1)
     guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => deepEqual(guestStatusBar.getRightTiles().length, 0))
+    await condition(() => guestStatusBar.getRightTiles().length === 0)
   })
 
   test('workspace element classes', async () => {
