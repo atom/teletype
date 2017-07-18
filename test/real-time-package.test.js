@@ -314,6 +314,10 @@ suite('RealTimePackage', function () {
     const unsavedFileEditor = await hostEnv.workspace.open()
     await condition(() => getActivePaneItemPath(guestEnv) === 'remote:untitled')
 
+    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
+    hostEnv.workspace.open(standaloneFilePath)
+    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:' + standaloneFilePath)
+
     const projectPath = path.join(temp.mkdirSync(), 'some-project')
     const projectSubDirPath = path.join(projectPath, 'sub-dir')
     fs.mkdirSync(projectPath)
@@ -321,10 +325,6 @@ suite('RealTimePackage', function () {
     hostEnv.workspace.project.setPaths([projectPath])
     hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
     await condition(() => getActivePaneItemPath(guestEnv) === 'remote:some-project/sub-dir/file.js')
-
-    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
-    hostEnv.workspace.open(standaloneFilePath)
-    await condition(() => getActivePaneItemPath(guestEnv) === 'remote:' + standaloneFilePath)
   })
 
   test('status bar indicator', async () => {
