@@ -327,7 +327,10 @@ suite('RealTimePackage', function () {
     hostEnv.workspace.project.setPaths([projectPath])
     hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
     await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: file.js'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:some-project/sub-dir/file.js')
+    assert.equal(
+      guestEnv.workspace.getActivePaneItem().getPath(),
+      `remote:${path.join('some-project', 'sub-dir', 'file.js')}`
+    )
   })
 
   test('status bar indicator', async () => {
