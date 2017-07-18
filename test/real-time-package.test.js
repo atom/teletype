@@ -156,6 +156,9 @@ suite('RealTimePackage', function () {
     const host2Portal = await host2Package.sharePortal()
     await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
 
+    const host3Package = buildPackage(buildAtomEnvironment())
+    const host3Portal = await host3Package.sharePortal()
+
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
 
@@ -169,6 +172,16 @@ suite('RealTimePackage', function () {
     guestPackage.leavePortal()
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
     assert(guestPortal2.disposed)
+
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
+    assert(guestPortal1.disposed)
+
+    const guestPortal3 = await guestPackage.joinPortal(host3Portal.id)
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    assert(guestPortal3.disposed)
   })
 
   test('host closing portal', async function () {
