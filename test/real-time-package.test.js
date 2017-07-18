@@ -368,8 +368,8 @@ suite('RealTimePackage', function () {
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
-    guestPackage.leavePortal()
-    assert.equal(guestStatusBar.getRightTiles().length, 0)
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await condition(() => deepEqual(guestStatusBar.getRightTiles().length, 0))
   })
 
   test('workspace element classes', async () => {
