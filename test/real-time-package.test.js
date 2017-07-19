@@ -40,7 +40,6 @@ suite('RealTimePackage', function () {
     conditionErrorMessage = null
     environments = []
     packages = []
-    portals = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
 
@@ -55,10 +54,7 @@ suite('RealTimePackage', function () {
     containerElement.remove()
 
     for (const pack of packages) {
-      pack.dispose()
-    }
-    for (const portal of portals) {
-      await portal.dispose()
+      await pack.dispose()
     }
     for (const env of environments) {
       await env.destroy()
@@ -406,7 +402,7 @@ suite('RealTimePackage', function () {
   }
 
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
-    package = new RealTimePackage({
+    const pack = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
@@ -414,13 +410,12 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      heartbeatIntervalInMilliseconds,
-      didCreateOrJoinPortal: (portal) => portals.push(portal)
+      heartbeatIntervalInMilliseconds
     })
 
-    packages.push(package)
+    packages.push(pack)
 
-    return package
+    return pack
   }
 
   function condition (fn, message) {
