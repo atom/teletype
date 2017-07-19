@@ -1,7 +1,8 @@
-const assert = require('assert')
+require('./setup')
 
 const RealTimePackage = require('../lib/real-time-package')
 
+const assert = require('assert')
 const deepEqual = require('deep-equal')
 const fs = require('fs')
 const path = require('path')
@@ -16,7 +17,7 @@ const temp = require('temp').track()
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  let testServer, containerElement, portals, conditionErrorMessage
+  let testServer, containerElement, environments, packages, portals, conditionErrorMessage
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
@@ -37,7 +38,8 @@ suite('RealTimePackage', function () {
 
   setup(() => {
     conditionErrorMessage = null
-    portals = []
+    environments = []
+    packages = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
 
@@ -50,8 +52,12 @@ suite('RealTimePackage', function () {
     }
 
     containerElement.remove()
-    for (const portal of portals) {
-      await portal.dispose()
+
+    for (const pack of packages) {
+      await pack.dispose()
+    }
+    for (const env of environments) {
+      await env.destroy()
     }
   })
 
@@ -316,6 +322,36 @@ suite('RealTimePackage', function () {
     await condition(() => guestEditor2.getScrollTopRow() === 3)
   })
 
+  test('guest portal file path', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(hostPortal.id)
+
+    const unsavedFileEditor = await hostEnv.workspace.open()
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: untitled'))
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:untitled')
+
+    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
+    hostEnv.workspace.open(standaloneFilePath)
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: standalone.js'))
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:' + standaloneFilePath)
+
+    const projectPath = path.join(temp.mkdirSync(), 'some-project')
+    const projectSubDirPath = path.join(projectPath, 'sub-dir')
+    fs.mkdirSync(projectPath)
+    fs.mkdirSync(projectSubDirPath)
+    hostEnv.workspace.project.setPaths([projectPath])
+    hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: file.js'))
+    assert.equal(
+      guestEnv.workspace.getActivePaneItem().getPath(),
+      `remote:${path.join('some-project', 'sub-dir', 'file.js')}`
+    )
+  })
+
   test('status bar indicator', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = buildPackage(host1Env)
@@ -407,8 +443,14 @@ suite('RealTimePackage', function () {
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
+  function buildAtomEnvironment () {
+    const env = global.buildAtomEnvironment()
+    environments.push(env)
+    return env
+  }
+
   function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
-    return new RealTimePackage({
+    const pack = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
@@ -416,9 +458,12 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      heartbeatIntervalInMilliseconds,
-      didCreateOrJoinPortal: (portal) => portals.push(portal)
+      heartbeatIntervalInMilliseconds
     })
+
+    packages.push(pack)
+
+    return pack
   }
 
   function condition (fn, message) {
