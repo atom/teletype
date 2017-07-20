@@ -151,43 +151,66 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
   })
 
-  test('guest leaving portal', async function () {
-    const host1Env = buildAtomEnvironment()
-    const host1Package = buildPackage(host1Env)
-    const host1Portal = await host1Package.sharePortal()
-    await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
+  suite('guest leaving portal', async () => {
+    test('via explicit leave operation', async () => {
+      const host1Env = buildAtomEnvironment()
+      const host1Package = buildPackage(host1Env)
+      const host1Portal = await host1Package.sharePortal()
+      await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
 
-    const host2Env = buildAtomEnvironment()
-    const host2Package = buildPackage(host2Env)
-    const host2Portal = await host2Package.sharePortal()
-    await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
+      const host2Env = buildAtomEnvironment()
+      const host2Package = buildPackage(host2Env)
+      const host2Portal = await host2Package.sharePortal()
+      await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
 
-    const host3Package = buildPackage(buildAtomEnvironment())
-    const host3Portal = await host3Package.sharePortal()
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = buildPackage(guestEnv)
 
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+      const guestPortal1 = await guestPackage.joinPortal(host1Portal.id)
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
 
-    const guestPortal1 = await guestPackage.joinPortal(host1Portal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+      const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
 
-    const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
+      guestPackage.leavePortal()
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+      assert(guestPortal2.disposed)
 
-    guestPackage.leavePortal()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-    assert(guestPortal2.disposed)
+      guestPackage.leavePortal()
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
+      assert(guestPortal1.disposed)
+    })
 
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
-    assert(guestPortal1.disposed)
+    test('via closing text editor portal pane item', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = buildPackage(hostEnv)
+      const hostPortal = await hostPackage.sharePortal()
+      await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
 
-    const guestPortal3 = await guestPackage.joinPortal(host3Portal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = buildPackage(guestEnv)
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    assert(guestPortal3.disposed)
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      assert(guestPortal.disposed)
+    })
+
+    test('via closing empty portal pane item', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = buildPackage(hostEnv)
+      const hostPortal = await hostPackage.sharePortal()
+      await hostEnv.workspace.open()
+
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = buildPackage(guestEnv)
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
+
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      assert(guestPortal.disposed)
+    })
   })
 
   test('host closing portal', async function () {
