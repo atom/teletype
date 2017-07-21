@@ -75,7 +75,7 @@ suite('RealTimePackage', function () {
     hostEditor1.setCursorBufferPosition([0, 4])
 
     await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    let guestEditor1 = guestEnv.workspace.getActiveTextEditor()
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -91,10 +91,6 @@ suite('RealTimePackage', function () {
     ])
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
-    assert(guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
-    guestPackage.toggleFollowHostCursor(guestEditor1)
-    assert(!guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
-
     const hostEditor2 = await hostEnv.workspace.open(temp.path({extension: '.md'}))
     hostEditor2.setText('# Hello, World')
     hostEditor2.setCursorBufferPosition([0, 2])
@@ -104,6 +100,14 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor2.getText(), '# Hello, World')
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
+
+    hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
+    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor2)
+    guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor1.getText(), 'const hello = "world"')
+    assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
+    assert(!guestEditor1.isModified())
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
   test('preserving guest portal position in workspace', async function () {
@@ -343,6 +347,12 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
     const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
     await condition(() => guestEditor2.getScrollTopRow() === 3)
+
+    guestPackage.toggleFollowHostCursor()
+    hostEditor2.insertText('vwx')
+    hostEditor2.setCursorBufferPosition([0, 0])
+    await condition(() => guestEditor2.getText() === hostEditor2.getText())
+    assert.equal(guestEditor2.getScrollTopRow(), 3)
   })
 
   test('guest portal file path', async () => {
