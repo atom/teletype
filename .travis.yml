@@ -19,7 +19,7 @@ before_script:
   - pg_ctl -D /usr/local/var/postgres start
   - sleep 10
   - createuser -s postgres
-  - createdb real-time-server-test
+  - createdb real-time-test
 
 script: script/cibuild
 
