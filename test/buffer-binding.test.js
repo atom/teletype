@@ -8,20 +8,20 @@ describe('BufferBinding', function () {
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding(buffer)
-    const sharedBuffer = new FakeSharedBuffer(binding, buffer.getText())
-    binding.setSharedBuffer(sharedBuffer)
+    const clientBuffer = new FakeClientBuffer(binding, buffer.getText())
+    binding.setClientBuffer(clientBuffer)
 
-    sharedBuffer.simulateRemoteOperations([
+    clientBuffer.simulateRemoteOperations([
       {type: 'delete', position: {row: 0, column: 0}, extent: {row: 0, column: 5}},
       {type: 'insert', position: {row: 0, column: 0}, text: 'goodbye'},
       {type: 'insert', position: {row: 1, column: 0}, text: 'cruel\n'}
     ])
     assert.equal(buffer.getText(), 'goodbye\ncruel\nworld')
-    assert.equal(sharedBuffer.text, 'goodbye\ncruel\nworld')
+    assert.equal(clientBuffer.text, 'goodbye\ncruel\nworld')
 
     buffer.setTextInRange([[1, 0], [1, 5]], 'wonderful')
     assert.equal(buffer.getText(), 'goodbye\nwonderful\nworld')
-    assert.equal(sharedBuffer.text, 'goodbye\nwonderful\nworld')
+    assert.equal(clientBuffer.text, 'goodbye\nwonderful\nworld')
 
     buffer.transact(() => {
       buffer.setTextInRange([[0, 0], [0, 4]], 'bye\n')
@@ -29,21 +29,21 @@ describe('BufferBinding', function () {
       buffer.setTextInRange([[2, 3], [2, 5]], 'ms')
     })
     assert.equal(buffer.getText(), 'bye\nbye\nworms')
-    assert.equal(sharedBuffer.text, 'bye\nbye\nworms')
+    assert.equal(clientBuffer.text, 'bye\nbye\nworms')
   })
 
   it('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding(buffer)
-    const sharedBuffer = new FakeSharedBuffer(binding, buffer.getText())
-    binding.setSharedBuffer(sharedBuffer)
+    const clientBuffer = new FakeClientBuffer(binding, buffer.getText())
+    binding.setClientBuffer(clientBuffer)
 
     buffer.setTextInRange([[0, 0], [0, 0]], '')
     assert.equal(buffer.getText(), 'hello\nworld')
-    assert.equal(sharedBuffer.text, 'hello\nworld')
+    assert.equal(clientBuffer.text, 'hello\nworld')
   })
 
-  class FakeSharedBuffer {
+  class FakeClientBuffer {
     constructor (delegate, text) {
       this.delegate = delegate
       this.text = text

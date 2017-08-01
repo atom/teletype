@@ -14,10 +14,10 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const sharedEditor = new FakeSharedEditor(binding)
-    binding.setSharedEditor(sharedEditor)
+    const clientEditor = new FakeClientEditor(binding)
+    binding.setClientEditor(clientEditor)
     assert.deepEqual(
-      sharedEditor.rangesByMarkerId,
+      clientEditor.rangesByMarkerId,
       {
         1: {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
       }
@@ -28,7 +28,7 @@ describe('EditorBinding', function () {
       [[20, 0], [20, 5]]
     ])
     assert.deepEqual(
-      sharedEditor.rangesByMarkerId,
+      clientEditor.rangesByMarkerId,
       {
         1: {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
         2: {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
@@ -56,8 +56,8 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const sharedEditor = new FakeSharedEditor(binding)
-    binding.setSharedEditor(sharedEditor)
+    const clientEditor = new FakeClientEditor(binding)
+    binding.setClientEditor(clientEditor)
 
     editor.setSelectedBufferRanges([
       [[10, 0], [11, 4]],
@@ -91,8 +91,8 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const sharedEditor = new FakeSharedEditor(binding)
-    binding.setSharedEditor(sharedEditor)
+    const clientEditor = new FakeClientEditor(binding)
+    binding.setClientEditor(clientEditor)
 
     const originalLocalSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
     const originalRemoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
@@ -132,19 +132,19 @@ describe('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
 
     const binding = new EditorBinding(editor)
-    const sharedEditor = new FakeSharedEditor(binding)
-    binding.setSharedEditor(sharedEditor)
+    const clientEditor = new FakeClientEditor(binding)
+    binding.setClientEditor(clientEditor)
 
     editor.setCursorBufferPosition([0, 0])
-    sharedEditor.rangesByMarkerId = {}
+    clientEditor.rangesByMarkerId = {}
     editor.insertText('X')
-    assert.deepEqual(sharedEditor.rangesByMarkerId, {})
+    assert.deepEqual(clientEditor.rangesByMarkerId, {})
 
     // After deleting text in the selected range, the editor will set the cursor
     // buffer position to the start of the selection.
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
     editor.delete()
-    assert.deepEqual(sharedEditor.rangesByMarkerId, {
+    assert.deepEqual(clientEditor.rangesByMarkerId, {
       1: {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
     })
   })
@@ -155,7 +155,7 @@ describe('EditorBinding', function () {
     guestEditor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(guestEditor)
-    binding.setSharedEditor(new FakeSharedEditor(binding))
+    binding.setClientEditor(new FakeClientEditor(binding))
 
     const scrollRequests = []
     guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
@@ -199,7 +199,7 @@ describe('EditorBinding', function () {
     guestEditor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(guestEditor)
-    binding.setSharedEditor(new FakeSharedEditor(binding))
+    binding.setClientEditor(new FakeClientEditor(binding))
 
     const scrollRequests = []
     guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
@@ -220,7 +220,7 @@ describe('EditorBinding', function () {
   }
 })
 
-class FakeSharedEditor {
+class FakeClientEditor {
   constructor (delegate) {
     this.delegate = delegate
   }

@@ -22,7 +22,7 @@ suite('RealTimePackage', function () {
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
     testServer = await startTestServer({
-      databaseURL: 'postgres://localhost:5432/real-time-server-test',
+      databaseURL: 'postgres://localhost:5432/real-time-test',
       // Uncomment and provide credentials to test against Pusher.
       // pusherCredentials: {
       //   appId: '123',
@@ -75,7 +75,7 @@ suite('RealTimePackage', function () {
     hostEditor1.setCursorBufferPosition([0, 4])
 
     await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    let guestEditor1 = guestEnv.workspace.getActiveTextEditor()
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -91,10 +91,6 @@ suite('RealTimePackage', function () {
     ])
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
-    assert(guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
-    guestPackage.toggleFollowHostCursor(guestEditor1)
-    assert(!guestPackage.bindingForEditor(guestEditor1).isFollowingHostCursor())
-
     const hostEditor2 = await hostEnv.workspace.open(temp.path({extension: '.md'}))
     hostEditor2.setText('# Hello, World')
     hostEditor2.setCursorBufferPosition([0, 2])
@@ -104,6 +100,14 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor2.getText(), '# Hello, World')
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
+
+    hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
+    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor2)
+    guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    assert.equal(guestEditor1.getText(), 'const hello = "world"')
+    assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
+    assert(!guestEditor1.isModified())
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
   test('preserving guest portal position in workspace', async function () {
@@ -201,7 +205,6 @@ suite('RealTimePackage', function () {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = buildPackage(hostEnv)
       const hostPortal = await hostPackage.sharePortal()
-      await hostEnv.workspace.open()
 
       const guestEnv = buildAtomEnvironment()
       const guestPackage = buildPackage(guestEnv)
@@ -227,24 +230,15 @@ suite('RealTimePackage', function () {
   })
 
   test('host losing connection', async function () {
-    const HEARTBEAT_INTERVAL_IN_MS = 10
-    const EVICTION_PERIOD_IN_MS = 2 * HEARTBEAT_INTERVAL_IN_MS
-    testServer.heartbeatService.setEvictionPeriod(EVICTION_PERIOD_IN_MS)
-
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const hostPackage = buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv, {heartbeatIntervalInMilliseconds: HEARTBEAT_INTERVAL_IN_MS})
+    const guestPackage = buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
-    await hostPortal.simulateNetworkFailure()
-    await condition(async () => deepEqual(
-      await testServer.heartbeatService.findDeadSites(),
-      [{portalId: hostPortal.id, id: hostPortal.siteId}]
-    ))
-    testServer.heartbeatService.evictDeadSites()
+    hostPortal.simulateNetworkFailure()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
@@ -343,6 +337,12 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
     const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
     await condition(() => guestEditor2.getScrollTopRow() === 3)
+
+    guestPackage.toggleFollowHostCursor()
+    hostEditor2.insertText('vwx')
+    hostEditor2.setCursorBufferPosition([0, 0])
+    await condition(() => guestEditor2.getText() === hostEditor2.getText())
+    assert.equal(guestEditor2.getScrollTopRow(), 3)
   })
 
   test('guest portal file path', async () => {
@@ -472,7 +472,7 @@ suite('RealTimePackage', function () {
     return env
   }
 
-  function buildPackage (env, {heartbeatIntervalInMilliseconds} = {}) {
+  function buildPackage (env) {
     const pack = new RealTimePackage({
       restGateway: testServer.restGateway,
       pubSubGateway: testServer.pubSubGateway,
@@ -480,12 +480,9 @@ suite('RealTimePackage', function () {
       notificationManager: env.notifications,
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
-      clipboard: new FakeClipboard(),
-      heartbeatIntervalInMilliseconds
+      clipboard: new FakeClipboard()
     })
-
     packages.push(pack)
-
     return pack
   }
 
