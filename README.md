@@ -21,8 +21,8 @@ Welcome to the **TOP SECRET** real-time package!
 1. Launch Atom
 1. Open Settings View using <kbd>Cmd+,</kbd> on macOS or <kbd>Ctrl+,</kbd> on other platforms
 1. Click the Install tab on the left side
-1. Enter `https://github.com/atom/real-time` in the search box
-1. Click the "Install" button
+1. Enter `https://github.com/atom/real-time` in the search box and press <kbd>Enter</kbd>
+1. Click the "Install" button that appears
 
 ## Usage
 
