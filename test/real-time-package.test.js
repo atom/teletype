@@ -14,7 +14,9 @@ const suite = global.describe
 const test = global.it
 const temp = require('temp').track()
 
-suite('RealTimePackage', function () {
+let testEpoch = 0
+
+suite.only('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
   let testServer, containerElement, environments, packages, portals, conditionErrorMessage
@@ -59,6 +61,7 @@ suite('RealTimePackage', function () {
     for (const env of environments) {
       await env.destroy()
     }
+    testEpoch++
   })
 
   test('sharing and joining a portal', async function () {
@@ -143,13 +146,13 @@ suite('RealTimePackage', function () {
     const portalId = (await hostPackage.sharePortal()).id
 
     await guestPackage.joinPortal(portalId)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: Screen Share']))
 
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
 
     hostEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: Screen Share']))
 
     await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
@@ -210,7 +213,7 @@ suite('RealTimePackage', function () {
       const guestPackage = buildPackage(guestEnv)
       const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: Screen Share']))
       guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       assert(guestPortal.disposed)
     })
@@ -223,7 +226,7 @@ suite('RealTimePackage', function () {
     const guestPackage = buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: Screen Share']))
 
     hostPackage.closePortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
@@ -236,7 +239,7 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: Screen Share']))
 
     hostPortal.simulateNetworkFailure()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
@@ -480,7 +483,14 @@ suite('RealTimePackage', function () {
       notificationManager: env.notifications,
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
-      clipboard: new FakeClipboard()
+      clipboard: new FakeClipboard(),
+      testEpoch,
+      async getScreenShareStream () {
+        const video = document.createElement('video')
+        video.src = `file://${path.join(__dirname, 'fixtures', 'test.mp4')}`
+        await new Promise((resolve) => video.addEventListener('canplay', resolve))
+        return video.captureStream()
+      },
     })
     packages.push(pack)
     return pack
