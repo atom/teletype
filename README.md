@@ -8,7 +8,7 @@ Welcome to the **TOP SECRET** real-time package!
 
 ### Command Line
 
-1. Install [Atom 1.19 Beta](https://atom.io/beta) or newer
+1. Install [Atom 1.19](https://atom.io) or newer
 2. In the terminal, install the package via apm:
 
     ```sh
@@ -17,7 +17,7 @@ Welcome to the **TOP SECRET** real-time package!
 
 ### GUI
 
-1. Install [Atom 1.19 Beta](https://atom.io/beta) or newer
+1. Install [Atom 1.19](https://atom.io) or newer
 1. Launch Atom
 1. Open Settings View using <kbd>Cmd+,</kbd> on macOS or <kbd>Ctrl+,</kbd> on other platforms
 1. Click the Install tab on the left side
