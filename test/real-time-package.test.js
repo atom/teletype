@@ -466,6 +466,30 @@ suite('RealTimePackage', function () {
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
+  test('copying debug info to clipboard', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    const portalId = (await hostPackage.sharePortal()).id
+
+    guestPackage.joinPortal(portalId)
+
+    const hostEditor = await hostEnv.workspace.open()
+    hostEditor.setText('foo')
+
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    let guestEditor = guestEnv.workspace.getActiveTextEditor()
+    guestEditor.insertText('bar ')
+
+    await condition(() => hostEditor.getText() === 'bar foo')
+
+    hostPackage.copyDebugInfoToClipboard()
+    assert(hostPackage.clipboard.text.includes('bar foo'))
+    guestPackage.copyDebugInfoToClipboard()
+    assert(guestPackage.clipboard.text.includes('bar foo'))
+  })
+
   function buildAtomEnvironment () {
     const env = global.buildAtomEnvironment()
     environments.push(env)
