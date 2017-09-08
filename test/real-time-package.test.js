@@ -285,6 +285,57 @@ suite('RealTimePackage', function () {
     ])
   })
 
+  test.only('peers undoing their own edits', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    const hostEditor = await hostEnv.workspace.open()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+
+    hostEditor.insertText('h1 ')
+    await condition(() => guestEditor.getText() === 'h1 ')
+    guestEditor.insertText('g1 ')
+    await condition(() => hostEditor.getText() === 'h1 g1 ')
+    hostEditor.insertText('h2 ')
+    await condition(() => guestEditor.getText() === 'h1 g1 h2 ')
+    guestEditor.insertText('g2')
+    guestEditor.setTextInBufferRange([[0, 3], [0, 5]], 'g3')
+    await condition(() => hostEditor.getText() === 'h1 g3 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 g2')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 g2')
+
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 g1 g2')
+    await condition(() => guestEditor.getText() === 'h1 g1 g2')
+
+    // Next steps mimicking tachyon tests:
+    //
+    // +      {
+    // +        integrateOperations(replicaB, performRedo(replicaA))
+    // +        assert.equal(replicaA.testDocument.text, 'a1 b1 a2 b2')
+    // +        assert.equal(replicaB.testDocument.text, 'a1 b1 a2 b2')
+    // +      }
+    // +
+    // +      {
+    // +        integrateOperations(replicaA, performRedo(replicaB))
+    // +        assert.equal(replicaA.testDocument.text, 'a1 b3 a2 b2')
+    // +        assert.equal(replicaB.testDocument.text, 'a1 b3 a2 b2')
+    // +      }
+    // +
+    // +      {
+    // +        integrateOperations(replicaA, performUndo(replicaB))
+    // +        assert.equal(replicaA.testDocument.text, 'a1 b1 a2 b2')
+    // +        assert.equal(replicaB.testDocument.text, 'a1 b1 a2 b2')
+    // +      }
+  })
+
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
