@@ -2,7 +2,7 @@ const assert = require('assert')
 const fs = require('fs')
 const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
-const {TextEditor} = require('atom')
+const {TextEditor, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 
 describe('EditorBinding', function () {
@@ -14,12 +14,20 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const clientEditor = new FakeClientEditor(binding)
-    binding.setClientEditor(clientEditor)
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
     assert.deepEqual(
-      clientEditor.rangesByMarkerId,
+      editorProxy.selections,
       {
-        1: {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
+        1: {
+          range: Range.fromObject([[0, 0], [0, 0]]),
+          exclusive: undefined,
+          invalidate: "never",
+          reversed: false,
+          tailed: false,
+          valid: true,
+          properties: {}
+        }
       }
     )
 
@@ -28,16 +36,32 @@ describe('EditorBinding', function () {
       [[20, 0], [20, 5]]
     ])
     assert.deepEqual(
-      clientEditor.rangesByMarkerId,
+      editorProxy.selections,
       {
-        1: {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
-        2: {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+        1: {
+          range: Range.fromObject([[10, 0], [11, 4]]),
+          exclusive: undefined,
+          invalidate: "never",
+          reversed: false,
+          tailed: true,
+          valid: true,
+          properties: {}
+        },
+        2: {
+          range: Range.fromObject([[20, 0], [20, 5]]),
+          exclusive: undefined,
+          invalidate: "never",
+          reversed: false,
+          tailed: true,
+          valid: true,
+          properties: {}
+        }
       }
     )
 
-    binding.setSelectionMarkerLayerForSiteId(2, {
-      1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
-      2: {start: {row: 5, column: 0}, end: {row: 6, column: 0}}
+    binding.updateSelectionsForSiteId(2, {
+      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
+      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 0}}}
     })
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
@@ -56,15 +80,15 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const clientEditor = new FakeClientEditor(binding)
-    binding.setClientEditor(clientEditor)
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
 
     editor.setSelectedBufferRanges([
       [[10, 0], [11, 4]],
       [[20, 0], [20, 5]]
     ])
-    binding.setSelectionMarkerLayerForSiteId(2, {
-      1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}
+    binding.updateSelectionsForSiteId(2, {
+      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}}
     })
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
@@ -75,7 +99,7 @@ describe('EditorBinding', function () {
       ]
     )
 
-    binding.setSelectionMarkerLayerForSiteId(2, null)
+    binding.clearSelectionsForSiteId(2)
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
@@ -91,12 +115,12 @@ describe('EditorBinding', function () {
     editor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(editor)
-    const clientEditor = new FakeClientEditor(binding)
-    binding.setClientEditor(clientEditor)
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
 
     const originalLocalSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
     const originalRemoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
-    binding.setSelectionMarkerLayerForSiteId(2, {1: originalRemoteSelection})
+    binding.updateSelectionsForSiteId(2, {1: {range: originalRemoteSelection}})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
@@ -107,7 +131,7 @@ describe('EditorBinding', function () {
 
     editor.getBuffer().delete(originalRemoteSelection)
     const remoteSelectionAfterDelete = {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
-    binding.setSelectionMarkerLayerForSiteId(2, {1: remoteSelectionAfterDelete})
+    binding.updateSelectionsForSiteId(2, {1: {range: remoteSelectionAfterDelete}})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
@@ -132,20 +156,28 @@ describe('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
 
     const binding = new EditorBinding(editor)
-    const clientEditor = new FakeClientEditor(binding)
-    binding.setClientEditor(clientEditor)
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
 
     editor.setCursorBufferPosition([0, 0])
-    clientEditor.rangesByMarkerId = {}
+    editorProxy.selections = {}
     editor.insertText('X')
-    assert.deepEqual(clientEditor.rangesByMarkerId, {})
+    assert.deepEqual(editorProxy.selections, {})
 
     // After deleting text in the selected range, the editor will set the cursor
     // buffer position to the start of the selection.
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
     editor.delete()
-    assert.deepEqual(clientEditor.rangesByMarkerId, {
-      1: {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
+    assert.deepEqual(editorProxy.selections, {
+      1: {
+        range: {start: {row: 0, column: 0}, end: {row: 0, column: 0}},
+        exclusive: undefined,
+        invalidate: "never",
+        reversed: false,
+        tailed: false,
+        valid: true,
+        properties: {}
+      }
     })
   })
 
@@ -155,40 +187,40 @@ describe('EditorBinding', function () {
     guestEditor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(guestEditor)
-    binding.setClientEditor(new FakeClientEditor(binding))
+    binding.setEditorProxy(new FakeEditorProxy(binding))
 
     const scrollRequests = []
     guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
 
-    binding.setSelectionMarkerLayerForSiteId(1, {
-      1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
-      2: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}
+    binding.updateSelectionsForSiteId(1, {
+      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
+      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}}
     })
     assert.deepEqual(scrollRequests, [{start: {row: 5, column: 0}, end: {row: 6, column: 0}}])
 
     scrollRequests.length = 0
-    binding.setSelectionMarkerLayerForSiteId(1, {
-      1: {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
-      2: {start: {row: 5, column: 0}, end: {row: 6, column: 1}},
-      3: {start: {row: 1, column: 0}, end: {row: 1, column: 3}}
+    binding.updateSelectionsForSiteId(1, {
+      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
+      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}},
+      3: {range: {start: {row: 1, column: 0}, end: {row: 1, column: 3}}}
     })
     assert.deepEqual(scrollRequests, [{start: {row: 1, column: 0}, end: {row: 1, column: 3}}])
 
     scrollRequests.length = 0
-    binding.setSelectionMarkerLayerForSiteId(2, {
-      1: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}
+    binding.updateSelectionsForSiteId(2, {
+      1: {range: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}}
     })
     assert.deepEqual(scrollRequests, [])
 
     binding.setFollowHostCursor(false)
-    binding.setSelectionMarkerLayerForSiteId(1, {
-      1: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}
+    binding.updateSelectionsForSiteId(1, {
+      1: {range: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}}
     })
     assert.deepEqual(scrollRequests, [])
 
     binding.setFollowHostCursor(true)
-    binding.setSelectionMarkerLayerForSiteId(1, {
-      1: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}
+    binding.updateSelectionsForSiteId(1, {
+      1: {range: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}}
     })
     assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
   })
@@ -199,12 +231,12 @@ describe('EditorBinding', function () {
     guestEditor.setCursorBufferPosition([0, 0])
 
     const binding = new EditorBinding(guestEditor)
-    binding.setClientEditor(new FakeClientEditor(binding))
+    binding.setEditorProxy(new FakeEditorProxy(binding))
 
     const scrollRequests = []
     guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
 
-    binding.setSelectionMarkerLayerForSiteId(1, {})
+    binding.updateSelectionsForSiteId(1, {})
     assert.deepEqual(scrollRequests, [])
   })
 
@@ -220,12 +252,12 @@ describe('EditorBinding', function () {
   }
 })
 
-class FakeClientEditor {
+class FakeEditorProxy {
   constructor (delegate) {
     this.delegate = delegate
   }
 
-  setSelectionRanges (rangesByMarkerId) {
-    this.rangesByMarkerId = rangesByMarkerId
+  updateSelections (selections) {
+    this.selections = selections
   }
 }
