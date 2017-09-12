@@ -64,6 +64,18 @@ describe('BufferBinding', function () {
 
       this.delegate.updateText(changes)
     }
+
+    createCheckpoint () {
+      return 1
+    }
+
+    groupChangesSinceCheckpoint () {
+      return []
+    }
+
+    applyGroupingInterval () {
+      
+    }
   }
 
   function characterIndexForPosition (text, target) {

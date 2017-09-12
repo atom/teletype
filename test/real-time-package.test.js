@@ -17,7 +17,7 @@ const temp = require('temp').track()
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  let testServer, containerElement, environments, packages, portals, conditionErrorMessage
+  let testServer, containerElement, environments, packages, portals
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
@@ -37,7 +37,6 @@ suite('RealTimePackage', function () {
   })
 
   setup(() => {
-    conditionErrorMessage = null
     environments = []
     packages = []
     containerElement = document.createElement('div')
@@ -47,10 +46,6 @@ suite('RealTimePackage', function () {
   })
 
   teardown(async () => {
-    if (conditionErrorMessage) {
-      console.error('Condition failed with error message: ', conditionErrorMessage)
-    }
-
     containerElement.remove()
 
     for (const pack of packages) {
@@ -242,6 +237,8 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
+  // NOTE: I think this test is failing because we don't restore the original
+  // history provider of the buffer when we tear down the guest's buffer binding.
   test('host disconnecting while there is an active shared editor', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
@@ -285,7 +282,7 @@ suite('RealTimePackage', function () {
     ])
   })
 
-  test.only('peers undoing their own edits', async () => {
+  test('peers undoing their own edits', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
@@ -315,25 +312,21 @@ suite('RealTimePackage', function () {
     assert.equal(hostEditor.getText(), 'h1 g1 g2')
     await condition(() => guestEditor.getText() === 'h1 g1 g2')
 
-    // Next steps mimicking tachyon tests:
-    //
-    // +      {
-    // +        integrateOperations(replicaB, performRedo(replicaA))
-    // +        assert.equal(replicaA.testDocument.text, 'a1 b1 a2 b2')
-    // +        assert.equal(replicaB.testDocument.text, 'a1 b1 a2 b2')
-    // +      }
-    // +
-    // +      {
-    // +        integrateOperations(replicaA, performRedo(replicaB))
-    // +        assert.equal(replicaA.testDocument.text, 'a1 b3 a2 b2')
-    // +        assert.equal(replicaB.testDocument.text, 'a1 b3 a2 b2')
-    // +      }
-    // +
-    // +      {
-    // +        integrateOperations(replicaA, performUndo(replicaB))
-    // +        assert.equal(replicaA.testDocument.text, 'a1 b1 a2 b2')
-    // +        assert.equal(replicaB.testDocument.text, 'a1 b1 a2 b2')
-    // +      }
+    guestEditor.redo()
+    assert.equal(guestEditor.getText(), 'h1 g3 g2')
+    await condition(() => hostEditor.getText() === 'h1 g3 g2')
+
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 g3 h2 g2')
+    await condition(() => guestEditor.getText() === 'h1 g3 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 g2')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 ')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 ')
   })
 
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
@@ -537,23 +530,23 @@ suite('RealTimePackage', function () {
     return pack
   }
 
-  function condition (fn, message) {
-    assert(!conditionErrorMessage, 'Cannot await on multiple conditions at the same time')
+  function condition (fn) {
+    const timeoutError = new Error('Condition timed out: ' + fn.toString())
+    Error.captureStackTrace(timeoutError, condition)
 
-    conditionErrorMessage = message
-    return new Promise((resolve) => {
-      async function callback () {
-        const resultOrPromise = fn()
-        const result = (resultOrPromise instanceof Promise) ? (await resultOrPromise) : resultOrPromise
-        if (result) {
-          conditionErrorMessage = null
+    return new Promise((resolve, reject) => {
+      const intervalId = global.setInterval(() => {
+        if (fn()) {
+          global.clearTimeout(timeout)
+          global.clearInterval(intervalId)
           resolve()
-        } else {
-          setTimeout(callback, 5)
         }
-      }
+      }, 5)
 
-      callback()
+      const timeout = global.setTimeout(() => {
+        global.clearInterval(intervalId)
+        reject(timeoutError)
+      }, 500)
     })
   }
 })
