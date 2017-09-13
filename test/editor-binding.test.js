@@ -13,7 +13,7 @@ describe('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(editor)
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(
@@ -79,7 +79,7 @@ describe('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(editor)
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -114,7 +114,7 @@ describe('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(editor)
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -155,7 +155,7 @@ describe('EditorBinding', function () {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
-    const binding = new EditorBinding(editor)
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -186,7 +186,7 @@ describe('EditorBinding', function () {
     guestEditor.setText(SAMPLE_TEXT)
     guestEditor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(guestEditor)
+    const binding = new EditorBinding({editor: guestEditor})
     binding.setEditorProxy(new FakeEditorProxy(binding))
 
     const scrollRequests = []
@@ -230,7 +230,7 @@ describe('EditorBinding', function () {
     guestEditor.setText(SAMPLE_TEXT)
     guestEditor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding(guestEditor)
+    const binding = new EditorBinding({editor: guestEditor})
     binding.setEditorProxy(new FakeEditorProxy(binding))
 
     const scrollRequests = []
@@ -255,6 +255,7 @@ describe('EditorBinding', function () {
 class FakeEditorProxy {
   constructor (delegate) {
     this.delegate = delegate
+    this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
   }
 
   updateSelections (selections) {
