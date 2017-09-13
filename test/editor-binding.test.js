@@ -21,7 +21,7 @@ describe('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[0, 0], [0, 0]]),
-          exclusive: undefined,
+          exclusive: true,
           invalidate: "never",
           reversed: false,
           tailed: false,
@@ -171,7 +171,7 @@ describe('EditorBinding', function () {
     assert.deepEqual(editorProxy.selections, {
       1: {
         range: {start: {row: 0, column: 0}, end: {row: 0, column: 0}},
-        exclusive: undefined,
+        exclusive: true,
         invalidate: "never",
         reversed: false,
         tailed: false,
