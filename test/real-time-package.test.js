@@ -172,11 +172,11 @@ suite('RealTimePackage', function () {
       const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
 
-      guestPackage.leavePortal()
+      guestPackage.leaveGuestPortal()
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
       assert(guestPortal2.disposed)
 
-      guestPackage.leavePortal()
+      guestPackage.leaveGuestPortal()
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
       assert(guestPortal1.disposed)
     })
@@ -220,7 +220,7 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
-    hostPackage.closePortal()
+    hostPackage.closeHostPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
@@ -262,7 +262,7 @@ suite('RealTimePackage', function () {
     const guestEditorTitleChangeEvents = []
     guestEditor.onDidChangeTitle((title) => guestEditorTitleChangeEvents.push(title))
 
-    hostPackage.closePortal()
+    hostPackage.closeHostPortal()
     await condition(() => guestEditor.getTitle() === 'untitled')
     assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
     assert.equal(guestEditor.getText(), 'const goodnight = "moon"')
@@ -465,11 +465,11 @@ suite('RealTimePackage', function () {
     host2Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
-    host1Package.closePortal()
+    host1Package.closeHostPortal()
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     assert.equal(guestStatusBar.getRightTiles().length, 0)
 
     await guestPackage.joinPortal(host2Portal.id)
@@ -496,15 +496,15 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getPaneItems().length === 2)
     assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 1)
     assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
     assert(!guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    host1Package.closePortal()
+    host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
