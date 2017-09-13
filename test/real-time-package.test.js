@@ -237,8 +237,6 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
-  // NOTE: I think this test is failing because we don't restore the original
-  // history provider of the buffer when we tear down the guest's buffer binding.
   test('host disconnecting while there is an active shared editor', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
