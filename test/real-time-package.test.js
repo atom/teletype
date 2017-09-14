@@ -327,6 +327,44 @@ suite('RealTimePackage', function () {
     await condition(() => hostEditor.getText() === 'h1 g1 h2 ')
   })
 
+  test('splitting editors', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const portal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(portal.id)
+
+    const hostEditor1 = await hostEnv.workspace.open()
+    hostEditor1.setText('hello = "world"')
+    hostEditor1.setCursorBufferPosition([0, 0])
+    hostEditor1.insertText('const ')
+
+    hostEnv.workspace.paneForItem(hostEditor1).splitRight({copyActiveItem: true})
+    const hostEditor2 = hostEnv.workspace.getActiveTextEditor()
+    hostEditor2.setCursorBufferPosition([0, 8])
+
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    guestEditor2.setCursorBufferPosition([0, Infinity])
+    guestEditor2.insertText('\nconst goodbye = "moon"')
+    await editorsEqual(guestEditor2, hostEditor2)
+
+    hostEditor2.undo()
+    assert.equal(hostEditor2.getText(), 'hello = "world"\nconst goodbye = "moon"')
+    assert.equal(hostEditor1.getText(), hostEditor2.getText())
+    await editorsEqual(hostEditor2, guestEditor2)
+
+    hostEnv.workspace.paneForItem(hostEditor1).activate()
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    await editorsEqual(guestEditor1, hostEditor1)
+
+    guestEditor1.undo()
+    assert.equal(guestEditor1.getText(), 'hello = "world"')
+    assert.equal(guestEditor2.getText(), guestEditor1.getText())
+    await editorsEqual(guestEditor1, hostEditor1)
+  })
+
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
@@ -526,6 +564,19 @@ suite('RealTimePackage', function () {
     })
     packages.push(pack)
     return pack
+  }
+
+  async function getNextActiveTextEditorPromise ({workspace}) {
+    const currentEditor = workspace.getActiveTextEditor()
+    await condition(() => workspace.getActiveTextEditor() != currentEditor)
+    return workspace.getActiveTextEditor()
+  }
+
+  function editorsEqual (editor1, editor2) {
+    return condition(() => (
+      editor1.getText() === editor2.getText() &&
+      deepEqual(getCursorDecoratedRanges(editor1), getCursorDecoratedRanges(editor2))
+    ))
   }
 
   function condition (fn) {
