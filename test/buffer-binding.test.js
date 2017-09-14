@@ -7,7 +7,7 @@ describe('BufferBinding', function () {
 
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding(buffer)
+    const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -33,7 +33,7 @@ describe('BufferBinding', function () {
 
   it('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding(buffer)
+    const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -74,7 +74,7 @@ describe('BufferBinding', function () {
     }
 
     applyGroupingInterval () {
-      
+
     }
   }
 
