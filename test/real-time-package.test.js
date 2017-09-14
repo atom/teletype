@@ -508,7 +508,7 @@ suite('RealTimePackage', function () {
 
   function buildPackage (env) {
     const pack = new RealTimePackage({
-      restGateway: testServer.restGateway,
+      baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
       notificationManager: env.notifications,
