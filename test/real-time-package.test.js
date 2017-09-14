@@ -324,6 +324,32 @@ suite('RealTimePackage', function () {
     await condition(() => hostEditor.getText() === 'h1 g1 h2 ')
   })
 
+  test('preserving the history when sharing and closing a portal', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostEditor = await hostEnv.workspace.open()
+    hostEditor.insertText('h1 ')
+    hostEditor.insertText('h2 ')
+    const hostPortal = await hostPackage.sharePortal()
+    hostEditor.insertText('h3')
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(guestEditor.getText(), 'h1 h2 h3')
+
+    hostEditor.undo()
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 ')
+    await editorsEqual(guestEditor, hostEditor)
+
+    hostEditor.redo()
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 h2 h3')
+    await editorsEqual(guestEditor, hostEditor)
+  })
+
   test('undoing and redoing past the history boundaries', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
