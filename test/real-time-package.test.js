@@ -69,8 +69,7 @@ suite('RealTimePackage', function () {
     hostEditor1.setText('const hello = "world"')
     hostEditor1.setCursorBufferPosition([0, 4])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    let guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    let guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -90,15 +89,13 @@ suite('RealTimePackage', function () {
     hostEditor2.setText('# Hello, World')
     hostEditor2.setCursorBufferPosition([0, 2])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
-    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor2.getText(), '# Hello, World')
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
 
     hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor2)
-    guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -248,7 +245,7 @@ suite('RealTimePackage', function () {
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
     hostEditor1.setText('const hello = "world"')
     hostEditor1.setCursorBufferPosition([0, 4])
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    await getNextActiveTextEditorPromise(guestEnv)
 
     const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
     hostEditor2.setText('const goodnight = "moon"')
@@ -289,8 +286,7 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
     await guestPackage.joinPortal(hostPortal.id)
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
     hostEditor.insertText('h1 ')
     await condition(() => guestEditor.getText() === 'h1 ')
@@ -374,8 +370,7 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
     await guestPackage.joinPortal(hostPortal.id)
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
     hostEditor.transact(() => {
       hostEditor.setText('abc\ndef')
@@ -406,16 +401,14 @@ suite('RealTimePackage', function () {
     hostEditor1.setText('abc\ndef\nghi')
     hostEditor1.setCursorBufferPosition([2, 0])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     await condition(() => guestEditor1.getScrollTopRow() === 2)
 
     const hostEditor2 = await hostEnv.workspace.open()
     hostEditor2.setText('jkl\nmno\npqr\nstu')
     hostEditor2.setCursorBufferPosition([3, 0])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
-    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     await condition(() => guestEditor2.getScrollTopRow() === 3)
 
     guestPackage.toggleFollowHostCursor()
