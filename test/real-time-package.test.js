@@ -369,6 +369,8 @@ suite('RealTimePackage', function () {
     const hostEditor2 = hostEnv.workspace.getActiveTextEditor()
     hostEditor2.setCursorBufferPosition([0, 8])
 
+    assert.equal(hostEditor2.getBuffer(), hostEditor1.getBuffer())
+
     const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     guestEditor2.setCursorBufferPosition([0, Infinity])
     guestEditor2.insertText('\nconst goodbye = "moon"')
@@ -381,6 +383,7 @@ suite('RealTimePackage', function () {
 
     hostEnv.workspace.paneForItem(hostEditor1).activate()
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(guestEditor1.getBuffer(), guestEditor2.getBuffer())
     await editorsEqual(guestEditor1, hostEditor1)
 
     guestEditor1.undo()
