@@ -1,6 +1,7 @@
 require('./setup')
 
 const RealTimePackage = require('../lib/real-time-package')
+const {TextBuffer, TextEditor} = require('atom')
 
 const assert = require('assert')
 const deepEqual = require('deep-equal')
@@ -321,6 +322,33 @@ suite('RealTimePackage', function () {
     guestEditor.undo()
     assert.equal(guestEditor.getText(), 'h1 g1 h2 ')
     await condition(() => hostEditor.getText() === 'h1 g1 h2 ')
+  })
+
+  test('undoing and redoing past the history boundaries', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+
+    const hostBuffer = new TextBuffer('abcdefg')
+    const hostEditor = new TextEditor({buffer: hostBuffer})
+    await hostEnv.workspace.open(hostEditor)
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(hostPortal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'abcdefg')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'abcdefg')
+
+    guestEditor.redo()
+    assert.equal(guestEditor.getText(), 'abcdefg')
+
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'abcdefg')
   })
 
   test('splitting editors', async () => {
