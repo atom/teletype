@@ -27,7 +27,7 @@ suite('JoinPortalDialog', function () {
     atomEnv = null
   })
 
-  test('prompt for portal id', function () {
+  test('prompt for portal id', () => {
     const confirmations = []
     const dialog = new JoinPortalDialog({
       workspace: atomEnv.workspace,
