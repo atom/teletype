@@ -330,24 +330,38 @@ suite('RealTimePackage', function () {
     const hostEditor = await hostEnv.workspace.open()
     hostEditor.insertText('h1 ')
     hostEditor.insertText('h2 ')
+    hostEditor.insertText('h3 ')
+    hostEditor.undo()
+    hostEditor.undo()
     const hostPortal = await hostPackage.sharePortal()
-    hostEditor.insertText('h3')
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
     await guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
-    assert.equal(guestEditor.getText(), 'h1 h2 h3')
+    assert.equal(guestEditor.getText(), 'h1 ')
 
+    hostEditor.redo()
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 ')
+    await editorsEqual(guestEditor, hostEditor)
+
+    hostEditor.insertText('h4')
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
+
+    hostEditor.undo()
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 h2 ')
+    await editorsEqual(guestEditor, hostEditor)
+
+    hostPackage.closeHostPortal()
+    hostEditor.redo()
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
+    hostEditor.undo()
     hostEditor.undo()
     hostEditor.undo()
     assert.equal(hostEditor.getText(), 'h1 ')
-    await editorsEqual(guestEditor, hostEditor)
-
-    hostEditor.redo()
-    hostEditor.redo()
-    assert.equal(hostEditor.getText(), 'h1 h2 h3')
-    await editorsEqual(guestEditor, hostEditor)
   })
 
   test('undoing and redoing past the history boundaries', async () => {
