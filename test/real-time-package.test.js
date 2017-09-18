@@ -391,6 +391,31 @@ suite('RealTimePackage', function () {
     assert.equal(hostEditor.getText(), 'abcdefg')
   })
 
+  test('reverting to a checkpoint', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostEditor = await hostEnv.workspace.open()
+    hostEditor.setText('abcdefg')
+    const portal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(portal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+
+    const checkpoint = hostEditor.createCheckpoint()
+    hostEditor.setCursorBufferPosition([0, 7])
+    hostEditor.insertText('h')
+    hostEditor.insertText('i')
+    hostEditor.insertText('j')
+    assert.equal(hostEditor.getText(), 'abcdefghij')
+    await editorsEqual(hostEditor, guestEditor)
+
+    hostEditor.revertToCheckpoint(checkpoint)
+    assert.equal(hostEditor.getText(), 'abcdefg')
+    await editorsEqual(hostEditor, guestEditor)
+  })
+
   test('splitting editors', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
