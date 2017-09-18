@@ -103,6 +103,16 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
+  test('attempting to join a nonexistent portal', async () => {
+    const guestPackage = buildPackage(buildAtomEnvironment())
+    const notifications = []
+    guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+    const guestPortal = await guestPackage.joinPortal('some-nonexistent-portal-id')
+    const errorNotification = notifications.find((n) => n.message === 'Portal not found')
+    assert(errorNotification, 'Expected notifications to include "Portal not found" error')
+  })
+
   test('preserving guest portal position in workspace', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
@@ -643,7 +653,7 @@ suite('RealTimePackage', function () {
 
   function buildPackage (env) {
     const pack = new RealTimePackage({
-      restGateway: testServer.restGateway,
+      baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
       notificationManager: env.notifications,
