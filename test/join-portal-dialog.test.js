@@ -63,6 +63,7 @@ suite('JoinPortalDialog', function () {
   })
 
   test('blur', () => {
+    assert(document.hasFocus(), 'Document needs to be focused to run this test')
     let confirmCount = 0
     let cancelCount = 0
     const dialog = new JoinPortalDialog({

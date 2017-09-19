@@ -1,6 +1,7 @@
 require('./setup')
 
 const RealTimePackage = require('../lib/real-time-package')
+const {TextBuffer, TextEditor} = require('atom')
 
 const assert = require('assert')
 const deepEqual = require('deep-equal')
@@ -17,7 +18,7 @@ const temp = require('temp').track()
 suite('RealTimePackage', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  let testServer, containerElement, environments, packages, portals, conditionErrorMessage
+  let testServer, containerElement, environments, packages, portals
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/real-time-server')
@@ -37,7 +38,6 @@ suite('RealTimePackage', function () {
   })
 
   setup(() => {
-    conditionErrorMessage = null
     environments = []
     packages = []
     containerElement = document.createElement('div')
@@ -47,10 +47,6 @@ suite('RealTimePackage', function () {
   })
 
   teardown(async () => {
-    if (conditionErrorMessage) {
-      console.error('Condition failed with error message: ', conditionErrorMessage)
-    }
-
     containerElement.remove()
 
     for (const pack of packages) {
@@ -74,8 +70,7 @@ suite('RealTimePackage', function () {
     hostEditor1.setText('const hello = "world"')
     hostEditor1.setCursorBufferPosition([0, 4])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    let guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    let guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -95,15 +90,13 @@ suite('RealTimePackage', function () {
     hostEditor2.setText('# Hello, World')
     hostEditor2.setCursorBufferPosition([0, 2])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
-    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor2.getText(), '# Hello, World')
     assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
 
     hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor2)
-    guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
@@ -187,11 +180,11 @@ suite('RealTimePackage', function () {
       const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
 
-      guestPackage.leavePortal()
+      guestPackage.leaveGuestPortal()
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
       assert(guestPortal2.disposed)
 
-      guestPackage.leavePortal()
+      guestPackage.leaveGuestPortal()
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
       assert(guestPortal1.disposed)
     })
@@ -235,7 +228,7 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
-    hostPackage.closePortal()
+    hostPackage.closeHostPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
@@ -263,7 +256,7 @@ suite('RealTimePackage', function () {
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
     hostEditor1.setText('const hello = "world"')
     hostEditor1.setCursorBufferPosition([0, 4])
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
+    await getNextActiveTextEditorPromise(guestEnv)
 
     const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
     hostEditor2.setText('const goodnight = "moon"')
@@ -277,7 +270,7 @@ suite('RealTimePackage', function () {
     const guestEditorTitleChangeEvents = []
     guestEditor.onDidChangeTitle((title) => guestEditorTitleChangeEvents.push(title))
 
-    hostPackage.closePortal()
+    hostPackage.closeHostPortal()
     await condition(() => guestEditor.getTitle() === 'untitled')
     assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
     assert.equal(guestEditor.getText(), 'const goodnight = "moon"')
@@ -295,6 +288,201 @@ suite('RealTimePackage', function () {
     ])
   })
 
+  test('peers undoing their own edits', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+    const hostEditor = await hostEnv.workspace.open()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+
+    hostEditor.insertText('h1 ')
+    await condition(() => guestEditor.getText() === 'h1 ')
+    guestEditor.insertText('g1 ')
+    await condition(() => hostEditor.getText() === 'h1 g1 ')
+    hostEditor.insertText('h2 ')
+    await condition(() => guestEditor.getText() === 'h1 g1 h2 ')
+    guestEditor.insertText('g2')
+    guestEditor.setTextInBufferRange([[0, 3], [0, 5]], 'g3')
+    await condition(() => hostEditor.getText() === 'h1 g3 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 g2')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 g2')
+
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 g1 g2')
+    await condition(() => guestEditor.getText() === 'h1 g1 g2')
+
+    guestEditor.redo()
+    assert.equal(guestEditor.getText(), 'h1 g3 g2')
+    await condition(() => hostEditor.getText() === 'h1 g3 g2')
+
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 g3 h2 g2')
+    await condition(() => guestEditor.getText() === 'h1 g3 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 g2')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 g2')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'h1 g1 h2 ')
+    await condition(() => hostEditor.getText() === 'h1 g1 h2 ')
+  })
+
+  test('preserving the history when sharing and closing a portal', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostEditor = await hostEnv.workspace.open()
+    hostEditor.insertText('h1 ')
+    hostEditor.insertText('h2 ')
+    hostEditor.insertText('h3 ')
+    hostEditor.undo()
+    hostEditor.undo()
+    const hostPortal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    await guestPackage.joinPortal(hostPortal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(guestEditor.getText(), 'h1 ')
+
+    hostEditor.redo()
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 ')
+    await editorsEqual(guestEditor, hostEditor)
+
+    hostEditor.insertText('h4')
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
+
+    hostEditor.undo()
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 h2 ')
+    await editorsEqual(guestEditor, hostEditor)
+
+    hostPackage.closeHostPortal()
+    hostEditor.redo()
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
+    hostEditor.undo()
+    hostEditor.undo()
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'h1 ')
+  })
+
+  test('undoing and redoing past the history boundaries', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostPortal = await hostPackage.sharePortal()
+
+    const hostBuffer = new TextBuffer('abcdefg')
+    const hostEditor = new TextEditor({buffer: hostBuffer})
+    await hostEnv.workspace.open(hostEditor)
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(hostPortal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+
+    hostEditor.undo()
+    assert.equal(hostEditor.getText(), 'abcdefg')
+
+    guestEditor.undo()
+    assert.equal(guestEditor.getText(), 'abcdefg')
+
+    guestEditor.redo()
+    assert.equal(guestEditor.getText(), 'abcdefg')
+
+    hostEditor.redo()
+    assert.equal(hostEditor.getText(), 'abcdefg')
+  })
+
+  test('reverting to a checkpoint', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const hostEditor = await hostEnv.workspace.open()
+    hostEditor.setText('abcdefg')
+    const portal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(portal.id)
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
+
+    const checkpoint = hostEditor.createCheckpoint()
+    hostEditor.setCursorBufferPosition([0, 7])
+    hostEditor.insertText('h')
+    hostEditor.insertText('i')
+    hostEditor.insertText('j')
+    assert.equal(hostEditor.getText(), 'abcdefghij')
+    await editorsEqual(hostEditor, guestEditor)
+
+    hostEditor.revertToCheckpoint(checkpoint)
+    assert.equal(hostEditor.getText(), 'abcdefg')
+    await editorsEqual(hostEditor, guestEditor)
+  })
+
+  test('reloading a shared editor', async () => {
+    const env = buildAtomEnvironment()
+    const pack = buildPackage(env)
+    await pack.sharePortal()
+
+    const filePath = path.join(temp.path(), 'standalone.js')
+    const editor = await env.workspace.open(filePath)
+    editor.setText('hello world!')
+    await env.workspace.getActiveTextEditor().save()
+    fs.writeFileSync(filePath, 'goodbye world.')
+    await env.workspace.getActiveTextEditor().getBuffer().reload()
+    assert.equal(editor.getText(), 'goodbye world.')
+    editor.undo()
+    assert.equal(editor.getText(), 'hello world!')
+  })
+
+  test('splitting editors', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = buildPackage(hostEnv)
+    const portal = await hostPackage.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+    guestPackage.joinPortal(portal.id)
+
+    const hostEditor1 = await hostEnv.workspace.open()
+    hostEditor1.setText('hello = "world"')
+    hostEditor1.setCursorBufferPosition([0, 0])
+    hostEditor1.insertText('const ')
+
+    hostEnv.workspace.paneForItem(hostEditor1).splitRight({copyActiveItem: true})
+    const hostEditor2 = hostEnv.workspace.getActiveTextEditor()
+    hostEditor2.setCursorBufferPosition([0, 8])
+
+    assert.equal(hostEditor2.getBuffer(), hostEditor1.getBuffer())
+
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    guestEditor2.setCursorBufferPosition([0, Infinity])
+    guestEditor2.insertText('\nconst goodbye = "moon"')
+    await editorsEqual(guestEditor2, hostEditor2)
+
+    hostEditor2.undo()
+    assert.equal(hostEditor2.getText(), 'hello = "world"\nconst goodbye = "moon"')
+    assert.equal(hostEditor1.getText(), hostEditor2.getText())
+    await editorsEqual(hostEditor2, guestEditor2)
+
+    hostEnv.workspace.paneForItem(hostEditor1).activate()
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(guestEditor1.getBuffer(), guestEditor2.getBuffer())
+    await editorsEqual(guestEditor1, hostEditor1)
+
+    guestEditor1.undo()
+    assert.equal(guestEditor1.getText(), 'hello = "world"')
+    assert.equal(guestEditor2.getText(), guestEditor1.getText())
+    await editorsEqual(guestEditor1, hostEditor1)
+  })
+
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
@@ -304,8 +492,7 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
     await guestPackage.joinPortal(hostPortal.id)
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
     hostEditor.transact(() => {
       hostEditor.setText('abc\ndef')
@@ -336,16 +523,14 @@ suite('RealTimePackage', function () {
     hostEditor1.setText('abc\ndef\nghi')
     hostEditor1.setCursorBufferPosition([2, 0])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     await condition(() => guestEditor1.getScrollTopRow() === 2)
 
     const hostEditor2 = await hostEnv.workspace.open()
     hostEditor2.setText('jkl\nmno\npqr\nstu')
     hostEditor2.setCursorBufferPosition([3, 0])
 
-    await condition(() => guestEnv.workspace.getActiveTextEditor() !== guestEditor1)
-    const guestEditor2 = guestEnv.workspace.getActiveTextEditor()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     await condition(() => guestEditor2.getScrollTopRow() === 3)
 
     guestPackage.toggleFollowHostCursor()
@@ -433,11 +618,11 @@ suite('RealTimePackage', function () {
     host2Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
-    host1Package.closePortal()
+    host1Package.closeHostPortal()
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     assert.equal(guestStatusBar.getRightTiles().length, 0)
 
     await guestPackage.joinPortal(host2Portal.id)
@@ -464,40 +649,16 @@ suite('RealTimePackage', function () {
     await condition(() => guestEnv.workspace.getPaneItems().length === 2)
     assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 1)
     assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    guestPackage.leavePortal()
+    guestPackage.leaveGuestPortal()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
     assert(!guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
 
-    host1Package.closePortal()
+    host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
-  })
-
-  test('copying debug info to clipboard', async () => {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
-    const portalId = (await hostPackage.sharePortal()).id
-
-    guestPackage.joinPortal(portalId)
-
-    const hostEditor = await hostEnv.workspace.open()
-    hostEditor.setText('foo')
-
-    await condition(() => guestEnv.workspace.getActiveTextEditor() != null)
-    let guestEditor = guestEnv.workspace.getActiveTextEditor()
-    guestEditor.insertText('bar ')
-
-    await condition(() => hostEditor.getText() === 'bar foo')
-
-    hostPackage.copyDebugInfoToClipboard()
-    assert(hostPackage.clipboard.text.includes('bar foo'))
-    guestPackage.copyDebugInfoToClipboard()
-    assert(guestPackage.clipboard.text.includes('bar foo'))
   })
 
   function buildAtomEnvironment () {
@@ -520,23 +681,36 @@ suite('RealTimePackage', function () {
     return pack
   }
 
-  function condition (fn, message) {
-    assert(!conditionErrorMessage, 'Cannot await on multiple conditions at the same time')
+  async function getNextActiveTextEditorPromise ({workspace}) {
+    const currentEditor = workspace.getActiveTextEditor()
+    await condition(() => workspace.getActiveTextEditor() != currentEditor)
+    return workspace.getActiveTextEditor()
+  }
 
-    conditionErrorMessage = message
-    return new Promise((resolve) => {
-      async function callback () {
-        const resultOrPromise = fn()
-        const result = (resultOrPromise instanceof Promise) ? (await resultOrPromise) : resultOrPromise
-        if (result) {
-          conditionErrorMessage = null
+  function editorsEqual (editor1, editor2) {
+    return condition(() => (
+      editor1.getText() === editor2.getText() &&
+      deepEqual(getCursorDecoratedRanges(editor1), getCursorDecoratedRanges(editor2))
+    ))
+  }
+
+  function condition (fn) {
+    const timeoutError = new Error('Condition timed out: ' + fn.toString())
+    Error.captureStackTrace(timeoutError, condition)
+
+    return new Promise((resolve, reject) => {
+      const intervalId = global.setInterval(() => {
+        if (fn()) {
+          global.clearTimeout(timeout)
+          global.clearInterval(intervalId)
           resolve()
-        } else {
-          setTimeout(callback, 5)
         }
-      }
+      }, 5)
 
-      callback()
+      const timeout = global.setTimeout(() => {
+        global.clearInterval(intervalId)
+        reject(timeoutError)
+      }, 500)
     })
   }
 })

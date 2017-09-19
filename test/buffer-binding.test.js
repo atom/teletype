@@ -7,21 +7,20 @@ describe('BufferBinding', function () {
 
   it('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding(buffer)
-    const clientBuffer = new FakeClientBuffer(binding, buffer.getText())
-    binding.setClientBuffer(clientBuffer)
+    const binding = new BufferBinding({buffer})
+    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    binding.setBufferProxy(bufferProxy)
 
-    clientBuffer.simulateRemoteOperations([
-      {type: 'delete', position: {row: 0, column: 0}, extent: {row: 0, column: 5}},
-      {type: 'insert', position: {row: 0, column: 0}, text: 'goodbye'},
-      {type: 'insert', position: {row: 1, column: 0}, text: 'cruel\n'}
+    bufferProxy.simulateRemoteTextUpdate([
+      {oldStart: {row: 0, column: 0}, oldEnd: {row: 0, column: 5}, newText: 'goodbye'},
+      {oldStart: {row: 1, column: 0}, oldEnd: {row: 1, column: 0}, newText: 'cruel\n'}
     ])
     assert.equal(buffer.getText(), 'goodbye\ncruel\nworld')
-    assert.equal(clientBuffer.text, 'goodbye\ncruel\nworld')
+    assert.equal(bufferProxy.text, 'goodbye\ncruel\nworld')
 
     buffer.setTextInRange([[1, 0], [1, 5]], 'wonderful')
     assert.equal(buffer.getText(), 'goodbye\nwonderful\nworld')
-    assert.equal(clientBuffer.text, 'goodbye\nwonderful\nworld')
+    assert.equal(bufferProxy.text, 'goodbye\nwonderful\nworld')
 
     buffer.transact(() => {
       buffer.setTextInRange([[0, 0], [0, 4]], 'bye\n')
@@ -29,49 +28,53 @@ describe('BufferBinding', function () {
       buffer.setTextInRange([[2, 3], [2, 5]], 'ms')
     })
     assert.equal(buffer.getText(), 'bye\nbye\nworms')
-    assert.equal(clientBuffer.text, 'bye\nbye\nworms')
+    assert.equal(bufferProxy.text, 'bye\nbye\nworms')
   })
 
   it('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding(buffer)
-    const clientBuffer = new FakeClientBuffer(binding, buffer.getText())
-    binding.setClientBuffer(clientBuffer)
+    const binding = new BufferBinding({buffer})
+    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    binding.setBufferProxy(bufferProxy)
 
     buffer.setTextInRange([[0, 0], [0, 0]], '')
     assert.equal(buffer.getText(), 'hello\nworld')
-    assert.equal(clientBuffer.text, 'hello\nworld')
+    assert.equal(bufferProxy.text, 'hello\nworld')
   })
 
-  class FakeClientBuffer {
+  class FakeBufferProxy {
     constructor (delegate, text) {
       this.delegate = delegate
       this.text = text
     }
 
-    simulateRemoteOperations (operations) {
-      this.applyMany(operations)
-      this.delegate.applyMany(operations)
+    setTextInRange (oldStart, oldEnd, newText) {
+      const oldStartIndex = characterIndexForPosition(this.text, oldStart)
+      const oldEndIndex = characterIndexForPosition(this.text, oldEnd)
+      this.text = this.text.slice(0, oldStartIndex) + newText + this.text.slice(oldEndIndex)
     }
 
-    applyMany (operations) {
-      assert(operations.length > 0, 'Must send at least one operation')
-      for (let i = 0; i < operations.length; i++) {
-        const op = operations[i]
-        switch (op.type) {
-          case 'insert':
-            const index = characterIndexForPosition(this.text, op.position)
-            this.text = this.text.slice(0, index) + op.text + this.text.slice(index)
-            break
-          case 'delete':
-            const startIndex = characterIndexForPosition(this.text, op.position)
-            const endIndex = characterIndexForPosition(this.text, Point.fromObject(op.position).traverse(op.extent))
-            this.text = this.text.slice(0, startIndex) + this.text.slice(endIndex)
-            break
-          default:
-            throw new Error('Unknown operation type: ' + op.type)
-        }
+    simulateRemoteTextUpdate (changes) {
+      assert(changes.length > 0, 'Must update text with at least one change')
+
+      for (let i = changes.length - 1; i >= 0; i--) {
+        const {oldStart, oldEnd, newText} = changes[i]
+        this.setTextInRange(oldStart, oldEnd, newText)
       }
+
+      this.delegate.updateText(changes)
+    }
+
+    createCheckpoint () {
+      return 1
+    }
+
+    groupChangesSinceCheckpoint () {
+      return []
+    }
+
+    applyGroupingInterval () {
+
     }
   }
 
