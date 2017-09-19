@@ -22,11 +22,7 @@ describe('EditorBinding', function () {
         1: {
           range: Range.fromObject([[0, 0], [0, 0]]),
           exclusive: true,
-          invalidate: "never",
-          reversed: false,
-          tailed: false,
-          valid: true,
-          properties: {}
+          reversed: false
         }
       }
     )
@@ -40,21 +36,13 @@ describe('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[10, 0], [11, 4]]),
-          exclusive: undefined,
-          invalidate: "never",
-          reversed: false,
-          tailed: true,
-          valid: true,
-          properties: {}
+          exclusive: false,
+          reversed: false
         },
         2: {
           range: Range.fromObject([[20, 0], [20, 5]]),
-          exclusive: undefined,
-          invalidate: "never",
-          reversed: false,
-          tailed: true,
-          valid: true,
-          properties: {}
+          exclusive: false,
+          reversed: false
         }
       }
     )
@@ -71,6 +59,20 @@ describe('EditorBinding', function () {
         {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
         {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
       ]
+    )
+
+    editor.setSelectedBufferRanges([
+      [[0, 0], [0, 4]]
+    ])
+    assert.deepEqual(
+      editorProxy.selections,
+      {
+        1: {
+          range: Range.fromObject([[0, 0], [0, 4]]),
+          exclusive: false,
+          reversed: false
+        }
+      }
     )
   })
 
@@ -256,9 +258,17 @@ class FakeEditorProxy {
   constructor (delegate) {
     this.delegate = delegate
     this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
+    this.selections = {}
   }
 
-  updateSelections (selections) {
-    this.selections = selections
+  updateSelections (selectionUpdates) {
+    for (const id in selectionUpdates) {
+      const selectionUpdate = selectionUpdates[id]
+      if (selectionUpdate) {
+        this.selections[id] = selectionUpdate
+      } else {
+        delete this.selections[id]
+      }
+    }
   }
 }
