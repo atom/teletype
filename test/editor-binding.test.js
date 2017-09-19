@@ -31,6 +31,7 @@ describe('EditorBinding', function () {
       [[10, 0], [11, 4]],
       [[20, 0], [20, 5]]
     ])
+    editor.getLastSelection().setBufferRange([[20, 0], [20, 5]], {reversed: true})
     assert.deepEqual(
       editorProxy.selections,
       {
@@ -42,22 +43,22 @@ describe('EditorBinding', function () {
         2: {
           range: Range.fromObject([[20, 0], [20, 5]]),
           exclusive: false,
-          reversed: false
+          reversed: true
         }
       }
     )
 
     binding.updateSelectionsForSiteId(2, {
       1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
-      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 0}}}
+      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 0}}, reversed: true}
     })
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
-        {start: {row: 5, column: 0}, end: {row: 6, column: 0}},
-        {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
-        {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+        {tail: {row: 3, column: 0}, head: {row: 4, column: 2}},
+        {tail: {row: 6, column: 0}, head: {row: 5, column: 0}},
+        {tail: {row: 10, column: 0}, head: {row: 11, column: 4}},
+        {tail: {row: 20, column: 5}, head: {row: 20, column: 0}}
       ]
     )
 
@@ -95,9 +96,9 @@ describe('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {start: {row: 3, column: 0}, end: {row: 4, column: 2}},
-        {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
-        {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+        {tail: {row: 3, column: 0}, head: {row: 4, column: 2}},
+        {tail: {row: 10, column: 0}, head: {row: 11, column: 4}},
+        {tail: {row: 20, column: 0}, head: {row: 20, column: 5}}
       ]
     )
 
@@ -105,8 +106,8 @@ describe('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {start: {row: 10, column: 0}, end: {row: 11, column: 4}},
-        {start: {row: 20, column: 0}, end: {row: 20, column: 5}}
+        {tail: {row: 10, column: 0}, head: {row: 11, column: 4}},
+        {tail: {row: 20, column: 0}, head: {row: 20, column: 5}}
       ]
     )
   })
@@ -126,8 +127,8 @@ describe('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        originalLocalSelection,
-        originalRemoteSelection
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 5}}
       ]
     )
 
@@ -137,8 +138,8 @@ describe('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        originalLocalSelection,
-        remoteSelectionAfterDelete
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 0}}
       ]
     )
 
@@ -147,8 +148,8 @@ describe('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        originalLocalSelection,
-        remoteSelectionAfterInsert
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
+        {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}
       ]
     )
   })
@@ -174,11 +175,7 @@ describe('EditorBinding', function () {
       1: {
         range: {start: {row: 0, column: 0}, end: {row: 0, column: 0}},
         exclusive: true,
-        invalidate: "never",
-        reversed: false,
-        tailed: false,
-        valid: true,
-        properties: {}
+        reversed: false
       }
     })
   })
@@ -245,12 +242,15 @@ describe('EditorBinding', function () {
   function getCursorDecoratedRanges (editor) {
     const {decorationManager} = editor
     const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
-    const ranges = []
+    const markers = []
     for (const [marker, decorations] of decorationsByMarker) {
       const hasCursorDecoration = decorations.some((d) => d.type === 'cursor')
-      if (hasCursorDecoration) ranges.push(marker.getBufferRange())
+      if (hasCursorDecoration) markers.push(marker)
     }
-    return ranges.sort((a, b) => a.compare(b))
+
+    return markers.sort((a, b) => a.compare(b)).map(m => {
+      return {head: m.getHeadBufferPosition(), tail: m.getTailBufferPosition()}
+    })
   }
 })
 
