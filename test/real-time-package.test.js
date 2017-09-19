@@ -661,6 +661,37 @@ suite('RealTimePackage', function () {
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
+  test('failing to initialize the client', async () => {
+    const env = buildAtomEnvironment()
+    const pack = buildPackage(env)
+    pack.client.initialize = async function () {
+      await Promise.resolve()
+      throw new Error('an error')
+    }
+
+    env.notifications.clear()
+    {
+      await pack.sharePortal()
+      assert.equal(env.notifications.getNotifications().length, 1)
+      const {type, message, options} = env.notifications.getNotifications()[0]
+      const {description} = options
+      assert.equal(type, 'error')
+      assert.equal(message, 'Failed to initialize the real-time package')
+      assert(description.includes('an error'))
+    }
+
+    env.notifications.clear()
+    {
+      await pack.joinPortal()
+      assert.equal(env.notifications.getNotifications().length, 1)
+      const {type, message, options} = env.notifications.getNotifications()[0]
+      const {description} = options
+      assert.equal(type, 'error')
+      assert.equal(message, 'Failed to initialize the real-time package')
+      assert(description.includes('an error'))
+    }
+  })
+
   function buildAtomEnvironment () {
     const env = global.buildAtomEnvironment()
     environments.push(env)
