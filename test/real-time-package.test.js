@@ -426,6 +426,22 @@ suite('RealTimePackage', function () {
     await editorsEqual(hostEditor, guestEditor)
   })
 
+  test('reloading a shared editor', async () => {
+    const env = buildAtomEnvironment()
+    const pack = buildPackage(env)
+    await pack.sharePortal()
+
+    const filePath = path.join(temp.path(), 'standalone.js')
+    const editor = await env.workspace.open(filePath)
+    editor.setText('hello world!')
+    await env.workspace.getActiveTextEditor().save()
+    fs.writeFileSync(filePath, 'goodbye world.')
+    await env.workspace.getActiveTextEditor().getBuffer().reload()
+    assert.equal(editor.getText(), 'goodbye world.')
+    editor.undo()
+    assert.equal(editor.getText(), 'hello world!')
+  })
+
   test('splitting editors', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = buildPackage(hostEnv)
