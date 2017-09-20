@@ -664,32 +664,11 @@ suite('RealTimePackage', function () {
     await condition(() => guestStatusBar.getRightTiles().length === 0)
   })
 
-  test('workspace element classes', async () => {
+  test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = buildPackage(host1Env)
     const host1Portal = await host1Package.sharePortal()
     assert(host1Env.workspace.getElement().classList.contains('realtime-Host'))
-
-    const host2Env = buildAtomEnvironment()
-    const host2Package = buildPackage(host2Env)
-    const host2Portal = await host2Package.sharePortal()
-
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
-
-    guestPackage.joinPortal(host1Portal.id)
-    guestPackage.joinPortal(host2Portal.id)
-    await condition(() => guestEnv.workspace.getPaneItems().length === 2)
-    assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
-
-    guestPackage.leaveGuestPortal()
-    await condition(() => guestEnv.workspace.getPaneItems().length === 1)
-    assert(guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
-
-    guestPackage.leaveGuestPortal()
-    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
-    assert(!guestEnv.workspace.getElement().classList.contains('realtime-Guest'))
-
     host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
