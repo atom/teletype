@@ -150,8 +150,7 @@ suite('EditorBinding', function () {
     )
   })
 
-
-  test('clears the tail of remote selection markers when they become empty after a text change', () => {
+  test('clears the tail of local and remote selection markers when they become empty after a text change', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
@@ -159,20 +158,14 @@ suite('EditorBinding', function () {
     const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
-
     binding.updateSelectionsForSiteId(2, {
       1: {
         range: {start: {row: 0, column: 0}, end: {row: 0, column: 1}}
       }
     })
-    assert.deepEqual(
-      getCursorDecoratedRanges(editor),
-      [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 3}},
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 1}}
-      ]
-    )
 
+    // Ensure tail of remote selections is cleared after they become empty as a
+    // result of a local change.
     editor.backspace()
     editor.insertText('ABCDEFGH')
     assert.deepEqual(
@@ -180,6 +173,19 @@ suite('EditorBinding', function () {
       [
         {tail: {row: 0, column: 8}, head: {row: 0, column: 8}},
         {tail: {row: 0, column: 8}, head: {row: 0, column: 8}}
+      ]
+    )
+
+    // Ensure tail of local selections is cleared after they become empty as a
+    // result of a remote change.
+    editor.setSelectedBufferRange([[0, 0], [0, 5]])
+    editor.getBuffer().setTextInRange([[0, 0], [0, 5]], '')
+    editor.getBuffer().setTextInRange([[0, 0], [0, 0]], '123')
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 6}, head: {row: 0, column: 6}},
+        {tail: {row: 0, column: 3}, head: {row: 0, column: 3}}
       ]
     )
   })
