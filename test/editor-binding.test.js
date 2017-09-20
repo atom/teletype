@@ -21,7 +21,6 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[0, 0], [0, 0]]),
-          exclusive: true,
           reversed: false
         }
       }
@@ -37,12 +36,10 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[10, 0], [11, 4]]),
-          exclusive: false,
           reversed: false
         },
         2: {
           range: Range.fromObject([[20, 0], [20, 5]]),
-          exclusive: false,
           reversed: true
         }
       }
@@ -70,7 +67,6 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[0, 0], [0, 4]]),
-          exclusive: false,
           reversed: false
         }
       }
@@ -112,7 +108,7 @@ suite('EditorBinding', function () {
     )
   })
 
-  test('clears the tail of remote selection markers when they become empty', () => {
+  test('clears the tail of remote selection markers when they become empty after an update', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -154,6 +150,40 @@ suite('EditorBinding', function () {
     )
   })
 
+
+  test('clears the tail of remote selection markers when they become empty after a text change', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setSelectedBufferRange([[0, 0], [0, 3]])
+
+    const binding = new EditorBinding({editor})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    binding.updateSelectionsForSiteId(2, {
+      1: {
+        range: {start: {row: 0, column: 0}, end: {row: 0, column: 1}}
+      }
+    })
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 3}},
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 1}}
+      ]
+    )
+
+    editor.backspace()
+    editor.insertText('ABCDEFGH')
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 8}, head: {row: 0, column: 8}},
+        {tail: {row: 0, column: 8}, head: {row: 0, column: 8}}
+      ]
+    )
+  })
+
   test('does not relay local selection changes if the associated marker moves because of a textual change', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
@@ -174,7 +204,6 @@ suite('EditorBinding', function () {
     assert.deepEqual(editorProxy.selections, {
       1: {
         range: {start: {row: 0, column: 0}, end: {row: 0, column: 0}},
-        exclusive: true,
         reversed: false
       }
     })
