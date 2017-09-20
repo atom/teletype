@@ -119,6 +119,7 @@ suite('RealTimePackage', function () {
 
     const guestEditor1Pane = guestEnv.workspace.getActivePane()
     guestPackage.joinPortal(portal1.id)
+    guestPackage.joinPortal(portal1.id)
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
 
     const guestEditor2Pane = guestEditor1Pane.splitRight()
@@ -565,7 +566,7 @@ suite('RealTimePackage', function () {
     const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     await condition(() => guestEditor2.getScrollTopRow() === 3)
 
-    guestPackage.toggleFollowHostCursor()
+    await guestPackage.toggleFollowHostCursor()
     hostEditor2.insertText('vwx')
     hostEditor2.setCursorBufferPosition([0, 0])
     await condition(() => guestEditor2.getText() === hostEditor2.getText())
@@ -654,7 +655,7 @@ suite('RealTimePackage', function () {
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
-    guestPackage.leaveGuestPortal()
+    await guestPackage.leaveGuestPortal()
     assert.equal(guestStatusBar.getRightTiles().length, 0)
 
     await guestPackage.joinPortal(host2Portal.id)
