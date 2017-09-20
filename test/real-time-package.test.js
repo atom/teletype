@@ -103,6 +103,38 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
+  test('joining the same portal more than once', async () => {
+    const host1Env = buildAtomEnvironment()
+    const host1Package = buildPackage(host1Env)
+    const host2Env = buildAtomEnvironment()
+    const host2Package = buildPackage(host2Env)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = buildPackage(guestEnv)
+
+    await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
+    const portal1 = await host1Package.sharePortal()
+
+    await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
+    const portal2 = await host2Package.sharePortal()
+
+    const guestEditor1Pane = guestEnv.workspace.getActivePane()
+    guestPackage.joinPortal(portal1.id)
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+
+    const guestEditor2Pane = guestEditor1Pane.splitRight()
+    guestPackage.joinPortal(portal2.id)
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+
+    assert.equal(guestEditor1.getTitle(), 'Remote Buffer: host-1')
+    assert.equal(guestEditor2.getTitle(), 'Remote Buffer: host-2')
+    assert.equal(guestEnv.workspace.getActivePaneItem(), guestEditor2)
+    assert.equal(guestEnv.workspace.getActivePane(), guestEditor2Pane)
+
+    guestPackage.joinPortal(portal1.id)
+    await condition(() => guestEnv.workspace.getActivePaneItem() === guestEditor1)
+    assert.deepEqual(guestEnv.workspace.getPaneItems(), [guestEditor1, guestEditor2])
+  })
+
   test('attempting to join a nonexistent portal', async () => {
     const guestPackage = buildPackage(buildAtomEnvironment())
     const notifications = []
