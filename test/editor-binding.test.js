@@ -128,7 +128,7 @@ suite('EditorBinding', function () {
       ]
     )
 
-    editor.getBuffer().delete(originalRemoteSelection)
+    editor.getBuffer().setTextInRange(originalRemoteSelection, '', {undo: 'skip'})
     const remoteSelectionAfterDelete = {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
     binding.updateSelectionsForSiteId(2, {1: {range: remoteSelectionAfterDelete}})
     assert.deepEqual(
@@ -139,7 +139,7 @@ suite('EditorBinding', function () {
       ]
     )
 
-    editor.getBuffer().insert(remoteSelectionAfterDelete.start, 'a')
+    editor.getBuffer().setTextInRange([remoteSelectionAfterDelete.start, remoteSelectionAfterDelete.start], 'a', {undo: 'skip'})
     const remoteSelectionAfterInsert = {start: {row: 1, column: 1}, end: {row: 1, column: 1}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
@@ -179,8 +179,8 @@ suite('EditorBinding', function () {
     // Ensure tail of local selections is cleared after they become empty as a
     // result of a remote change.
     editor.setSelectedBufferRange([[0, 0], [0, 5]])
-    editor.getBuffer().setTextInRange([[0, 0], [0, 5]], '')
-    editor.getBuffer().setTextInRange([[0, 0], [0, 0]], '123')
+    editor.getBuffer().setTextInRange([[0, 0], [0, 5]], '', {undo: 'skip'})
+    editor.getBuffer().setTextInRange([[0, 0], [0, 0]], '123', {undo: 'skip'})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
