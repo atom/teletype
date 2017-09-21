@@ -329,7 +329,7 @@ suite('RealTimePackage', function () {
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
-    await guestPackage.joinPortal(hostPortal.id)
+    guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
     hostEditor.insertText('h1 ')
@@ -380,7 +380,7 @@ suite('RealTimePackage', function () {
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
-    await guestPackage.joinPortal(hostPortal.id)
+    guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor.getText(), 'h1 ')
 
@@ -524,7 +524,7 @@ suite('RealTimePackage', function () {
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = buildPackage(guestEnv)
-    await guestPackage.joinPortal(hostPortal.id)
+    guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
     hostEditor.transact(() => {
