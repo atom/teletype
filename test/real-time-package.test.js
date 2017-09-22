@@ -1,6 +1,7 @@
 require('./setup')
 
 const RealTimePackage = require('../lib/real-time-package')
+const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
 
 const assert = require('assert')
@@ -673,7 +674,49 @@ suite('RealTimePackage', function () {
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
-  test('failing to initialize the client', async () => {
+  test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
+    const env = buildAtomEnvironment()
+    const pack = buildPackage(env)
+    pack.client.initialize = async function () {
+      await Promise.resolve()
+      throw new Errors.ClientOutOfDateError()
+    }
+
+    {
+      env.notifications.clear()
+
+      await pack.sharePortal()
+
+      assert.equal(env.notifications.getNotifications().length, 1)
+      const notification = env.notifications.getNotifications()[0]
+      assert.equal(notification.type, 'error')
+      assert.equal(notification.message, 'The real-time package is out of date')
+      const openedURIs = []
+      env.workspace.open = (uri) => openedURIs.push(uri)
+      notification.options.buttons[0].onDidClick()
+      assert.deepEqual(openedURIs, ['atom://config/packages/real-time'])
+      assert(notification.isDismissed())
+    }
+
+
+    {
+      env.notifications.clear()
+
+      await pack.joinPortal()
+
+      assert.equal(env.notifications.getNotifications().length, 1)
+      const notification = env.notifications.getNotifications()[0]
+      assert.equal(notification.type, 'error')
+      assert.equal(notification.message, 'The real-time package is out of date')
+      const openedURIs = []
+      env.workspace.open = (uri) => openedURIs.push(uri)
+      notification.options.buttons[0].onDidClick()
+      assert.deepEqual(openedURIs, ['atom://config/packages/real-time'])
+      assert(notification.isDismissed())
+    }
+  })
+
+  test('reports errors attempting to initialize the client', async () => {
     const env = buildAtomEnvironment()
     const pack = buildPackage(env)
     pack.client.initialize = async function () {
@@ -681,9 +724,11 @@ suite('RealTimePackage', function () {
       throw new Error('an error')
     }
 
-    env.notifications.clear()
     {
+      env.notifications.clear()
+
       await pack.sharePortal()
+
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
@@ -692,9 +737,11 @@ suite('RealTimePackage', function () {
       assert(description.includes('an error'))
     }
 
-    env.notifications.clear()
     {
+      env.notifications.clear()
+
       await pack.joinPortal()
+
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
