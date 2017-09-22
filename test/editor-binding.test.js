@@ -239,25 +239,31 @@ describe('EditorBinding', function () {
     assert.deepEqual(scrollRequests, [])
   })
 
-  it('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
-    const buffer = new TextBuffer({text: SAMPLE_TEXT})
-    const editor = new TextEditor({buffer})
+  describe('guest editor binding', () => {
+    it('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
+      const buffer = new TextBuffer({text: SAMPLE_TEXT})
+      const editor = new TextEditor({buffer})
 
-    const binding = new EditorBinding({editor, isHost: false})
-    const editorProxy = new FakeEditorProxy(binding)
-    binding.setEditorProxy(editorProxy)
-    assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
-    assert.equal(editor.getURI(), '')
-    assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
-    assert(editor.element.classList.contains('realtime-RemotePaneItem'))
-    assert(!editor.getBuffer().isModified())
+      const binding = new EditorBinding({editor, isHost: false})
+      const editorProxy = new FakeEditorProxy(binding)
+      binding.setEditorProxy(editorProxy)
+      assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
+      assert.equal(editor.getURI(), '')
+      assert.equal(editor.copy(), null)
+      assert.equal(editor.serialize(), null)
+      assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
+      assert(editor.element.classList.contains('realtime-RemotePaneItem'))
+      assert(!editor.getBuffer().isModified())
 
-    binding.dispose()
-    assert.equal(editor.getTitle(), 'untitled')
-    assert.equal(editor.getURI(), null)
-    assert.equal(buffer.getPath(), null)
-    assert(!editor.element.classList.contains('realtime-RemotePaneItem'))
-    assert(editor.getBuffer().isModified())
+      binding.dispose()
+      assert.equal(editor.getTitle(), 'untitled')
+      assert.equal(editor.getURI(), null)
+      assert.notEqual(editor.copy(), null)
+      assert.notEqual(editor.serialize(), null)
+      assert.equal(buffer.getPath(), null)
+      assert(!editor.element.classList.contains('realtime-RemotePaneItem'))
+      assert(editor.getBuffer().isModified())
+    })
   })
 
   function getCursorDecoratedRanges (editor) {
