@@ -2,7 +2,7 @@ const assert = require('assert')
 const fs = require('fs')
 const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
-const {TextEditor, Range} = require('atom')
+const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 
 describe('EditorBinding', function () {
@@ -237,6 +237,27 @@ describe('EditorBinding', function () {
 
     binding.updateSelectionsForSiteId(1, {})
     assert.deepEqual(scrollRequests, [])
+  })
+
+  it('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
+    const buffer = new TextBuffer({text: SAMPLE_TEXT})
+    const editor = new TextEditor({buffer})
+
+    const binding = new EditorBinding({editor, isHost: false})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+    assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
+    assert.equal(editor.getURI(), null)
+    assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
+    assert(editor.element.classList.contains('realtime-RemotePaneItem'))
+    assert(!editor.getBuffer().isModified())
+
+    binding.dispose()
+    assert.equal(editor.getTitle(), 'untitled')
+    assert.equal(editor.getURI(), null)
+    assert.equal(buffer.getPath(), null)
+    assert(!editor.element.classList.contains('realtime-RemotePaneItem'))
+    assert(editor.getBuffer().isModified())
   })
 
   function getCursorDecoratedRanges (editor) {
