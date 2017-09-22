@@ -247,7 +247,7 @@ describe('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
-    assert.equal(editor.getURI(), null)
+    assert.equal(editor.getURI(), '')
     assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
     assert(editor.element.classList.contains('realtime-RemotePaneItem'))
     assert(!editor.getBuffer().isModified())
