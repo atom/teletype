@@ -704,6 +704,21 @@ suite('RealTimePackage', function () {
     }
   })
 
+  test('client connection errors', async () => {
+    const env = buildAtomEnvironment()
+    const pack = buildPackage(env)
+    await pack.sharePortal()
+    env.notifications.clear()
+
+    pack.client.emitter.emit('connection-error', new ErrorEvent('error', {message: 'connection-error'}))
+    assert.equal(env.notifications.getNotifications().length, 1)
+    const {type, message, options} = env.notifications.getNotifications()[0]
+    const {description} = options
+    assert.equal(type, 'error')
+    assert.equal(message, 'Connection Error')
+    assert(description.includes('connection-error'))
+  })
+
   function buildAtomEnvironment () {
     const env = global.buildAtomEnvironment()
     environments.push(env)
