@@ -180,66 +180,66 @@ describe('EditorBinding', function () {
     })
   })
 
-  it('updates the scroll position based on the position of the last cursor on the host', () => {
-    const guestEditor = new TextEditor()
-    guestEditor.setText(SAMPLE_TEXT)
-    guestEditor.setCursorBufferPosition([0, 0])
-
-    const binding = new EditorBinding({editor: guestEditor})
-    binding.setEditorProxy(new FakeEditorProxy(binding))
-
-    const scrollRequests = []
-    guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
-
-    binding.updateSelectionsForSiteId(1, {
-      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
-      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}}
-    })
-    assert.deepEqual(scrollRequests, [{start: {row: 5, column: 0}, end: {row: 6, column: 0}}])
-
-    scrollRequests.length = 0
-    binding.updateSelectionsForSiteId(1, {
-      1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
-      2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}},
-      3: {range: {start: {row: 1, column: 0}, end: {row: 1, column: 3}}}
-    })
-    assert.deepEqual(scrollRequests, [{start: {row: 1, column: 0}, end: {row: 1, column: 3}}])
-
-    scrollRequests.length = 0
-    binding.updateSelectionsForSiteId(2, {
-      1: {range: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}}
-    })
-    assert.deepEqual(scrollRequests, [])
-
-    binding.setFollowHostCursor(false)
-    binding.updateSelectionsForSiteId(1, {
-      1: {range: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}}
-    })
-    assert.deepEqual(scrollRequests, [])
-
-    binding.setFollowHostCursor(true)
-    binding.updateSelectionsForSiteId(1, {
-      1: {range: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}}
-    })
-    assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
-  })
-
-  it('does not try to update the scroll position when the host has no cursor', () => {
-    const guestEditor = new TextEditor()
-    guestEditor.setText(SAMPLE_TEXT)
-    guestEditor.setCursorBufferPosition([0, 0])
-
-    const binding = new EditorBinding({editor: guestEditor})
-    binding.setEditorProxy(new FakeEditorProxy(binding))
-
-    const scrollRequests = []
-    guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
-
-    binding.updateSelectionsForSiteId(1, {})
-    assert.deepEqual(scrollRequests, [])
-  })
-
   describe('guest editor binding', () => {
+    it('updates the scroll position based on the position of the last cursor on the host', () => {
+      const guestEditor = new TextEditor()
+      guestEditor.setText(SAMPLE_TEXT)
+      guestEditor.setCursorBufferPosition([0, 0])
+
+      const binding = new EditorBinding({editor: guestEditor})
+      binding.setEditorProxy(new FakeEditorProxy(binding))
+
+      const scrollRequests = []
+      guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
+
+      binding.updateSelectionsForSiteId(1, {
+        1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
+        2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}}
+      })
+      assert.deepEqual(scrollRequests, [{start: {row: 5, column: 0}, end: {row: 6, column: 0}}])
+
+      scrollRequests.length = 0
+      binding.updateSelectionsForSiteId(1, {
+        1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
+        2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}},
+        3: {range: {start: {row: 1, column: 0}, end: {row: 1, column: 3}}}
+      })
+      assert.deepEqual(scrollRequests, [{start: {row: 1, column: 0}, end: {row: 1, column: 3}}])
+
+      scrollRequests.length = 0
+      binding.updateSelectionsForSiteId(2, {
+        1: {range: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}}
+      })
+      assert.deepEqual(scrollRequests, [])
+
+      binding.setFollowHostCursor(false)
+      binding.updateSelectionsForSiteId(1, {
+        1: {range: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}}
+      })
+      assert.deepEqual(scrollRequests, [])
+
+      binding.setFollowHostCursor(true)
+      binding.updateSelectionsForSiteId(1, {
+        1: {range: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}}
+      })
+      assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
+    })
+
+    it('does not try to update the scroll position when the host has no cursor', () => {
+      const guestEditor = new TextEditor()
+      guestEditor.setText(SAMPLE_TEXT)
+      guestEditor.setCursorBufferPosition([0, 0])
+
+      const binding = new EditorBinding({editor: guestEditor})
+      binding.setEditorProxy(new FakeEditorProxy(binding))
+
+      const scrollRequests = []
+      guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
+
+      binding.updateSelectionsForSiteId(1, {})
+      assert.deepEqual(scrollRequests, [])
+    })
+
     it('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
