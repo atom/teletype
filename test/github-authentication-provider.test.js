@@ -1,6 +1,8 @@
 const assert = require('assert')
+const deepEqual = require('deep-equal')
 const FakePasswordManager = require('./helpers/fake-password-manager')
 const GithubAuthenticationProvider = require('../lib/github-authentication-provider')
+const condition = require('./helpers/condition')
 
 suite('GithubAuthenticationProvider', () => {
   let atomEnv, commandRegistry, workspace
@@ -33,7 +35,8 @@ suite('GithubAuthenticationProvider', () => {
       })
 
       const loginPromise = provider.login()
-      assert.deepEqual(openedURLs, ['https://tachyon.atom.io/login'])
+
+      await condition(() => deepEqual(openedURLs, ['https://tachyon.atom.io/login']))
       assert.equal(workspace.getModalPanels().length, 1)
 
       const modalPanel = workspace.getModalPanels()[0]
@@ -41,7 +44,7 @@ suite('GithubAuthenticationProvider', () => {
       commandRegistry.dispatch(modalPanel.item, 'core:confirm')
 
       assert.equal(await loginPromise, 'oauth-token')
-      assert.equal(fakePasswordManager.get(), 'oauth-token')
+      assert.equal(await fakePasswordManager.get(), 'oauth-token')
       assert.equal(workspace.getModalPanels().length, 0)
     }
 
@@ -70,8 +73,8 @@ suite('GithubAuthenticationProvider', () => {
     })
 
     const loginPromise = provider.login()
-    const modalPanel = workspace.getModalPanels()[0]
-    commandRegistry.dispatch(modalPanel.item, 'core:cancel')
+    await condition(() => workspace.getModalPanels().length === 1)
+    commandRegistry.dispatch(workspace.getModalPanels()[0].item, 'core:cancel')
 
     let error
     try {
