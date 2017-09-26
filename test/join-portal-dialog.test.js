@@ -1,13 +1,5 @@
 const assert = require('assert')
-
 const JoinPortalDialog = require('../lib/join-portal-dialog')
-
-const suiteSetup = global.before
-const suiteTeardown = global.after
-const setup = global.beforeEach
-const teardown = global.afterEach
-const suite = global.describe
-const test = global.it
 
 suite('JoinPortalDialog', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)

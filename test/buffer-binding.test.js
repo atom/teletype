@@ -2,10 +2,10 @@ const assert = require('assert')
 const {TextBuffer, Point} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 
-describe('BufferBinding', function () {
+suite('BufferBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  it('relays changes to and from the shared buffer', () => {
+  test('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
@@ -31,7 +31,7 @@ describe('BufferBinding', function () {
     assert.equal(bufferProxy.text, 'bye\nbye\nworms')
   })
 
-  it('does not relay empty changes to the shared buffer', () => {
+  test('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())

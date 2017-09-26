@@ -1,5 +1,3 @@
-require('./setup')
-
 const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
@@ -11,12 +9,6 @@ const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
 const path = require('path')
-const suiteSetup = global.before
-const suiteTeardown = global.after
-const setup = global.beforeEach
-const teardown = global.afterEach
-const suite = global.describe
-const test = global.it
 const temp = require('temp').track()
 
 suite('RealTimePackage', function () {

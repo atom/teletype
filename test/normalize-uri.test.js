@@ -1,7 +1,4 @@
 const assert = require('assert')
-const suite = global.describe
-const test = global.it
-
 const normalizeURI = require('../lib/normalize-uri')
 
 suite('normalizeURI(uri, targetPlatform)', () => {
