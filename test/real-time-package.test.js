@@ -5,7 +5,7 @@ const {TextBuffer, TextEditor} = require('atom')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
-const FakeAuthenticationProvider = require('./helpers/fake-authentication-provider')
+const FakeAuthTokenProvider = require('./helpers/fake-auth-token-provider')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
@@ -777,7 +777,7 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      authenticationProvider: new FakeAuthenticationProvider()
+      authTokenProvider: new FakeAuthTokenProvider()
     })
     packages.push(pack)
     return pack

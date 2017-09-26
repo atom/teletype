@@ -1,8 +1,8 @@
 let tokenCount = 0
 
 module.exports =
-class FakeAuthenticationProvider {
-  authenticate () {
+class FakeAuthTokenProvider {
+  getToken () {
     return Promise.resolve('oauth-token-' + tokenCount++)
   }
 }
