@@ -18,7 +18,7 @@ suite('GithubAuthenticationProvider', () => {
     atomEnv = null
   })
 
-  test('login', async () => {
+  test('authenticate', async () => {
     const fakePasswordManager = new FakePasswordManager()
     const openedURLs = []
     const openURL = (url) => openedURLs.push(url)
@@ -34,7 +34,7 @@ suite('GithubAuthenticationProvider', () => {
         passwordManager: fakePasswordManager
       })
 
-      const loginPromise = provider.login()
+      const loginPromise = provider.authenticate()
 
       await condition(() => deepEqual(openedURLs, ['https://tachyon.atom.io/login']))
       assert.equal(workspace.getModalPanels().length, 1)
@@ -58,7 +58,7 @@ suite('GithubAuthenticationProvider', () => {
         passwordManager: fakePasswordManager
       })
 
-      assert.equal(await provider.login(), 'oauth-token')
+      assert.equal(await provider.authenticate(), 'oauth-token')
       assert.equal(openedURLs.length, 0)
       assert.equal(workspace.getModalPanels().length, 0)
     }
@@ -72,7 +72,7 @@ suite('GithubAuthenticationProvider', () => {
       passwordManager: new FakePasswordManager()
     })
 
-    const loginPromise = provider.login()
+    const loginPromise = provider.authenticate()
     await condition(() => workspace.getModalPanels().length === 1)
     commandRegistry.dispatch(workspace.getModalPanels()[0].item, 'core:cancel')
 
