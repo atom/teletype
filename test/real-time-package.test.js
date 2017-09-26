@@ -5,6 +5,7 @@ const {TextBuffer, TextEditor} = require('atom')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
+const FakeAuthenticationProvider = require('./helpers/fake-authentication-provider')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
@@ -270,7 +271,7 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
-    hostPortal.simulateNetworkFailure()
+    hostPortal.peerPool.disconnect()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
@@ -775,7 +776,8 @@ suite('RealTimePackage', function () {
       notificationManager: env.notifications,
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
-      clipboard: new FakeClipboard()
+      clipboard: new FakeClipboard(),
+      authenticationProvider: new FakeAuthenticationProvider()
     })
     packages.push(pack)
     return pack
