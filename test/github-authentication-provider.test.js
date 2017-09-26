@@ -40,8 +40,7 @@ suite('GithubAuthenticationProvider', () => {
       provider.editor.setText('oauth-token')
       commandRegistry.dispatch(modalPanel.item, 'core:confirm')
 
-      const token = await loginPromise
-      assert.equal(token, 'oauth-token')
+      assert.equal(await loginPromise, 'oauth-token')
       assert.equal(fakePasswordManager.get(), 'oauth-token')
       assert.equal(workspace.getModalPanels().length, 0)
     }
