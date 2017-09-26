@@ -9,7 +9,7 @@
   },
   "author": "",
   "license": "MIT",
-  "atomTestRunner": "atom-mocha-test-runner",
+  "atomTestRunner": "./test/setup",
   "devDependencies": {
     "@atom/real-time-server": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/real-time-server/tarball/v0.12.4",
     "atom-mocha-test-runner": "^1.0.1",

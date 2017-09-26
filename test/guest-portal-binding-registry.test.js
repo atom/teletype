@@ -1,8 +1,5 @@
-const GuestPortalBindingRegistry = require('../lib/guest-portal-binding-registry')
-
 const assert = require('assert')
-const suite = global.describe
-const test = global.it
+const GuestPortalBindingRegistry = require('../lib/guest-portal-binding-registry')
 
 suite('GuestPortalBindingRegistry', () => {
   test('fetching the same binding multiple times before it has been initialized', async () => {

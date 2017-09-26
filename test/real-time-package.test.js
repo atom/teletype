@@ -1,19 +1,14 @@
-require('./setup')
-
 const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
 
 const assert = require('assert')
+const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
+const FakeClipboard = require('./helpers/fake-clipboard')
+const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
 const path = require('path')
-const suiteSetup = global.before
-const suiteTeardown = global.after
-const setup = global.beforeEach
-const teardown = global.afterEach
-const suite = global.describe
-const test = global.it
 const temp = require('temp').track()
 
 suite('RealTimePackage', function () {
@@ -798,26 +793,6 @@ suite('RealTimePackage', function () {
       deepEqual(getCursorDecoratedRanges(editor1), getCursorDecoratedRanges(editor2))
     ))
   }
-
-  function condition (fn) {
-    const timeoutError = new Error('Condition timed out: ' + fn.toString())
-    Error.captureStackTrace(timeoutError, condition)
-
-    return new Promise((resolve, reject) => {
-      const intervalId = global.setInterval(() => {
-        if (fn()) {
-          global.clearTimeout(timeout)
-          global.clearInterval(intervalId)
-          resolve()
-        }
-      }, 5)
-
-      const timeout = global.setTimeout(() => {
-        global.clearInterval(intervalId)
-        reject(timeoutError)
-      }, 500)
-    })
-  }
 })
 
 function getPaneItemTitles (environment) {
@@ -833,39 +808,4 @@ function getCursorDecoratedRanges (editor) {
     if (hasCursorDecoration) ranges.push(marker.getBufferRange())
   }
   return ranges.sort((a, b) => a.compare(b))
-}
-
-class FakeClipboard {
-  constructor () {
-    this.text = null
-  }
-
-  read () {
-    return this.text
-  }
-
-  write (text) {
-    this.text = text
-  }
-}
-
-class FakeStatusBar {
-  constructor () {
-    this.rightTiles = []
-  }
-
-  getRightTiles () {
-    return this.rightTiles
-  }
-
-  addRightTile (tile) {
-    this.rightTiles.push(tile)
-    return {
-      getItem: () => tile.item,
-      destroy: () => {
-        const index = this.rightTiles.indexOf(tile)
-        this.rightTiles.splice(index, 1)
-      }
-    }
-  }
 }

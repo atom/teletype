@@ -5,10 +5,10 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 
-describe('EditorBinding', function () {
+suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
-  it('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
+  test('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -77,7 +77,7 @@ describe('EditorBinding', function () {
     )
   })
 
-  it('clears remote selections for disconnected remote site', () => {
+  test('clears remote selections for disconnected remote site', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -112,7 +112,7 @@ describe('EditorBinding', function () {
     )
   })
 
-  it('clears the tail of remote selection markers when they become empty', () => {
+  test('clears the tail of remote selection markers when they become empty', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -154,7 +154,7 @@ describe('EditorBinding', function () {
     )
   })
 
-  it('does not relay local selection changes if the associated marker moves because of a textual change', () => {
+  test('does not relay local selection changes if the associated marker moves because of a textual change', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
@@ -180,8 +180,8 @@ describe('EditorBinding', function () {
     })
   })
 
-  describe('guest editor binding', () => {
-    it('updates the scroll position based on the position of the last cursor on the host', () => {
+  suite('guest editor binding', () => {
+    test('updates the scroll position based on the position of the last cursor on the host', () => {
       const guestEditor = new TextEditor()
       guestEditor.setText(SAMPLE_TEXT)
       guestEditor.setCursorBufferPosition([0, 0])
@@ -225,7 +225,7 @@ describe('EditorBinding', function () {
       assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
     })
 
-    it('does not try to update the scroll position when the host has no cursor', () => {
+    test('does not try to update the scroll position when the host has no cursor', () => {
       const guestEditor = new TextEditor()
       guestEditor.setText(SAMPLE_TEXT)
       guestEditor.setCursorBufferPosition([0, 0])
@@ -240,7 +240,7 @@ describe('EditorBinding', function () {
       assert.deepEqual(scrollRequests, [])
     })
 
-    it('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
+    test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
 

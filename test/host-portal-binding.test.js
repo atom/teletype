@@ -1,9 +1,6 @@
-const {RealTimeClient} = require('@atom/real-time-client')
 const assert = require('assert')
+const {RealTimeClient} = require('@atom/real-time-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
-
-const suite = global.describe
-const test = global.it
 
 suite('HostPortalBinding', () => {
   test('handling an unexpected error when joining a portal', async () => {
