@@ -1,15 +1,15 @@
 module.exports =
 class FakePasswordManager {
   constructor () {
-    this.password = null
+    this.passwordsByKey = new Map()
   }
 
-  get () {
-    return Promise.resolve(this.password)
+  getPassword (key) {
+    return Promise.resolve(this.passwordsByKey.get(key))
   }
 
-  async set (password) {
+  async setPassword (key, password) {
     await Promise.resolve()
-    this.password = password
+    this.passwordsByKey.set(key, password)
   }
 }
