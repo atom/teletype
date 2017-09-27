@@ -85,4 +85,16 @@ suite('GithubAuthTokenProvider', () => {
 
     assert(error)
   })
+
+  test('forgetToken', async () => {
+    const fakePasswordManager = new FakePasswordManager()
+    const provider = new GithubAuthTokenProvider({
+      commandRegistry,
+      passwordManager: fakePasswordManager
+    })
+
+    await fakePasswordManager.setPassword('oauth-token', 'token')
+    await provider.forgetToken()
+    assert.equal(await fakePasswordManager.getPassword('oauth-token'), null)
+  })
 })

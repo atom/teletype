@@ -12,4 +12,9 @@ class FakePasswordManager {
     await Promise.resolve()
     this.passwordsByKey.set(key, password)
   }
+
+  async deletePassword (key) {
+    await Promise.resolve()
+    this.passwordsByKey.delete(key)
+  }
 }
