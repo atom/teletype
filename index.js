@@ -1,5 +1,5 @@
 const PRODUCTION_REAL_TIME_PUSHER_KEY = 'f119821248b7429bece3'
-const PRODUCTION_REAL_TIME_BASE_URL = 'https://atom-tachyon.herokuapp.com'
+const PRODUCTION_REAL_TIME_BASE_URL = 'https://api.tachyon.atom.io'
 
 const RealTimePackage = require('./lib/real-time-package')
 module.exports = new RealTimePackage({
