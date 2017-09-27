@@ -1,6 +1,6 @@
 const assert = require('assert')
 const deepEqual = require('deep-equal')
-const FakePasswordManager = require('./helpers/fake-password-manager')
+const FakeCredentialCache = require('./helpers/fake-credential-cache')
 const GithubAuthTokenProvider = require('../lib/github-auth-token-provider')
 const condition = require('./helpers/condition')
 
@@ -19,7 +19,7 @@ suite('GithubAuthTokenProvider', () => {
   })
 
   test('authenticate', async () => {
-    const fakePasswordManager = new FakePasswordManager()
+    const fakeCredentialCache = new FakeCredentialCache()
     const openedURLs = []
     const openURL = (url) => openedURLs.push(url)
 
@@ -31,7 +31,7 @@ suite('GithubAuthTokenProvider', () => {
         commandRegistry,
         workspace,
         openURL,
-        passwordManager: fakePasswordManager
+        credentialCache: fakeCredentialCache
       })
 
       const loginPromise = provider.getToken()
@@ -44,7 +44,7 @@ suite('GithubAuthTokenProvider', () => {
       commandRegistry.dispatch(modalPanel.item, 'core:confirm')
 
       assert.equal(await loginPromise, 'oauth-token')
-      assert.equal(await fakePasswordManager.getPassword('oauth-token'), 'oauth-token')
+      assert.equal(await fakeCredentialCache.get('oauth-token'), 'oauth-token')
       assert.equal(workspace.getModalPanels().length, 0)
     }
 
@@ -55,7 +55,7 @@ suite('GithubAuthTokenProvider', () => {
       const provider = new GithubAuthTokenProvider({
         commandRegistry,
         workspace,
-        passwordManager: fakePasswordManager
+        credentialCache: fakeCredentialCache
       })
 
       assert.equal(await provider.getToken(), 'oauth-token')
@@ -69,7 +69,7 @@ suite('GithubAuthTokenProvider', () => {
       commandRegistry,
       workspace,
       openURL: () => {},
-      passwordManager: new FakePasswordManager()
+      credentialCache: new FakeCredentialCache()
     })
 
     const loginPromise = provider.getToken()
@@ -87,14 +87,14 @@ suite('GithubAuthTokenProvider', () => {
   })
 
   test('forgetToken', async () => {
-    const fakePasswordManager = new FakePasswordManager()
+    const fakeCredentialCache = new FakeCredentialCache()
     const provider = new GithubAuthTokenProvider({
       commandRegistry,
-      passwordManager: fakePasswordManager
+      credentialCache: fakeCredentialCache
     })
 
-    await fakePasswordManager.setPassword('oauth-token', 'token')
+    await fakeCredentialCache.set('oauth-token', 'token')
     await provider.forgetToken()
-    assert.equal(await fakePasswordManager.getPassword('oauth-token'), null)
+    assert.equal(await fakeCredentialCache.get('oauth-token'), null)
   })
 })
