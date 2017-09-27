@@ -1,11 +1,13 @@
 const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
+const GithubAuthTokenProvider = require('../lib/github-auth-token-provider')
 
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
+const FakeCredentialCache = require('./helpers/fake-credential-cache')
 const FakeAuthTokenProvider = require('./helpers/fake-auth-token-provider')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
@@ -96,6 +98,56 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
+  })
+
+  test('prompting for an auth token', async () => {
+    testServer.identityProvider.setIdentitiesByToken({'bad-token': null, 'good-token': {login: 'defunkt'}})
+    const env = buildAtomEnvironment()
+    const authTokenProvider = new GithubAuthTokenProvider({
+      credentialCache: new FakeCredentialCache(),
+      workspace: env.workspace
+    })
+    const pack = buildPackage(env, {authTokenProvider})
+
+    {
+      await pack.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack.sharePortal()
+
+      await condition(() => env.workspace.getModalPanels().length === 1)
+      const [loginPanel1] = env.workspace.getModalPanels()
+      const loginDialog1 = loginPanel1.item
+
+      // Enter a bad token and wait for dialog to close
+      await loginDialog1.props.didConfirm('bad-token')
+      await condition(() => !loginPanel1.isVisible())
+
+      // Wait for new dialog to appear with an error message
+      await condition(() => env.workspace.getModalPanels().length === 1)
+      const [loginPanel2] = env.workspace.getModalPanels()
+      const loginDialog2 = loginPanel2.item
+      assert(loginDialog2.props.previousTokenWasInvalid)
+
+      // Dismiss panel and open portal after entering a good token
+      await loginDialog2.props.didConfirm('good-token')
+      assert(loginPanel2.destroyed)
+      assert(await portalPromise) // Portal is opened
+
+      pack.closeHostPortal()
+    }
+
+    {
+      await pack.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack.sharePortal()
+
+      await condition(() => env.workspace.getModalPanels().length === 1)
+      const [loginPanel] = env.workspace.getModalPanels()
+      const loginDialog = loginPanel.item
+
+      loginDialog.props.didBlur()
+
+      assert(loginPanel.destroyed)
+      assert(!(await portalPromise))
+    }
   })
 
   test('joining the same portal more than once', async () => {
@@ -760,7 +812,7 @@ suite('RealTimePackage', function () {
     assert(description.includes('connection-error'))
   })
 
-  function buildPackage (env) {
+  function buildPackage (env, options = {}) {
     const pack = new RealTimePackage({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
@@ -769,7 +821,7 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      authTokenProvider: new FakeAuthTokenProvider()
+      authTokenProvider: options.authTokenProvider || new FakeAuthTokenProvider()
     })
     packages.push(pack)
     return pack

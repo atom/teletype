@@ -14,6 +14,7 @@
     "@atom/real-time-server": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/real-time-server/tarball/v0.12.5-1",
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^1.0.1",
+    "etch": "^0.12.6",
     "temp": "^0.8.3"
   },
   "dependencies": {
