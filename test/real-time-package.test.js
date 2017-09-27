@@ -2,6 +2,7 @@ const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
 
+const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
@@ -35,7 +36,6 @@ suite('RealTimePackage', function () {
   })
 
   setup(() => {
-    environments = []
     packages = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
@@ -49,9 +49,7 @@ suite('RealTimePackage', function () {
     for (const pack of packages) {
       await pack.dispose()
     }
-    for (const env of environments) {
-      await env.destroy()
-    }
+    await destroyAtomEnvironments()
   })
 
   test('sharing and joining a portal', async function () {
@@ -761,12 +759,6 @@ suite('RealTimePackage', function () {
     assert.equal(message, 'Connection Error')
     assert(description.includes('connection-error'))
   })
-
-  function buildAtomEnvironment () {
-    const env = global.buildAtomEnvironment()
-    environments.push(env)
-    return env
-  }
 
   function buildPackage (env) {
     const pack = new RealTimePackage({
