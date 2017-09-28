@@ -111,6 +111,7 @@ suite('RealTimePackage', function () {
     const env = buildAtomEnvironment()
     const authTokenProvider = new GithubAuthTokenProvider({
       credentialCache: new FakeCredentialCache(),
+      commandRegistry: env.commands,
       workspace: env.workspace
     })
     const pack = buildPackage(env, {authTokenProvider})
@@ -156,7 +157,7 @@ suite('RealTimePackage', function () {
       const [loginPanel] = env.workspace.getModalPanels()
       const loginDialog = loginPanel.item
 
-      loginDialog.props.didBlur()
+      loginDialog.props.didCancel()
 
       assert(loginPanel.destroyed)
       assert(!(await portalPromise))
