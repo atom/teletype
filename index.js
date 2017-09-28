@@ -1,6 +1,3 @@
-const PRODUCTION_REAL_TIME_PUSHER_KEY = 'f119821248b7429bece3'
-const PRODUCTION_REAL_TIME_BASE_URL = 'https://api.tachyon.atom.io'
-
 const RealTimePackage = require('./lib/real-time-package')
 module.exports = new RealTimePackage({
   workspace: atom.workspace,
@@ -8,6 +5,6 @@ module.exports = new RealTimePackage({
   commandRegistry: atom.commands,
   tooltipManager: atom.tooltips,
   clipboard: atom.clipboard,
-  pusherKey: process.env.REAL_TIME_PUSHER_KEY || PRODUCTION_REAL_TIME_PUSHER_KEY,
-  baseURL: process.env.REAL_TIME_BASE_URL || PRODUCTION_REAL_TIME_BASE_URL
+  pusherKey: atom.config.get('real-time.pusherKey'),
+  baseURL: atom.config.get('real-time.baseURL')
 })
