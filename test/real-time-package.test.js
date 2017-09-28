@@ -101,7 +101,13 @@ suite('RealTimePackage', function () {
   })
 
   test('prompting for an auth token', async () => {
-    testServer.identityProvider.setIdentitiesByToken({'bad-token': null, 'good-token': {login: 'defunkt'}})
+    const invalidToken = '0'.repeat(40)
+    const validToken = '1'.repeat(40)
+    testServer.identityProvider.setIdentitiesByToken({
+      [invalidToken]: null,
+      [validToken]: {login: 'defunkt'}
+    })
+
     const env = buildAtomEnvironment()
     const authTokenProvider = new GithubAuthTokenProvider({
       credentialCache: new FakeCredentialCache(),
@@ -117,21 +123,28 @@ suite('RealTimePackage', function () {
       const [loginPanel1] = env.workspace.getModalPanels()
       const loginDialog1 = loginPanel1.item
 
-      // Enter a bad token and wait for dialog to close
-      await loginDialog1.props.didConfirm('bad-token')
+      // Enter a malformed token and show error message without closing and re-opening the dialog.
+      loginDialog1.refs.editor.setText('malformed-token')
+      loginDialog1.refs.loginButton.click()
+      assert(loginPanel1.isVisible())
+      assert(loginDialog1.props.tokenIsInvalid)
+
+      // Enter an invalid token and wait for dialog to close
+      loginDialog1.refs.editor.setText(invalidToken)
+      loginDialog1.refs.loginButton.click()
       await condition(() => !loginPanel1.isVisible())
 
       // Wait for new dialog to appear with an error message
       await condition(() => env.workspace.getModalPanels().length === 1)
       const [loginPanel2] = env.workspace.getModalPanels()
       const loginDialog2 = loginPanel2.item
-      assert(loginDialog2.props.previousTokenWasInvalid)
+      assert(loginDialog2.props.tokenIsInvalid)
 
-      // Dismiss panel and open portal after entering a good token
-      await loginDialog2.props.didConfirm('good-token')
+      // Dismiss panel and open portal after entering a valid token
+      loginDialog2.refs.editor.setText(validToken)
+      loginDialog2.refs.loginButton.click()
+      assert(await portalPromise)
       assert(loginPanel2.destroyed)
-      assert(await portalPromise) // Portal is opened
-
       pack.closeHostPortal()
     }
 
