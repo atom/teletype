@@ -30,5 +30,21 @@
   },
   "engines": {
     "atom": ">=1.21.0"
+  },
+  "configSchema": {
+    "baseURL": {
+      "title": "API server base URL",
+      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+      "type": "string",
+      "default": "https://api.tachyon.atom.io",
+      "order": 1
+    },
+    "pusherKey": {
+      "title": "Pusher service key",
+      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+      "type": "string",
+      "default": "f119821248b7429bece3",
+      "order": 2
+    }
   }
 }
