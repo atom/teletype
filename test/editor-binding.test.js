@@ -21,6 +21,7 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[0, 0], [0, 0]]),
+          exclusive: true,
           reversed: false
         }
       }
@@ -36,10 +37,12 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[10, 0], [11, 4]]),
+          exclusive: false,
           reversed: false
         },
         2: {
           range: Range.fromObject([[20, 0], [20, 5]]),
+          exclusive: false,
           reversed: true
         }
       }
@@ -67,6 +70,7 @@ suite('EditorBinding', function () {
       {
         1: {
           range: Range.fromObject([[0, 0], [0, 4]]),
+          exclusive: false,
           reversed: false
         }
       }
@@ -190,6 +194,49 @@ suite('EditorBinding', function () {
     )
   })
 
+  test('relays exclusivity but does not apply it to the markers', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding({editor})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    // Ensure exclusivity is being relayed. This enables tachyon to resolve
+    // logical ranges correctly when the local site performs an insertion right
+    // at a remote site cursor position, but before such cursor has been relayed
+    // to the local site.
+    assert.deepEqual(editorProxy.selections, {
+      1: {
+        range: editor.getSelectedBufferRange(),
+        reversed: false,
+        exclusive: true
+      }
+    })
+
+    // Ensure exclusivity is not overridden on the markers. This is because
+    // exclusivity is computed automatically based on whether the marker is
+    // empty or not. Overriding it would cause markers to not change their
+    // exclusivity if a later text update makes them become empty or non-empty.
+    binding.updateSelectionsForSiteId(2, {
+      1: {
+        range: {start: {row: 0, column: 2}, end: {row: 0, column: 3}},
+        reversed: false,
+        exclusive: false
+      }
+    })
+    editor.getBuffer().setTextInRange([[0, 1], [0, 4]], '')
+    editor.getBuffer().insert([0, 1], 'ABC')
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
+        {tail: {row: 0, column: 4}, head: {row: 0, column: 4}}
+      ]
+    )
+  })
+
   test('does not relay local selection changes if the associated marker moves because of a textual change', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
@@ -210,6 +257,7 @@ suite('EditorBinding', function () {
     assert.deepEqual(editorProxy.selections, {
       1: {
         range: {start: {row: 0, column: 0}, end: {row: 0, column: 0}},
+        exclusive: true,
         reversed: false
       }
     })
