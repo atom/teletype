@@ -180,7 +180,7 @@ suite('RealTimePackage', function () {
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
 
-    hostEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    hostEditor1.destroy()
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
     await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
