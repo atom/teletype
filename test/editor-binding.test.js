@@ -112,7 +112,7 @@ suite('EditorBinding', function () {
     )
   })
 
-  test('clears the tail of remote selection markers when they become empty', () => {
+  test('clears the tail of remote selection markers when they become empty after an update', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
@@ -132,7 +132,7 @@ suite('EditorBinding', function () {
       ]
     )
 
-    editor.getBuffer().delete(originalRemoteSelection)
+    editor.getBuffer().setTextInRange(originalRemoteSelection, '', {undo: 'skip'})
     const remoteSelectionAfterDelete = {start: {row: 1, column: 0}, end: {row: 1, column: 0}}
     binding.updateSelectionsForSiteId(2, {1: {range: remoteSelectionAfterDelete}})
     assert.deepEqual(
@@ -143,13 +143,96 @@ suite('EditorBinding', function () {
       ]
     )
 
-    editor.getBuffer().insert(remoteSelectionAfterDelete.start, 'a')
+    editor.getBuffer().setTextInRange([remoteSelectionAfterDelete.start, remoteSelectionAfterDelete.start], 'a', {undo: 'skip'})
     const remoteSelectionAfterInsert = {start: {row: 1, column: 1}, end: {row: 1, column: 1}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
         {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
         {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}
+      ]
+    )
+  })
+
+  test('clears the tail of local and remote selection markers when they become empty after a text change', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setSelectedBufferRange([[0, 0], [0, 3]])
+
+    const binding = new EditorBinding({editor})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+    binding.updateSelectionsForSiteId(2, {
+      1: {
+        range: {start: {row: 0, column: 0}, end: {row: 0, column: 1}}
+      }
+    })
+
+    // Ensure tail of remote selections is cleared after they become empty as a
+    // result of a local change.
+    editor.backspace()
+    editor.insertText('ABCDEFGH')
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 8}, head: {row: 0, column: 8}},
+        {tail: {row: 0, column: 8}, head: {row: 0, column: 8}}
+      ]
+    )
+
+    // Ensure tail of local selections is cleared after they become empty as a
+    // result of a remote change.
+    editor.setSelectedBufferRange([[0, 0], [0, 5]])
+    editor.getBuffer().setTextInRange([[0, 0], [0, 5]], '', {undo: 'skip'})
+    editor.getBuffer().setTextInRange([[0, 0], [0, 0]], '123', {undo: 'skip'})
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 6}, head: {row: 0, column: 6}},
+        {tail: {row: 0, column: 3}, head: {row: 0, column: 3}}
+      ]
+    )
+  })
+
+  test('relays exclusivity but does not apply it to the markers', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    editor.setCursorBufferPosition([0, 0])
+
+    const binding = new EditorBinding({editor})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    // Ensure exclusivity is being relayed. This enables tachyon to resolve
+    // logical ranges correctly when the local site performs an insertion right
+    // at a remote site cursor position, but before such cursor has been relayed
+    // to the local site.
+    assert.deepEqual(editorProxy.selections, {
+      1: {
+        range: editor.getSelectedBufferRange(),
+        reversed: false,
+        exclusive: true
+      }
+    })
+
+    // Ensure exclusivity is not overridden on the markers. This is because
+    // exclusivity is computed automatically based on whether the marker is
+    // empty or not. Overriding it would cause markers to not change their
+    // exclusivity if a later text update makes them become empty or non-empty.
+    binding.updateSelectionsForSiteId(2, {
+      1: {
+        range: {start: {row: 0, column: 2}, end: {row: 0, column: 3}},
+        reversed: false,
+        exclusive: false
+      }
+    })
+    editor.getBuffer().setTextInRange([[0, 1], [0, 4]], '')
+    editor.getBuffer().insert([0, 1], 'ABC')
+    assert.deepEqual(
+      getCursorDecoratedRanges(editor),
+      [
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
+        {tail: {row: 0, column: 4}, head: {row: 0, column: 4}}
       ]
     )
   })
