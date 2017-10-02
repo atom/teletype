@@ -1,10 +1,14 @@
 const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
+const GithubAuthTokenProvider = require('../lib/github-auth-token-provider')
 
+const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
+const FakeCredentialCache = require('./helpers/fake-credential-cache')
+const FakeAuthTokenProvider = require('./helpers/fake-auth-token-provider')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
@@ -34,7 +38,6 @@ suite('RealTimePackage', function () {
   })
 
   setup(() => {
-    environments = []
     packages = []
     containerElement = document.createElement('div')
     document.body.appendChild(containerElement)
@@ -48,9 +51,7 @@ suite('RealTimePackage', function () {
     for (const pack of packages) {
       await pack.dispose()
     }
-    for (const env of environments) {
-      await env.destroy()
-    }
+    await destroyAtomEnvironments()
   })
 
   test('sharing and joining a portal', async function () {
@@ -97,6 +98,127 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
+  })
+
+  test('prompting for an auth token', async () => {
+    const invalidToken = '0'.repeat(40)
+    const validToken = '1'.repeat(40)
+    testServer.identityProvider.setIdentitiesByToken({
+      [invalidToken]: null,
+      [validToken]: {login: 'defunkt'}
+    })
+
+    const env1 = buildAtomEnvironment()
+    env1.notifications.addError = (message) => { throw new Error(message) }
+    const env2 = buildAtomEnvironment()
+    env2.notifications.addError = (message) => { throw new Error(message) }
+    const authTokenProvider1 = new GithubAuthTokenProvider({
+      credentialCache: new FakeCredentialCache(),
+      commandRegistry: env1.commands,
+      workspace: env1.workspace
+    })
+    const authTokenProvider2 = new GithubAuthTokenProvider({
+      credentialCache: new FakeCredentialCache(),
+      commandRegistry: env2.commands,
+      workspace: env2.workspace
+    })
+    const pack1 = buildPackage(env1, {authTokenProvider: authTokenProvider1})
+    const pack2 = buildPackage(env2, {authTokenProvider: authTokenProvider2})
+
+    {
+      await pack1.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack1.sharePortal()
+
+      await condition(() => env1.workspace.getModalPanels().length === 1)
+      const [loginPanel] = env1.workspace.getModalPanels()
+      const loginDialog = loginPanel.item
+
+      loginDialog.props.didCancel()
+
+      assert(loginPanel.destroyed)
+      assert(!(await portalPromise))
+    }
+
+    let portal
+    {
+      await pack1.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack1.sharePortal()
+
+      await condition(() => env1.workspace.getModalPanels().length === 1)
+      const [loginPanel1] = env1.workspace.getModalPanels()
+      const loginDialog1 = loginPanel1.item
+
+      // Enter a malformed token and show error message without closing and re-opening the dialog.
+      loginDialog1.refs.editor.setText('malformed-token')
+      loginDialog1.refs.loginButton.click()
+      assert(loginPanel1.isVisible())
+      assert(loginDialog1.props.tokenIsInvalid)
+
+      // Enter an invalid token and wait for dialog to close
+      loginDialog1.refs.editor.setText(invalidToken)
+      loginDialog1.refs.loginButton.click()
+      await condition(() => !loginPanel1.isVisible())
+
+      // Wait for new dialog to appear with an error message
+      await condition(() => env1.workspace.getModalPanels().length === 1)
+      const [loginPanel2] = env1.workspace.getModalPanels()
+      const loginDialog2 = loginPanel2.item
+      assert(loginDialog2.props.tokenIsInvalid)
+
+      // Open portal after entering a valid token... panel is automatically closed
+      loginDialog2.refs.editor.setText(validToken)
+      loginDialog2.refs.loginButton.click()
+      portal = await portalPromise
+      assert(portal)
+      assert(loginPanel2.destroyed)
+    }
+
+    {
+      await pack2.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack2.joinPortal(portal.id)
+
+      await condition(() => env2.workspace.getModalPanels().length === 1)
+      const [loginPanel] = env2.workspace.getModalPanels()
+      const loginDialog = loginPanel.item
+
+      loginDialog.props.didCancel()
+
+      assert(loginPanel.destroyed)
+      assert(!(await portalPromise))
+    }
+
+    {
+      await pack2.authTokenProvider.didInvalidateToken()
+      const portalPromise = pack2.joinPortal(portal.id)
+
+      await condition(() => env2.workspace.getModalPanels().length === 1)
+      const [loginPanel1] = env2.workspace.getModalPanels()
+      const loginDialog1 = loginPanel1.item
+
+      // Enter a malformed token and show error message without closing and re-opening the dialog.
+      loginDialog1.refs.editor.setText('malformed-token')
+      loginDialog1.refs.loginButton.click()
+      assert(loginPanel1.isVisible())
+      assert(loginDialog1.props.tokenIsInvalid)
+
+      // Enter an invalid token and wait for dialog to close
+      loginDialog1.refs.editor.setText(invalidToken)
+      loginDialog1.refs.loginButton.click()
+      await condition(() => !loginPanel1.isVisible())
+
+      // Wait for new dialog to appear with an error message
+      await condition(() => env2.workspace.getModalPanels().length === 1)
+      const [loginPanel2] = env2.workspace.getModalPanels()
+      const loginDialog2 = loginPanel2.item
+      assert(loginDialog2.props.tokenIsInvalid)
+
+      // Open portal after entering a valid token... panel is automatically closed
+      loginDialog2.refs.editor.setText(validToken)
+      loginDialog2.refs.loginButton.click()
+      portal = await portalPromise
+      assert(portal)
+      assert(loginPanel2.destroyed)
+    }
   })
 
   test('joining the same portal more than once', async () => {
@@ -270,7 +392,7 @@ suite('RealTimePackage', function () {
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
-    hostPortal.simulateNetworkFailure()
+    hostPortal.peerPool.disconnect()
     await condition(() => guestEnv.workspace.getPaneItems().length === 0)
   })
 
@@ -761,13 +883,7 @@ suite('RealTimePackage', function () {
     assert(description.includes('connection-error'))
   })
 
-  function buildAtomEnvironment () {
-    const env = global.buildAtomEnvironment()
-    environments.push(env)
-    return env
-  }
-
-  function buildPackage (env) {
+  function buildPackage (env, options = {}) {
     const pack = new RealTimePackage({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
@@ -775,7 +891,8 @@ suite('RealTimePackage', function () {
       notificationManager: env.notifications,
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
-      clipboard: new FakeClipboard()
+      clipboard: new FakeClipboard(),
+      authTokenProvider: options.authTokenProvider || new FakeAuthTokenProvider()
     })
     packages.push(pack)
     return pack
