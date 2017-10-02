@@ -32,7 +32,7 @@ suite('GuestPortalBinding', () => {
         this.delegate = delegate
       },
       getSiteIdentity (siteId) {
-        return {username: 'site-' + siteId}
+        return {login: 'site-' + siteId}
       }
     }
     client.joinPortal = function () {
