@@ -1,14 +1,12 @@
 const RealTimePackage = require('../lib/real-time-package')
 const {Errors} = require('@atom/real-time-client')
 const {TextBuffer, TextEditor} = require('atom')
-const GithubAuthTokenProvider = require('../lib/github-auth-token-provider')
 
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
 const FakeCredentialCache = require('./helpers/fake-credential-cache')
-const FakeAuthTokenProvider = require('./helpers/fake-auth-token-provider')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
@@ -101,123 +99,89 @@ suite('RealTimePackage', function () {
   })
 
   test('prompting for an auth token', async () => {
-    const invalidToken = '0'.repeat(40)
-    const validToken = '1'.repeat(40)
     testServer.identityProvider.setIdentitiesByToken({
-      [invalidToken]: null,
-      [validToken]: {login: 'defunkt'}
+      'invalid-token': null,
+      'valid-token': {login: 'defunkt'}
     })
 
     const env1 = buildAtomEnvironment()
-    env1.notifications.addError = (message) => { throw new Error(message) }
     const env2 = buildAtomEnvironment()
+    // Ensure errors make the test fail instead of showing a notification.
+    env1.notifications.addError = (message) => { throw new Error(message) }
     env2.notifications.addError = (message) => { throw new Error(message) }
-    const authTokenProvider1 = new GithubAuthTokenProvider({
-      credentialCache: new FakeCredentialCache(),
-      commandRegistry: env1.commands,
-      workspace: env1.workspace
-    })
-    const authTokenProvider2 = new GithubAuthTokenProvider({
-      credentialCache: new FakeCredentialCache(),
-      commandRegistry: env2.commands,
-      workspace: env2.workspace
-    })
-    const pack1 = buildPackage(env1, {authTokenProvider: authTokenProvider1})
-    const pack2 = buildPackage(env2, {authTokenProvider: authTokenProvider2})
+
+    const pack1 = buildPackage(env1)
+    const pack2 = buildPackage(env2)
+    // Delete the fake oauth token stored in the credential cache, so that the
+    // user is prompted for a token.
+    pack1.credentialCache.delete('oauth-token')
+    pack2.credentialCache.delete('oauth-token')
 
     {
-      await pack1.authTokenProvider.didInvalidateToken()
       const portalPromise = pack1.sharePortal()
 
       await condition(() => env1.workspace.getModalPanels().length === 1)
       const [loginPanel] = env1.workspace.getModalPanels()
       const loginDialog = loginPanel.item
 
-      loginDialog.props.didCancel()
+      loginDialog.cancel()
 
-      assert(loginPanel.destroyed)
       assert(!(await portalPromise))
+      assert(loginPanel.destroyed)
     }
 
     let portal
     {
-      await pack1.authTokenProvider.didInvalidateToken()
       const portalPromise = pack1.sharePortal()
 
       await condition(() => env1.workspace.getModalPanels().length === 1)
-      const [loginPanel1] = env1.workspace.getModalPanels()
-      const loginDialog1 = loginPanel1.item
+      const [loginPanel] = env1.workspace.getModalPanels()
+      const loginDialog = loginPanel.item
 
-      // Enter a malformed token and show error message without closing and re-opening the dialog.
-      loginDialog1.refs.editor.setText('malformed-token')
-      loginDialog1.refs.loginButton.click()
-      assert(loginPanel1.isVisible())
-      assert(loginDialog1.props.tokenIsInvalid)
-
-      // Enter an invalid token and wait for dialog to close
-      loginDialog1.refs.editor.setText(invalidToken)
-      loginDialog1.refs.loginButton.click()
-      await condition(() => !loginPanel1.isVisible())
-
-      // Wait for new dialog to appear with an error message
-      await condition(() => env1.workspace.getModalPanels().length === 1)
-      const [loginPanel2] = env1.workspace.getModalPanels()
-      const loginDialog2 = loginPanel2.item
-      assert(loginDialog2.props.tokenIsInvalid)
+      // Enter an invalid token and wait for error message to appear.
+      loginDialog.refs.editor.setText('invalid-token')
+      loginDialog.confirm()
+      await condition(() => loginDialog.props.invalidToken)
 
       // Open portal after entering a valid token... panel is automatically closed
-      loginDialog2.refs.editor.setText(validToken)
-      loginDialog2.refs.loginButton.click()
+      loginDialog.refs.editor.setText('valid-token')
+      loginDialog.confirm()
       portal = await portalPromise
       assert(portal)
-      assert(loginPanel2.destroyed)
+      assert(loginPanel.destroyed)
     }
 
     {
-      await pack2.authTokenProvider.didInvalidateToken()
       const portalPromise = pack2.joinPortal(portal.id)
 
       await condition(() => env2.workspace.getModalPanels().length === 1)
       const [loginPanel] = env2.workspace.getModalPanels()
       const loginDialog = loginPanel.item
 
-      loginDialog.props.didCancel()
+      loginDialog.cancel()
 
-      assert(loginPanel.destroyed)
       assert(!(await portalPromise))
+      assert(loginPanel.destroyed)
     }
 
     {
-      await pack2.authTokenProvider.didInvalidateToken()
       const portalPromise = pack2.joinPortal(portal.id)
 
       await condition(() => env2.workspace.getModalPanels().length === 1)
-      const [loginPanel1] = env2.workspace.getModalPanels()
-      const loginDialog1 = loginPanel1.item
+      const [loginPanel] = env2.workspace.getModalPanels()
+      const loginDialog = loginPanel.item
 
-      // Enter a malformed token and show error message without closing and re-opening the dialog.
-      loginDialog1.refs.editor.setText('malformed-token')
-      loginDialog1.refs.loginButton.click()
-      assert(loginPanel1.isVisible())
-      assert(loginDialog1.props.tokenIsInvalid)
-
-      // Enter an invalid token and wait for dialog to close
-      loginDialog1.refs.editor.setText(invalidToken)
-      loginDialog1.refs.loginButton.click()
-      await condition(() => !loginPanel1.isVisible())
-
-      // Wait for new dialog to appear with an error message
-      await condition(() => env2.workspace.getModalPanels().length === 1)
-      const [loginPanel2] = env2.workspace.getModalPanels()
-      const loginDialog2 = loginPanel2.item
-      assert(loginDialog2.props.tokenIsInvalid)
+      // Enter an invalid token and wait for error message to appear.
+      loginDialog.refs.editor.setText('invalid-token')
+      loginDialog.confirm()
+      await condition(() => loginDialog.props.invalidToken)
 
       // Open portal after entering a valid token... panel is automatically closed
-      loginDialog2.refs.editor.setText(validToken)
-      loginDialog2.refs.loginButton.click()
+      loginDialog.refs.editor.setText('valid-token')
+      loginDialog.confirm()
       portal = await portalPromise
       assert(portal)
-      assert(loginPanel2.destroyed)
+      assert(loginPanel.destroyed)
     }
   })
 
@@ -883,7 +847,11 @@ suite('RealTimePackage', function () {
     assert(description.includes('connection-error'))
   })
 
+  let nextTokenId = 0
   function buildPackage (env, options = {}) {
+    const credentialCache = new FakeCredentialCache()
+    credentialCache.set('oauth-token', 'token-' + nextTokenId++)
+
     const pack = new RealTimePackage({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
@@ -892,7 +860,7 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      authTokenProvider: options.authTokenProvider || new FakeAuthTokenProvider()
+      credentialCache: options.credentialCache || credentialCache
     })
     packages.push(pack)
     return pack
