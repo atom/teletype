@@ -98,6 +98,64 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
+  test('host joining another portal as a guest', async () => {
+    const bimodalEnv = buildAtomEnvironment()
+    const bimodalPackage = buildPackage(bimodalEnv)
+    const guestOnlyEnv = buildAtomEnvironment()
+    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+    const hostOnlyEnv = buildAtomEnvironment()
+    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+
+    const bimodalHostedPortalId = (await bimodalPackage.sharePortal()).id
+    guestOnlyPackage.joinPortal(bimodalHostedPortalId)
+    const bimodalEditor = await bimodalEnv.workspace.open(path.join(temp.path(), 'bimodal'))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: bimodal']))
+
+    const hostOnlyPortalId = (await hostOnlyPackage.sharePortal()).id
+    bimodalPackage.joinPortal(hostOnlyPortalId)
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only'))
+    await condition(() => deepEqual(getPaneItemTitles(bimodalEnv), ['bimodal', 'Remote Buffer: host-only']))
+
+    // A host cannot transitively share contents of a portal where they are a guest
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+  })
+
+  test('guest sharing another portal as a host', async () => {
+    const bimodalEnv = buildAtomEnvironment()
+    const bimodalPackage = buildPackage(bimodalEnv)
+    const hostOnlyEnv = buildAtomEnvironment()
+    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+    const guestOnlyEnv = buildAtomEnvironment()
+    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+
+    const portal1Id = (await hostOnlyPackage.sharePortal()).id
+    bimodalPackage.joinPortal(portal1Id)
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-1'))
+    await condition(() => deepEqual(getPaneItemTitles(bimodalEnv), ['Remote Buffer: host-only-buffer-1']))
+
+    // While already participating as a guest in Portal 1, share a new portal as a host (Portal 2)
+    const portal2Id = (await bimodalPackage.sharePortal()).id
+    guestOnlyPackage.joinPortal(portal2Id)
+    const bimodalEditor = await bimodalEnv.workspace.open(path.join(temp.path(), 'bimodal'))
+    await condition(() => deepEqual(getPaneItemTitles(bimodalEnv), ['Remote Buffer: host-only-buffer-1', 'bimodal']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: bimodal']))
+
+    // Bimodal client continues to exist as a guest in Portal 1
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
+    await condition(() => deepEqual(getPaneItemTitles(bimodalEnv), ['Remote Buffer: host-only-buffer-2', 'bimodal']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: bimodal']))
+
+    // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests are placed on hold
+    bimodalEnv.workspace.getActivePane().activateItemAtIndex(0)
+    assert.equal(bimodalEnv.workspace.getActivePaneItem().getTitle(), 'Remote Buffer: host-only-buffer-2')
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+
+    // Portal 2 guests remain on hold while Portal 2 host observes changes in Portal 1
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
+    await condition(() => deepEqual(getPaneItemTitles(bimodalEnv), ['Remote Buffer: host-only-buffer-3', 'bimodal']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+  })
+
   test('prompting for an auth token', async () => {
     testServer.identityProvider.setIdentitiesByToken({
       'invalid-token': null,
