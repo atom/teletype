@@ -1,8 +1,13 @@
-os: osx
-
 language: node_js
+node_js: '7'
+sudo: false
+os: linux
+dist: trusty
 
-node_js: "7"
+env:
+  matrix:
+  - ATOM_CHANNEL=stable
+  - ATOM_CHANNEL=beta
 
 notifications:
   email:
@@ -15,15 +20,16 @@ notifications:
 
 install: true
 
+addons:
+  apt:
+    packages:
+    - libsecret-1-dev
+  postgresql: '9.6'
+
 before_script:
-  - rm -rf /usr/local/var/postgres
-  - initdb /usr/local/var/postgres
-  - pg_ctl -D /usr/local/var/postgres start
-  - sleep 10
-  - createuser -s postgres
   - createdb real-time-test
 
-script: script/cibuild
+script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
 git:
   depth: 10
