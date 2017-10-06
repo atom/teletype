@@ -156,6 +156,19 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
   })
 
+  test('host attempting to share another portal', async () => {
+    const hostPackage = buildPackage(buildAtomEnvironment())
+
+    const portal1Id = (await hostPackage.sharePortal()).id
+    const portal2Id = (await hostPackage.sharePortal()).id
+    assert.equal(portal1Id, portal2Id)
+
+    hostPackage.closeHostPortal()
+
+    const portal3Id = (await hostPackage.sharePortal()).id
+    assert.notEqual(portal3Id, portal1Id)
+  })
+
   test('prompting for an auth token', async () => {
     testServer.identityProvider.setIdentitiesByToken({
       'invalid-token': null,
