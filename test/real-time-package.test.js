@@ -140,14 +140,14 @@ suite('RealTimePackage', function () {
     // While already participating as a guest in Portal 1, share a new portal as a host (Portal 2)
     const portal2Id = (await guestAndHostPackage.sharePortal()).id
     guestOnlyPackage.joinPortal(portal2Id)
-    const bimodalEditor = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'bimodal'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1', 'bimodal']))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: bimodal']))
+    await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest'))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1', 'host+guest']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
 
-    // Bimodal client continues to exist as a guest in Portal 1
+    // Portal 2 host continues to exist as a guest in Portal 1
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-2', 'bimodal']))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: bimodal']))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-2', 'host+guest']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
 
     // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests are placed on hold
     guestAndHostEnv.workspace.getActivePane().activateItemAtIndex(0)
@@ -156,7 +156,7 @@ suite('RealTimePackage', function () {
 
     // Portal 2 guests remain on hold while Portal 2 host observes changes in Portal 1
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-3', 'bimodal']))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-3', 'host+guest']))
     await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
   })
 
