@@ -60,8 +60,7 @@ suite('GuestPortalBinding', () => {
       client,
       portalId,
       notificationManager: atomEnv.notifications,
-      workspace: atomEnv.workspace,
-      addStatusBarIndicatorForPortal: () => {}
+      workspace: atomEnv.workspace
     })
   }
 })

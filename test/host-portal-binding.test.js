@@ -60,8 +60,7 @@ suite('HostPortalBinding', () => {
       client,
       notificationManager: atomEnv.notifications,
       workspace: atomEnv.workspace,
-      clipboard: new FakeClipboard(),
-      addStatusBarIndicatorForPortal: () => {}
+      clipboard: new FakeClipboard()
     })
   }
 })
