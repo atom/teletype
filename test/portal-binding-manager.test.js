@@ -15,10 +15,10 @@ suite('PortalBindingManager', () => {
       observeActivePaneItem () {}
     }
 
-    const registry = new PortalBindingManager({client, workspace})
-    const portal1BindingPromise1 = registry.getGuestPortalBinding('1')
-    const portal1BindingPromise2 = registry.getGuestPortalBinding('1')
-    const portal2BindingPromise1 = registry.getGuestPortalBinding('2')
+    const manager = new PortalBindingManager({client, workspace})
+    const portal1BindingPromise1 = manager.getGuestPortalBinding('1')
+    const portal1BindingPromise2 = manager.getGuestPortalBinding('1')
+    const portal2BindingPromise1 = manager.getGuestPortalBinding('2')
     assert.equal(portal1BindingPromise1, portal1BindingPromise2)
     assert.notEqual(portal1BindingPromise1, portal2BindingPromise1)
   })
@@ -43,12 +43,12 @@ suite('PortalBindingManager', () => {
       addError () {}
     }
 
-    const registry = new PortalBindingManager({client, workspace, notificationManager})
-    const portalBinding1Promise1 = registry.getGuestPortalBinding('1')
+    const manager = new PortalBindingManager({client, workspace, notificationManager})
+    const portalBinding1Promise1 = manager.getGuestPortalBinding('1')
     rejectLastJoinPortalPromise(new Error())
     assert.equal(await portalBinding1Promise1, null)
 
-    const portalBinding1Promise2 = registry.getGuestPortalBinding('1')
+    const portalBinding1Promise2 = manager.getGuestPortalBinding('1')
     assert.notEqual(portalBinding1Promise1, portalBinding1Promise2)
 
     const portal = {
@@ -73,12 +73,12 @@ suite('PortalBindingManager', () => {
       },
       observeActivePaneItem () {}
     }
-    const registry = new PortalBindingManager({client, workspace})
+    const manager = new PortalBindingManager({client, workspace})
 
-    const portalBinding1 = await registry.getGuestPortalBinding('1')
+    const portalBinding1 = await manager.getGuestPortalBinding('1')
     assert(workspace.element.classList.contains('realtime-Guest'))
 
-    const portalBinding2 = await registry.getGuestPortalBinding('2')
+    const portalBinding2 = await manager.getGuestPortalBinding('2')
     assert(workspace.element.classList.contains('realtime-Guest'))
 
     portalBinding1.dispose()
