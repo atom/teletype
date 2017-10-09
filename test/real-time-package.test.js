@@ -167,7 +167,7 @@ suite('RealTimePackage', function () {
     const portal2Id = (await hostPackage.sharePortal()).id
     assert.equal(portal1Id, portal2Id)
 
-    hostPackage.closeHostPortal()
+    await hostPackage.closeHostPortal()
 
     const portal3Id = (await hostPackage.sharePortal()).id
     assert.notEqual(portal3Id, portal1Id)
@@ -554,7 +554,7 @@ suite('RealTimePackage', function () {
     assert.equal(hostEditor.getText(), 'h1 h2 ')
     await editorsEqual(guestEditor, hostEditor)
 
-    hostPackage.closeHostPortal()
+    await hostPackage.closeHostPortal()
     hostEditor.redo()
     hostEditor.redo()
     assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
@@ -808,7 +808,7 @@ suite('RealTimePackage', function () {
     host2Tile.item.element.click()
     assert.equal(guestPackage.clipboard.read(), host2Portal.id)
 
-    host1Package.closeHostPortal()
+    await host1Package.closeHostPortal()
     assert.equal(host1StatusBar.getRightTiles().length, 0)
     await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
 
@@ -826,7 +826,7 @@ suite('RealTimePackage', function () {
     const host1Package = buildPackage(host1Env)
     const host1Portal = await host1Package.sharePortal()
     assert(host1Env.workspace.getElement().classList.contains('realtime-Host'))
-    host1Package.closeHostPortal()
+    await host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
