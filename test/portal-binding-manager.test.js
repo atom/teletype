@@ -1,7 +1,7 @@
 const assert = require('assert')
-const GuestPortalBindingRegistry = require('../lib/guest-portal-binding-registry')
+const PortalBindingManager = require('../lib/portal-binding-manager')
 
-suite('GuestPortalBindingRegistry', () => {
+suite('PortalBindingManager', () => {
   test('fetching the same binding multiple times before it has been initialized', async () => {
     const client = {
       joinPortal (id) {
@@ -15,10 +15,10 @@ suite('GuestPortalBindingRegistry', () => {
       observeActivePaneItem () {}
     }
 
-    const registry = new GuestPortalBindingRegistry({client, workspace})
-    const portal1BindingPromise1 = registry.getPortalBinding('1')
-    const portal1BindingPromise2 = registry.getPortalBinding('1')
-    const portal2BindingPromise1 = registry.getPortalBinding('2')
+    const registry = new PortalBindingManager({client, workspace})
+    const portal1BindingPromise1 = registry.getGuestPortalBinding('1')
+    const portal1BindingPromise2 = registry.getGuestPortalBinding('1')
+    const portal2BindingPromise1 = registry.getGuestPortalBinding('2')
     assert.equal(portal1BindingPromise1, portal1BindingPromise2)
     assert.notEqual(portal1BindingPromise1, portal2BindingPromise1)
   })
@@ -43,12 +43,12 @@ suite('GuestPortalBindingRegistry', () => {
       addError () {}
     }
 
-    const registry = new GuestPortalBindingRegistry({client, workspace, notificationManager})
-    const portalBinding1Promise1 = registry.getPortalBinding('1')
+    const registry = new PortalBindingManager({client, workspace, notificationManager})
+    const portalBinding1Promise1 = registry.getGuestPortalBinding('1')
     rejectLastJoinPortalPromise(new Error())
     assert.equal(await portalBinding1Promise1, null)
 
-    const portalBinding1Promise2 = registry.getPortalBinding('1')
+    const portalBinding1Promise2 = registry.getGuestPortalBinding('1')
     assert.notEqual(portalBinding1Promise1, portalBinding1Promise2)
 
     const portal = {
@@ -73,12 +73,12 @@ suite('GuestPortalBindingRegistry', () => {
       },
       observeActivePaneItem () {}
     }
-    const registry = new GuestPortalBindingRegistry({client, workspace})
+    const registry = new PortalBindingManager({client, workspace})
 
-    const portalBinding1 = await registry.getPortalBinding('1')
+    const portalBinding1 = await registry.getGuestPortalBinding('1')
     assert(workspace.element.classList.contains('realtime-Guest'))
 
-    const portalBinding2 = await registry.getPortalBinding('2')
+    const portalBinding2 = await registry.getGuestPortalBinding('2')
     assert(workspace.element.classList.contains('realtime-Guest'))
 
     portalBinding1.dispose()
