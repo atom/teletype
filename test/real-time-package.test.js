@@ -98,6 +98,81 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
   })
 
+  test('host joining another portal as a guest', async () => {
+    const hostAndGuestEnv = buildAtomEnvironment()
+    const hostAndGuestPackage = buildPackage(hostAndGuestEnv)
+    const guestOnlyEnv = buildAtomEnvironment()
+    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+    const hostOnlyEnv = buildAtomEnvironment()
+    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+
+    // Start out as a host sharing a portal with a guest (Portal 1)
+    const portal1Id = (await hostAndGuestPackage.sharePortal()).id
+    guestOnlyPackage.joinPortal(portal1Id)
+    const hostAndGuestEditor = await hostAndGuestEnv.workspace.open(path.join(temp.path(), 'host+guest'))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+
+    // While already hosting Portal 1, join Portal 2 as a guest
+    const portal2Id = (await hostOnlyPackage.sharePortal()).id
+    hostAndGuestPackage.joinPortal(portal2Id)
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only'))
+    await condition(() => deepEqual(getPaneItemTitles(hostAndGuestEnv), ['host+guest', 'Remote Buffer: host-only']))
+
+    // No transitivity: When Portal 1 host is viewing contents of Portal 2, Portal 1 guests are placed on hold
+    assert.equal(hostAndGuestEnv.workspace.getActivePaneItem().getTitle(), 'Remote Buffer: host-only')
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+  })
+
+  test('guest sharing another portal as a host', async () => {
+    const guestAndHostEnv = buildAtomEnvironment()
+    const guestAndHostPackage = buildPackage(guestAndHostEnv)
+    const hostOnlyEnv = buildAtomEnvironment()
+    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+    const guestOnlyEnv = buildAtomEnvironment()
+    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+
+    // Start out as a guest in another user's portal (Portal 1)
+    const portal1Id = (await hostOnlyPackage.sharePortal()).id
+    guestAndHostPackage.joinPortal(portal1Id)
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-1'))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1']))
+
+    // While already participating as a guest in Portal 1, share a new portal as a host (Portal 2)
+    const portal2Id = (await guestAndHostPackage.sharePortal()).id
+    guestOnlyPackage.joinPortal(portal2Id)
+    await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest'))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1', 'host+guest']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+
+    // Portal 2 host continues to exist as a guest in Portal 1
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-2', 'host+guest']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+
+    // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests are placed on hold
+    guestAndHostEnv.workspace.getActivePane().activateItemAtIndex(0)
+    assert.equal(guestAndHostEnv.workspace.getActivePaneItem().getTitle(), 'Remote Buffer: host-only-buffer-2')
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+
+    // Portal 2 guests remain on hold while Portal 2 host observes changes in Portal 1
+    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
+    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-3', 'host+guest']))
+    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+  })
+
+  test('host attempting to share another portal', async () => {
+    const hostPackage = buildPackage(buildAtomEnvironment())
+
+    const portal1Id = (await hostPackage.sharePortal()).id
+    const portal2Id = (await hostPackage.sharePortal()).id
+    assert.equal(portal1Id, portal2Id)
+
+    hostPackage.closeHostPortal()
+
+    const portal3Id = (await hostPackage.sharePortal()).id
+    assert.notEqual(portal3Id, portal1Id)
+  })
+
   test('prompting for an auth token', async () => {
     testServer.identityProvider.setIdentitiesByToken({
       'invalid-token': null,
