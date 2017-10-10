@@ -2,7 +2,27 @@ const assert = require('assert')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 
 suite('PortalBindingManager', () => {
-  test('fetching the same binding multiple times before it has been initialized', async () => {
+  test.skip('idempotently creating the host portal binding', () => {
+    const client = {
+      createPortal () {
+        console.log('in createPortal');
+        return new Promise(() => {})
+      }
+    }
+    const workspace = {
+      getElement () {
+        return document.createElement('div')
+      },
+      observeActiveTextEditor () {}
+    }
+
+    const manager = new PortalBindingManager({client, workspace})
+    const portalBindingPromise1 = manager.createHostPortalBinding()
+    const portalBindingPromise2 = manager.createHostPortalBinding()
+    assert.equal(portalBindingPromise1, portalBindingPromise2)
+  })
+
+  test('fetching the same guest portal binding multiple times before it has been initialized', () => {
     const client = {
       joinPortal (id) {
         return new Promise(() => {})
