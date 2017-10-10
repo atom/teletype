@@ -15,6 +15,64 @@
   }
 }
 
+.RealTimePopoverComponent {
+  display: inline-block;
+
+  &.tooltip {
+    width: 500px;
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    box-sizing: border-box;
+  }
+
+  .tooltip-inner.tooltip-inner.tooltip-inner.tooltip-inner {
+    padding: @component-padding / 2;
+    background-color: @tool-panel-background-color;
+    border: 1px solid @base-border-color;
+    box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
+    color: @text-color;
+  }
+  &.top .tooltip-arrow.tooltip-arrow {
+    width: @component-padding;
+    height: @component-padding;
+    border-width: 0 0 1px 1px;
+    border-color: @base-border-color;
+    background-color: @tool-panel-background-color;
+    border-bottom-right-radius: 2px;
+    transform: rotate(-45deg);
+  }
+}
+
+.HostPortalComponent {
+  height: 30px;
+
+  &-participants {
+    display: inline-block;
+  }
+
+  &-participant {
+    display: inline-block;
+
+    img {
+      width: 25px;
+      border-radius: 50%
+    }
+
+    &-site-1 img {
+      width: 35px;
+    }
+  }
+
+  &-guests-add {
+    .octicon(plus, 15px);
+    border-radius: 50%;
+  }
+
+  &-share-toggle {
+    display: inline-block;
+  }
+}
+
 .modal.overlay.from-top.realtime-LoginPanel {
   width: 360px !important;
   padding: 25px !important;
