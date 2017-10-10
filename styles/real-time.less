@@ -12,10 +12,8 @@
 }
 
 .RealTimePopoverComponent {
-  display: inline-block;
-
   &.tooltip {
-    width: 500px;
+    width: 400px;
     padding-left: @component-padding;
     padding-right: @component-padding;
     box-sizing: border-box;
@@ -40,23 +38,30 @@
 }
 
 .HostPortalComponent {
-  height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
   &-participants {
-    display: inline-block;
+    flex: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: start;
   }
 
   &-participant {
     display: inline-block;
+    margin: 5px;
 
     img {
-      width: 25px;
+      width: 26px;
       border-radius: 50%
     }
+  }
 
-    &-site-1 img {
-      width: 35px;
-    }
+  &-site-1 img {
+    width: 40px;
   }
 
   &-guests-add {
@@ -65,7 +70,11 @@
   }
 
   &-share-toggle {
-    display: inline-block;
+    flex: none;
+
+    label {
+      margin: 0;
+    }
   }
 }
 
