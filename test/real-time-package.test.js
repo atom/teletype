@@ -743,68 +743,6 @@ suite('RealTimePackage', function () {
     )
   })
 
-  // FIXME
-  test.skip('status bar indicator', async () => {
-    const host1Env = buildAtomEnvironment()
-    const host1Package = await buildPackage(host1Env)
-    const host1StatusBar = new FakeStatusBar()
-    host1Package.consumeStatusBar(host1StatusBar)
-
-    const host1Portal = await host1Package.sharePortal()
-    assert.equal(host1StatusBar.getRightTiles().length, 1)
-    assert(host1StatusBar.getRightTiles()[0].item.element.classList.contains('focused'))
-
-    host1Package.clipboard.write('')
-    host1StatusBar.getRightTiles()[0].item.element.click()
-    assert.equal(host1Package.clipboard.read(), host1Portal.id)
-
-    const host2Env = buildAtomEnvironment()
-    const host2Package = await buildPackage(host2Env)
-    const host2Portal = await host2Package.sharePortal()
-
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    const guestStatusBar = new FakeStatusBar()
-    guestPackage.consumeStatusBar(guestStatusBar)
-
-    await guestPackage.joinPortal(host1Portal.id)
-    await guestPackage.joinPortal(host2Portal.id)
-
-    assert.equal(guestStatusBar.getRightTiles().length, 2)
-    const [host1Tile, host2Tile] = guestStatusBar.getRightTiles()
-    assert(!host1Tile.item.element.classList.contains('focused'))
-    assert(host2Tile.item.element.classList.contains('focused'))
-
-    guestEnv.workspace.getActivePane().activateItemAtIndex(0)
-    assert(host1Tile.item.element.classList.contains('focused'))
-    assert(!host2Tile.item.element.classList.contains('focused'))
-
-    const localEditor = await guestEnv.workspace.open()
-    assert(!host1Tile.item.element.classList.contains('focused'))
-    assert(!host2Tile.item.element.classList.contains('focused'))
-    localEditor.destroy()
-
-    guestPackage.clipboard.write('')
-    host1Tile.item.element.click()
-    assert.equal(guestPackage.clipboard.read(), host1Portal.id)
-
-    guestPackage.clipboard.write('')
-    host2Tile.item.element.click()
-    assert.equal(guestPackage.clipboard.read(), host2Portal.id)
-
-    await host1Package.closeHostPortal()
-    assert.equal(host1StatusBar.getRightTiles().length, 0)
-    await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
-
-    await guestPackage.leaveGuestPortal()
-    assert.equal(guestStatusBar.getRightTiles().length, 0)
-
-    await guestPackage.joinPortal(host2Portal.id)
-    await condition(() => guestStatusBar.getRightTiles().length === 1)
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => guestStatusBar.getRightTiles().length === 0)
-  })
-
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
