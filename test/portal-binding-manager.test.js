@@ -1,110 +1,136 @@
 const assert = require('assert')
+const {Disposable} = require('atom')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 
 suite('PortalBindingManager', () => {
-  test.skip('idempotently creating the host portal binding', () => {
-    const client = {
-      createPortal () {
-        console.log('in createPortal');
-        return new Promise(() => {})
-      }
-    }
-    const workspace = {
-      getElement () {
-        return document.createElement('div')
-      },
-      observeActiveTextEditor () {}
-    }
+  suite('host portal binding', () => {
+    test('idempotently creating the host portal binding', async () => {
+      const manager = buildPortalBindingManager()
 
-    const manager = new PortalBindingManager({client, workspace})
-    const portalBindingPromise1 = manager.createHostPortalBinding()
-    const portalBindingPromise2 = manager.createHostPortalBinding()
-    assert.equal(portalBindingPromise1, portalBindingPromise2)
+      const portalBinding1Promise = manager.createHostPortalBinding()
+      assert.equal(portalBinding1Promise, manager.createHostPortalBinding())
+
+      manager.client.resolveLastCreatePortalPromise(buildPortal())
+      const portalBinding1 = await portalBinding1Promise
+      assert.equal(manager.createHostPortalBinding(), portalBinding1Promise)
+      assert.equal(manager.getHostPortalBinding(), portalBinding1Promise)
+
+      portalBinding1.close()
+      const portalBinding2Promise = manager.createHostPortalBinding()
+      assert.notEqual(portalBinding2Promise, portalBinding1Promise)
+      assert.equal(manager.createHostPortalBinding(), portalBinding2Promise)
+      assert.equal(manager.getHostPortalBinding(), portalBinding2Promise)
+    })
+
+    test('successfully fetching a binding after failing the first time', async () => {
+      const manager = buildPortalBindingManager()
+
+      const portalBinding1Promise = manager.createHostPortalBinding()
+      manager.client.resolveLastCreatePortalPromise(null)
+      assert(!await portalBinding1Promise)
+      assert(!await manager.getHostPortalBinding())
+
+      const portalBinding2Promise = manager.createHostPortalBinding()
+      manager.client.resolveLastCreatePortalPromise(buildPortal())
+      assert(await portalBinding2Promise)
+      assert(await manager.getHostPortalBinding())
+    })
   })
 
-  test('fetching the same guest portal binding multiple times before it has been initialized', () => {
-    const client = {
-      joinPortal (id) {
-        return new Promise(() => {})
-      }
-    }
-    const workspace = {
-      getElement () {
-        return document.createElement('div')
-      },
-      observeActivePaneItem () {}
-    }
+  suite('guest portal bindings', () => {
+    test('idempotently creating guest portal bindings', () => {
+      const manager = buildPortalBindingManager()
 
-    const manager = new PortalBindingManager({client, workspace})
-    const portal1BindingPromise1 = manager.getGuestPortalBinding('1')
-    const portal1BindingPromise2 = manager.getGuestPortalBinding('1')
-    const portal2BindingPromise1 = manager.getGuestPortalBinding('2')
-    assert.equal(portal1BindingPromise1, portal1BindingPromise2)
-    assert.notEqual(portal1BindingPromise1, portal2BindingPromise1)
-  })
+      const portal1BindingPromise1 = manager.getGuestPortalBinding('1')
+      const portal1BindingPromise2 = manager.getGuestPortalBinding('1')
+      const portal2BindingPromise1 = manager.getGuestPortalBinding('2')
+      assert.equal(portal1BindingPromise1, portal1BindingPromise2)
+      assert.notEqual(portal1BindingPromise1, portal2BindingPromise1)
+    })
 
-  test('successfully fetching a binding after failing the first time', async () => {
-    let resolveLastJoinPortalPromise, rejectLastJoinPortalPromise
-    const client = {
-      joinPortal (id) {
-        return new Promise((resolve, reject) => {
-          resolveLastJoinPortalPromise = resolve
-          rejectLastJoinPortalPromise = reject
-        })
-      }
-    }
-    const workspace = {
-      getElement () {
-        return document.createElement('div')
-      },
-      observeActivePaneItem () {}
-    }
-    const notificationManager = {
-      addError () {}
-    }
+    test('successfully fetching a binding after failing the first time', async () => {
+      const manager = buildPortalBindingManager()
 
-    const manager = new PortalBindingManager({client, workspace, notificationManager})
-    const portalBinding1Promise1 = manager.getGuestPortalBinding('1')
-    rejectLastJoinPortalPromise(new Error())
-    assert.equal(await portalBinding1Promise1, null)
+      const portalBinding1Promise1 = manager.getGuestPortalBinding('1')
+      manager.client.resolveLastJoinPortalPromise(null)
+      assert(!await portalBinding1Promise1)
 
-    const portalBinding1Promise2 = manager.getGuestPortalBinding('1')
-    assert.notEqual(portalBinding1Promise1, portalBinding1Promise2)
+      const portalBinding1Promise2 = manager.getGuestPortalBinding('1')
+      assert.notEqual(portalBinding1Promise1, portalBinding1Promise2)
 
-    const portal = {
-      setDelegate () {}
-    }
-    resolveLastJoinPortalPromise(portal)
-    assert.equal((await portalBinding1Promise2).portal, portal)
+      manager.client.resolveLastJoinPortalPromise(buildPortal())
+      assert(await portalBinding1Promise2)
+    })
   })
 
   test('adding and removing classes from the workspace element', async () => {
-    const client = {
-      joinPortal () {
-        return Promise.resolve({
-          setDelegate () {}
-        })
-      }
-    }
-    const workspace = {
-      element: document.createElement('div'),
-      getElement () {
-        return this.element
-      },
-      observeActivePaneItem () {}
-    }
-    const manager = new PortalBindingManager({client, workspace})
+    const manager = buildPortalBindingManager()
 
-    const portalBinding1 = await manager.getGuestPortalBinding('1')
-    assert(workspace.element.classList.contains('realtime-Guest'))
+    const portalBinding1Promise = manager.getGuestPortalBinding('1')
+    manager.client.resolveLastJoinPortalPromise(buildPortal())
+    const portalBinding1 = await portalBinding1Promise
+    assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    const portalBinding2 = await manager.getGuestPortalBinding('2')
-    assert(workspace.element.classList.contains('realtime-Guest'))
+    const portalBinding2Promise = manager.getGuestPortalBinding('2')
+    manager.client.resolveLastJoinPortalPromise(buildPortal())
+    const portalBinding2 = await portalBinding2Promise
+    assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    portalBinding1.dispose()
-    assert(workspace.element.classList.contains('realtime-Guest'))
+    portalBinding1.leave()
+    assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    portalBinding2.dispose()
-    assert(!workspace.element.classList.contains('realtime-Guest'))
+    portalBinding2.leave()
+    assert(!manager.workspace.element.classList.contains('realtime-Guest'))
   })
 })
+
+function buildPortalBindingManager () {
+  const client = {
+    resolveLastCreatePortalPromise: null,
+    resolveLastJoinPortalPromise: null,
+    createPortal () {
+      return new Promise((resolve) => { this.resolveLastCreatePortalPromise = resolve })
+    },
+    joinPortal () {
+      return new Promise((resolve) => { this.resolveLastJoinPortalPromise = resolve })
+    }
+  }
+
+  const notificationManager = {
+    addInfo () {},
+    addSuccess () {},
+    addError (error, options) {
+      throw new Error(error + '\n' + options.description)
+    }
+  }
+
+  const clipboard = {
+    write () {}
+  }
+
+  const workspace = {
+    element: document.createElement('div'),
+    getElement () {
+      return this.element
+    },
+    observeActiveTextEditor () {
+      return new Disposable(() => {})
+    },
+    observeActivePaneItem () {
+      return new Disposable(() => {})
+    }
+  }
+
+  return new PortalBindingManager({client, workspace, notificationManager, clipboard})
+}
+
+function buildPortal () {
+  return {
+    dispose () {
+      this.delegate.dispose()
+    },
+    setDelegate (delegate) {
+      this.delegate = delegate
+    }
+  }
+}

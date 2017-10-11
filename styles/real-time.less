@@ -1,7 +1,7 @@
 @import "ui-variables";
 @import "octicon-mixins";
 
-.realtime-PortalStatusBarIndicator {
+.PortalStatusBarIndicator {
   .octicon(radio-tower);
   color: @text-color-subtle;
 
@@ -42,6 +42,7 @@
   display: flex;
   align-items: center;
 
+  // TODO: extract participants component
   &-participants {
     flex: auto;
     display: flex;
@@ -137,24 +138,55 @@
   }
 }
 
-.modal.overlay.from-top.realtime-LoginPanel {
-  width: 360px !important;
-  padding: 25px !important;
-}
+.GuestPortalComponent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
-.realtime-LoginDialog {
-  text-align: center;
-
-  p {
-    font-size: 125%;
+  // TODO: extract participants component
+  &-participants {
+    flex: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: start;
   }
 
+  &-participant {
+    display: inline-block;
+    margin: 5px;
+
+    img {
+      width: 26px;
+      border-radius: 50%
+    }
+  }
+
+  &-site-1 img {
+    width: 40px;
+  }
+
+  &-leave.btn {
+    flex: none;
+
+    label {
+      margin: 0;
+    }
+  }
+}
+
+.SignInComponent {
+  white-space: normal;
+  text-align: center;
+  padding: @component-padding;
+
   atom-text-editor {
+    margin-bottom: @component-padding;
     text-align: left;
   }
 }
 
-.realtime-LoginDialog-GitHubLogo {
+.SignInComponent-GitHubLogo {
   .octicon(mark-github, 20px);
   margin-left: 2px;
 }
