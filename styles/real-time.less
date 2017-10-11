@@ -115,6 +115,11 @@
         flex: none;
         .octicon(x, 75%);
         color: @text-color-subtle;
+
+        &:hover {
+          color: @text-color;
+          cursor: pointer;
+        }
       }
     }
 
@@ -133,7 +138,9 @@
       }
     }
 
-    &-explanation {
+    &-explanation p {
+      text-align: left;
+      margin: 0;
     }
   }
 }
