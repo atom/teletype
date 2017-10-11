@@ -1,7 +1,7 @@
 @import "ui-variables";
 @import "octicon-mixins";
 
-.realtime-PortalStatusBarIndicator {
+.PortalStatusBarIndicator {
   .octicon(radio-tower);
   color: @text-color-subtle;
 
@@ -81,24 +81,18 @@
   }
 }
 
-.modal.overlay.from-top.realtime-LoginPanel {
-  width: 360px !important;
-  padding: 25px !important;
-}
-
-.realtime-LoginDialog {
+.SignInComponent {
+  white-space: normal;
   text-align: center;
-
-  p {
-    font-size: 125%;
-  }
+  padding: @component-padding;
 
   atom-text-editor {
+    margin-bottom: @component-padding;
     text-align: left;
   }
 }
 
-.realtime-LoginDialog-GitHubLogo {
+.SignInComponent-GitHubLogo {
   .octicon(mark-github, 20px);
   margin-left: 2px;
 }
