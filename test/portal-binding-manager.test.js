@@ -76,10 +76,10 @@ suite('PortalBindingManager', () => {
     const portalBinding2 = await portalBinding2Promise
     assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    portalBinding1.close()
+    portalBinding1.leave()
     assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    portalBinding2.close()
+    portalBinding2.leave()
     assert(!manager.workspace.element.classList.contains('realtime-Guest'))
   })
 })
