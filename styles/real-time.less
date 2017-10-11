@@ -13,7 +13,7 @@
 
 .RealTimePopoverComponent {
   &.tooltip {
-    width: 400px;
+    width: 350px;
     padding-left: @component-padding;
     padding-right: @component-padding;
     box-sizing: border-box;
@@ -37,9 +37,9 @@
   }
 }
 
-.HostPortalComponent {
+.PortalParticipants {
+  flex: auto;
   display: flex;
-  flex-direction: row;
   align-items: center;
 
   &-participants {
@@ -71,12 +71,68 @@
     padding: 0;
     border-radius: 50%;
   }
+}
+
+.HostPortalComponent {
+  &-status {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 
   &-share-toggle {
     flex: none;
 
     label {
       margin: 0;
+    }
+  }
+
+  &-sharing-instructions {
+    border-radius: 2px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background-color: @inset-panel-background-color;
+    padding: 5px;
+
+    &-heading {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 5px;
+
+      h1 {
+        display: flex;
+        flex: auto;
+        font-size: 100%;
+        font-weight: normal;
+        margin: 0px;
+      }
+
+      span {
+        flex: none;
+        .octicon(x, 75%);
+        color: @text-color-subtle;
+      }
+    }
+
+    &-portal-info {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 5px;
+
+      input-text {
+        display: flex;
+        flex: auto;
+      }
+
+      btn {
+        flex: none;
+      }
+    }
+
+    &-explanation {
     }
   }
 }
