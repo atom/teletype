@@ -42,6 +42,7 @@
   flex-direction: row;
   align-items: center;
 
+  // TODO: extract participants component
   &-participants {
     flex: auto;
     display: flex;
@@ -73,6 +74,43 @@
   }
 
   &-share-toggle {
+    flex: none;
+
+    label {
+      margin: 0;
+    }
+  }
+}
+
+.GuestPortalComponent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  // TODO: extract participants component
+  &-participants {
+    flex: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: start;
+  }
+
+  &-participant {
+    display: inline-block;
+    margin: 5px;
+
+    img {
+      width: 26px;
+      border-radius: 50%
+    }
+  }
+
+  &-site-1 img {
+    width: 40px;
+  }
+
+  &-leave.btn {
     flex: none;
 
     label {
