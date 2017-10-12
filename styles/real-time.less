@@ -11,9 +11,9 @@
   }
 }
 
-.RealTimePopoverComponent {
+.RealTimePopoverTooltip {
   &.tooltip {
-    width: 350px;
+    width: 300px;
     padding-left: @component-padding;
     padding-right: @component-padding;
     box-sizing: border-box;
@@ -25,7 +25,9 @@
     border: 1px solid @base-border-color;
     box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
     color: @text-color;
+    height: 300px;
   }
+
   &.top .tooltip-arrow.tooltip-arrow {
     width: @component-padding;
     height: @component-padding;
@@ -35,6 +37,20 @@
     border-bottom-right-radius: 2px;
     transform: rotate(-45deg);
   }
+}
+
+.RealTimePopoverComponent {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.PortalListComponent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .PortalListComponent--initializing {
@@ -79,6 +95,8 @@
 }
 
 .HostPortalComponent {
+  flex: none;
+
   &-status {
     display: flex;
     flex-direction: row;
@@ -149,6 +167,11 @@
   }
 }
 
+.PortalListComponent-GuestPortalsContainer {
+  flex: 1;
+  overflow: scroll;
+}
+
 .GuestPortalComponent {
   display: flex;
   flex-direction: row;
@@ -179,6 +202,7 @@
 
   &-leave.btn {
     flex: none;
+    width: 60px;
 
     label {
       margin: 0;
@@ -203,7 +227,12 @@
 }
 
 .JoinPortalComponent--no-prompt {
-  text-align: center;
+  flex: none;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 
   label {
     color: @text-color-subtle;
@@ -216,9 +245,13 @@
 }
 
 .JoinPortalComponent--prompt {
+  flex: none;
+  height: 40px;
   text-align: left;
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
 
   atom-text-editor {
     flex: auto;
@@ -227,6 +260,7 @@
 
   .btn {
     flex: none;
-    margin-left: 10px;
+    width: 60px;
+    margin-left: 5px;
   }
 }
