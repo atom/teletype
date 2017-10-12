@@ -26,6 +26,7 @@
     box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
     color: @text-color;
     height: 300px;
+    white-space: normal;
   }
 
   &.top .tooltip-arrow.tooltip-arrow {
@@ -90,7 +91,7 @@
     width: 26px;
     height: 26px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 50% !important;
   }
 }
 
@@ -112,36 +113,19 @@
   }
 
   &-sharing-instructions {
-    border-radius: 2px;
-
     display: flex;
     flex-direction: column;
     align-items: stretch;
     background-color: @inset-panel-background-color;
-    padding: 5px;
+    padding: @component-padding;
+    margin-left: -@component-padding;
+    margin-right: -@component-padding;
 
     &-heading {
-      display: flex;
-      flex-direction: row;
-      margin-bottom: 5px;
-
       h1 {
-        display: flex;
-        flex: auto;
-        font-size: 100%;
-        font-weight: normal;
-        margin: 0px;
-      }
-
-      span {
-        flex: none;
-        .octicon(x, 75%);
-        color: @text-color-subtle;
-
-        &:hover {
-          color: @text-color;
-          cursor: pointer;
-        }
+        margin-top: @component-padding / 2;
+        font-weight: lighter;
+        font-size: 125%;
       }
     }
 
@@ -211,7 +195,6 @@
 }
 
 .SignInComponent {
-  white-space: normal;
   text-align: center;
   padding: @component-padding;
 
