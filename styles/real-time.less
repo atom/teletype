@@ -20,7 +20,7 @@
   }
 
   .tooltip-inner.tooltip-inner.tooltip-inner.tooltip-inner {
-    padding: @component-padding / 2;
+    padding: @component-padding;
     background-color: @tool-panel-background-color;
     border: 1px solid @base-border-color;
     box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
@@ -200,4 +200,33 @@
 .SignInComponent-GitHubLogo {
   .octicon(mark-github, 20px);
   margin-left: 2px;
+}
+
+.JoinPortalComponent--no-prompt {
+  text-align: center;
+
+  label {
+    color: @text-color-subtle;
+  }
+
+  label:hover {
+    color: darken(@text-color-subtle, 30%);
+    cursor: pointer;
+  }
+}
+
+.JoinPortalComponent--prompt {
+  text-align: left;
+  display: flex;
+  flex-direction: row;
+
+  atom-text-editor {
+    flex: auto;
+    font-size: 12px !important;
+  }
+
+  .btn {
+    flex: none;
+    margin-left: 10px;
+  }
 }
