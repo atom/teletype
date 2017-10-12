@@ -8,7 +8,9 @@ const {startTestServer} = require('@atom/real-time-server')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 const PortalListComponent = require('../lib/portal-list-component')
 
-suite('PortalListComponent', () => {
+suite('PortalListComponent', function () {
+  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+
   let testServer, portalBindingManagers
 
   suiteSetup(async function () {
@@ -56,10 +58,10 @@ suite('PortalListComponent', () => {
     const {portal} = await portalBindingManager.getHostPortalBinding()
 
     const guestPortalBindingManager1 = await buildPortalBindingManager()
-    const guestPortalBinding1 = guestPortalBindingManager1.getGuestPortalBinding(portal.id)
+    await guestPortalBindingManager1.getGuestPortalBinding(portal.id)
 
     const guestPortalBindingManager2 = await buildPortalBindingManager()
-    const guestPortalBinding2 = guestPortalBindingManager2.getGuestPortalBinding(portal.id)
+    await guestPortalBindingManager2.getGuestPortalBinding(portal.id)
 
     await condition(() => queryParticipantElements(element).length === 3)
     assert(queryParticipantElement(element, 1))
