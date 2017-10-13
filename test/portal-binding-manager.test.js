@@ -104,10 +104,6 @@ function buildPortalBindingManager () {
     }
   }
 
-  const clipboard = {
-    write () {}
-  }
-
   const workspace = {
     element: document.createElement('div'),
     getElement () {
@@ -121,7 +117,7 @@ function buildPortalBindingManager () {
     }
   }
 
-  return new PortalBindingManager({client, workspace, notificationManager, clipboard})
+  return new PortalBindingManager({client, workspace, notificationManager})
 }
 
 function buildPortal () {

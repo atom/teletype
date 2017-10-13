@@ -190,8 +190,7 @@ suite('PortalListComponent', function () {
     const portalBindingManager = new PortalBindingManager({
       client,
       workspace: new FakeWorkspace(),
-      notificationManager: new FakeNotificationManager(),
-      clipboard: new FakeClipboard()
+      notificationManager: new FakeNotificationManager()
     })
     portalBindingManagers.push(portalBindingManager)
     return portalBindingManager
