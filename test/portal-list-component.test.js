@@ -34,7 +34,11 @@ suite('PortalListComponent', function () {
 
   test('initialization', async () => {
     const portalBindingManager = await buildPortalBindingManager()
-    const component = new PortalListComponent({portalBindingManager, localUserIdentity: {login: 'some-user'}})
+    const component = new PortalListComponent({
+      portalBindingManager,
+      commandRegistry: new FakeCommandRegistry(),
+      localUserIdentity: {login: 'some-user'}
+    })
     assert(component.refs.initializationSpinner)
     assert(!component.refs.hostPortalBindingComponent)
 
@@ -149,6 +153,7 @@ suite('PortalListComponent', function () {
     const portalBindingManager = await buildPortalBindingManager()
     const component = new PortalListComponent({
       portalBindingManager,
+      commandRegistry: new FakeCommandRegistry(),
       localUserIdentity: portalBindingManager.client.getLocalUserIdentity()
     })
 
@@ -193,4 +198,8 @@ class FakeNotificationManager {
   addSuccess () {}
 
   addError () {}
+}
+
+class FakeCommandRegistry {
+  add () {}
 }
