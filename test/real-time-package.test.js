@@ -254,7 +254,7 @@ suite('RealTimePackage', function () {
     const {popoverComponent} = pack.portalStatusBarIndicator
     const {portalListComponent} = popoverComponent.refs
     const {hostPortalBindingComponent} = portalListComponent.refs
-    assert(hostPortalBindingComponent.props.showSharingInstructions)
+    assert(hostPortalBindingComponent.props.isConnectionInfoVisible)
   })
 
   test('prompting for a portal ID when joining', async () => {
