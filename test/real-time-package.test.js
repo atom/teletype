@@ -54,9 +54,9 @@ suite('RealTimePackage', function () {
 
   test('sharing and joining a portal', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
@@ -100,11 +100,11 @@ suite('RealTimePackage', function () {
 
   test('host joining another portal as a guest', async () => {
     const hostAndGuestEnv = buildAtomEnvironment()
-    const hostAndGuestPackage = buildPackage(hostAndGuestEnv)
+    const hostAndGuestPackage = await buildPackage(hostAndGuestEnv)
     const guestOnlyEnv = buildAtomEnvironment()
-    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+    const guestOnlyPackage = await buildPackage(guestOnlyEnv)
     const hostOnlyEnv = buildAtomEnvironment()
-    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+    const hostOnlyPackage = await buildPackage(hostOnlyEnv)
 
     // Start out as a host sharing a portal with a guest (Portal 1)
     const portal1Id = (await hostAndGuestPackage.sharePortal()).id
@@ -125,11 +125,11 @@ suite('RealTimePackage', function () {
 
   test('guest sharing another portal as a host', async () => {
     const guestAndHostEnv = buildAtomEnvironment()
-    const guestAndHostPackage = buildPackage(guestAndHostEnv)
+    const guestAndHostPackage = await buildPackage(guestAndHostEnv)
     const hostOnlyEnv = buildAtomEnvironment()
-    const hostOnlyPackage = buildPackage(hostOnlyEnv)
+    const hostOnlyPackage = await buildPackage(hostOnlyEnv)
     const guestOnlyEnv = buildAtomEnvironment()
-    const guestOnlyPackage = buildPackage(guestOnlyEnv)
+    const guestOnlyPackage = await buildPackage(guestOnlyEnv)
 
     // Start out as a guest in another user's portal (Portal 1)
     const portal1Id = (await hostOnlyPackage.sharePortal()).id
@@ -161,13 +161,13 @@ suite('RealTimePackage', function () {
   })
 
   test('host attempting to share another portal', async () => {
-    const hostPackage = buildPackage(buildAtomEnvironment())
+    const hostPackage = await buildPackage(buildAtomEnvironment())
 
     const portal1Id = (await hostPackage.sharePortal()).id
     const portal2Id = (await hostPackage.sharePortal()).id
     assert.equal(portal1Id, portal2Id)
 
-    hostPackage.closeHostPortal()
+    await hostPackage.closeHostPortal()
 
     const portal3Id = (await hostPackage.sharePortal()).id
     assert.notEqual(portal3Id, portal1Id)
@@ -185,88 +185,100 @@ suite('RealTimePackage', function () {
     env1.notifications.addError = (message) => { throw new Error(message) }
     env2.notifications.addError = (message) => { throw new Error(message) }
 
-    const pack1 = buildPackage(env1)
-    const pack2 = buildPackage(env2)
-    // Delete the fake oauth token stored in the credential cache, so that the
-    // user is prompted for a token.
-    pack1.credentialCache.delete('oauth-token')
-    pack2.credentialCache.delete('oauth-token')
+    const pack1 = await buildPackage(env1, {signIn: false})
+    await pack1.consumeStatusBar(new FakeStatusBar())
+    const pack2 = await buildPackage(env2, {signIn: false})
+    await pack2.consumeStatusBar(new FakeStatusBar())
 
     {
-      const portalPromise = pack1.sharePortal()
+      assert(!pack1.portalStatusBarIndicator.isPopoverVisible())
+      assert(!await pack1.sharePortal())
+      assert(pack1.portalStatusBarIndicator.isPopoverVisible())
 
-      await condition(() => env1.workspace.getModalPanels().length === 1)
-      const [loginPanel] = env1.workspace.getModalPanels()
-      const loginDialog = loginPanel.item
-
-      loginDialog.cancel()
-
-      assert(!(await portalPromise))
-      assert(loginPanel.destroyed)
-    }
-
-    let portal
-    {
-      const portalPromise = pack1.sharePortal()
-
-      await condition(() => env1.workspace.getModalPanels().length === 1)
-      const [loginPanel] = env1.workspace.getModalPanels()
-      const loginDialog = loginPanel.item
+      const {popoverComponent} = pack1.portalStatusBarIndicator
+      assert(popoverComponent.refs.signInComponent)
+      assert(!popoverComponent.refs.portalListComponent)
 
       // Enter an invalid token and wait for error message to appear.
-      loginDialog.refs.editor.setText('invalid-token')
-      loginDialog.confirm()
-      await condition(() => loginDialog.props.invalidToken)
+      popoverComponent.refs.signInComponent.refs.editor.setText('invalid-token')
+      popoverComponent.refs.signInComponent.signIn()
+      await condition(() => (
+        popoverComponent.refs.signInComponent.props.invalidToken &&
+        popoverComponent.refs.signInComponent.refs.editor
+      ))
 
-      // Open portal after entering a valid token... panel is automatically closed
-      loginDialog.refs.editor.setText('valid-token')
-      loginDialog.confirm()
-      portal = await portalPromise
-      assert(portal)
-      assert(loginPanel.destroyed)
+      // Show portal list component after entering a valid token.
+      popoverComponent.refs.signInComponent.refs.editor.setText('valid-token')
+      popoverComponent.refs.signInComponent.signIn()
+      await condition(() => (
+        !popoverComponent.refs.signInComponent &&
+        popoverComponent.refs.portalListComponent
+      ))
     }
 
     {
-      const portalPromise = pack2.joinPortal(portal.id)
+      assert(!pack2.portalStatusBarIndicator.isPopoverVisible())
+      assert(!await pack2.joinPortal('some-portal-id'))
+      assert(pack2.portalStatusBarIndicator.isPopoverVisible())
 
-      await condition(() => env2.workspace.getModalPanels().length === 1)
-      const [loginPanel] = env2.workspace.getModalPanels()
-      const loginDialog = loginPanel.item
-
-      loginDialog.cancel()
-
-      assert(!(await portalPromise))
-      assert(loginPanel.destroyed)
-    }
-
-    {
-      const portalPromise = pack2.joinPortal(portal.id)
-
-      await condition(() => env2.workspace.getModalPanels().length === 1)
-      const [loginPanel] = env2.workspace.getModalPanels()
-      const loginDialog = loginPanel.item
+      const {popoverComponent} = pack2.portalStatusBarIndicator
+      assert(popoverComponent.refs.signInComponent)
+      assert(!popoverComponent.refs.portalListComponent)
 
       // Enter an invalid token and wait for error message to appear.
-      loginDialog.refs.editor.setText('invalid-token')
-      loginDialog.confirm()
-      await condition(() => loginDialog.props.invalidToken)
+      popoverComponent.refs.signInComponent.refs.editor.setText('invalid-token')
+      popoverComponent.refs.signInComponent.signIn()
+      await condition(() => (
+        popoverComponent.refs.signInComponent.props.invalidToken &&
+        popoverComponent.refs.signInComponent.refs.editor
+      ))
 
-      // Open portal after entering a valid token... panel is automatically closed
-      loginDialog.refs.editor.setText('valid-token')
-      loginDialog.confirm()
-      portal = await portalPromise
-      assert(portal)
-      assert(loginPanel.destroyed)
+      // Show portal list component after entering a valid token.
+      popoverComponent.refs.signInComponent.refs.editor.setText('valid-token')
+      popoverComponent.refs.signInComponent.signIn()
+      await condition(() => (
+        !popoverComponent.refs.signInComponent &&
+        popoverComponent.refs.portalListComponent
+      ))
     }
+  })
+
+  test('showing portal sharing instructions when sharing', async () => {
+    const pack = await buildPackage(buildAtomEnvironment())
+    await pack.consumeStatusBar(new FakeStatusBar())
+
+    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
+    await pack.sharePortal()
+    assert(pack.portalStatusBarIndicator.isPopoverVisible())
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    const {portalListComponent} = popoverComponent.refs
+    const {hostPortalBindingComponent} = portalListComponent.refs
+    assert(hostPortalBindingComponent.props.isConnectionInfoVisible)
+  })
+
+  test('prompting for a portal ID when joining', async () => {
+    const pack = await buildPackage(buildAtomEnvironment())
+    await pack.consumeStatusBar(new FakeStatusBar())
+
+    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
+    await pack.joinPortal()
+    assert(pack.portalStatusBarIndicator.isPopoverVisible())
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    const {portalListComponent} = popoverComponent.refs
+    const {joinPortalComponent} = portalListComponent.refs
+    const {portalIdEditor} = joinPortalComponent.refs
+    assert(portalIdEditor.element.contains(document.activeElement))
   })
 
   test('joining the same portal more than once', async () => {
     const host1Env = buildAtomEnvironment()
-    const host1Package = buildPackage(host1Env)
+    const host1Package = await buildPackage(host1Env)
     const host2Env = buildAtomEnvironment()
-    const host2Package = buildPackage(host2Env)
+    const host2Package = await buildPackage(host2Env)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
 
     await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
     const portal1 = await host1Package.sharePortal()
@@ -294,7 +306,7 @@ suite('RealTimePackage', function () {
   })
 
   test('attempting to join a nonexistent portal', async () => {
-    const guestPackage = buildPackage(buildAtomEnvironment())
+    const guestPackage = await buildPackage(buildAtomEnvironment())
     const notifications = []
     guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
@@ -305,10 +317,10 @@ suite('RealTimePackage', function () {
 
   test('preserving guest portal position in workspace', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
 
     await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
 
@@ -330,9 +342,9 @@ suite('RealTimePackage', function () {
 
   test('host without an active text editor', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     const portalId = (await hostPackage.sharePortal()).id
 
     await guestPackage.joinPortal(portalId)
@@ -349,44 +361,14 @@ suite('RealTimePackage', function () {
   })
 
   suite('guest leaving portal', async () => {
-    test('via explicit leave operation', async () => {
-      const host1Env = buildAtomEnvironment()
-      const host1Package = buildPackage(host1Env)
-      const host1Portal = await host1Package.sharePortal()
-      await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
-
-      const host2Env = buildAtomEnvironment()
-      const host2Package = buildPackage(host2Env)
-      const host2Portal = await host2Package.sharePortal()
-      await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = buildPackage(guestEnv)
-
-      const guestPortal1 = await guestPackage.joinPortal(host1Portal.id)
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-
-      const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
-
-      guestPackage.leaveGuestPortal()
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-      assert(guestPortal2.disposed)
-
-      guestPackage.leaveGuestPortal()
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
-      assert(guestPortal1.disposed)
-    })
-
     test('via closing text editor portal pane item', async () => {
       const hostEnv = buildAtomEnvironment()
-      const hostPackage = buildPackage(hostEnv)
+      const hostPackage = await buildPackage(hostEnv)
       const hostPortal = await hostPackage.sharePortal()
       await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
 
       const guestEnv = buildAtomEnvironment()
-      const guestPackage = buildPackage(guestEnv)
+      const guestPackage = await buildPackage(guestEnv)
       const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
@@ -396,11 +378,11 @@ suite('RealTimePackage', function () {
 
     test('via closing empty portal pane item', async () => {
       const hostEnv = buildAtomEnvironment()
-      const hostPackage = buildPackage(hostEnv)
+      const hostPackage = await buildPackage(hostEnv)
       const hostPortal = await hostPackage.sharePortal()
 
       const guestEnv = buildAtomEnvironment()
-      const guestPackage = buildPackage(guestEnv)
+      const guestPackage = await buildPackage(guestEnv)
       const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
       await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
@@ -411,9 +393,9 @@ suite('RealTimePackage', function () {
 
   test('host closing portal', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
@@ -424,10 +406,10 @@ suite('RealTimePackage', function () {
 
   test('host losing connection', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
 
@@ -437,9 +419,9 @@ suite('RealTimePackage', function () {
 
   test('host disconnecting while there is an active shared editor', async function () {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(hostPortal.id)
 
@@ -480,12 +462,12 @@ suite('RealTimePackage', function () {
 
   test('peers undoing their own edits', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
     const hostEditor = await hostEnv.workspace.open()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
@@ -526,7 +508,7 @@ suite('RealTimePackage', function () {
 
   test('preserving the history when sharing and closing a portal', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostEditor = await hostEnv.workspace.open()
     hostEditor.insertText('h1 ')
     hostEditor.insertText('h2 ')
@@ -536,7 +518,7 @@ suite('RealTimePackage', function () {
     const hostPortal = await hostPackage.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor.getText(), 'h1 ')
@@ -554,7 +536,7 @@ suite('RealTimePackage', function () {
     assert.equal(hostEditor.getText(), 'h1 h2 ')
     await editorsEqual(guestEditor, hostEditor)
 
-    hostPackage.closeHostPortal()
+    await hostPackage.closeHostPortal()
     hostEditor.redo()
     hostEditor.redo()
     assert.equal(hostEditor.getText(), 'h1 h2 h3 h4')
@@ -566,7 +548,7 @@ suite('RealTimePackage', function () {
 
   test('undoing and redoing past the history boundaries', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
 
     const hostBuffer = new TextBuffer('abcdefg')
@@ -574,7 +556,7 @@ suite('RealTimePackage', function () {
     await hostEnv.workspace.open(hostEditor)
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
@@ -593,13 +575,13 @@ suite('RealTimePackage', function () {
 
   test('reverting to a checkpoint', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostEditor = await hostEnv.workspace.open()
     hostEditor.setText('abcdefg')
     const portal = await hostPackage.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(portal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
@@ -618,7 +600,7 @@ suite('RealTimePackage', function () {
 
   test('reloading a shared editor', async () => {
     const env = buildAtomEnvironment()
-    const pack = buildPackage(env)
+    const pack = await buildPackage(env)
     await pack.sharePortal()
 
     const filePath = path.join(temp.path(), 'standalone.js')
@@ -634,11 +616,11 @@ suite('RealTimePackage', function () {
 
   test('splitting editors', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const portal = await hostPackage.sharePortal()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(portal.id)
 
     const hostEditor1 = await hostEnv.workspace.open()
@@ -675,12 +657,12 @@ suite('RealTimePackage', function () {
 
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
     const hostEditor = await hostEnv.workspace.open()
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
 
@@ -696,10 +678,10 @@ suite('RealTimePackage', function () {
 
   test('autoscrolling to the host cursor position when changing the active editor', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
 
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     // Attach the workspace element to the DOM, and give it an extremely small
     // height so that we can be sure that the editor will be scrollable.
     const guestWorkspaceElement = guestEnv.views.getView(guestEnv.workspace)
@@ -732,10 +714,10 @@ suite('RealTimePackage', function () {
 
   test('guest portal file path', async () => {
     const hostEnv = buildAtomEnvironment()
-    const hostPackage = buildPackage(hostEnv)
+    const hostPackage = await buildPackage(hostEnv)
     const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
+    const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
 
     const unsavedFileEditor = await hostEnv.workspace.open()
@@ -760,79 +742,18 @@ suite('RealTimePackage', function () {
     )
   })
 
-  test('status bar indicator', async () => {
-    const host1Env = buildAtomEnvironment()
-    const host1Package = buildPackage(host1Env)
-    const host1StatusBar = new FakeStatusBar()
-    host1Package.consumeStatusBar(host1StatusBar)
-
-    const host1Portal = await host1Package.sharePortal()
-    assert.equal(host1StatusBar.getRightTiles().length, 1)
-    assert(host1StatusBar.getRightTiles()[0].item.element.classList.contains('focused'))
-
-    host1Package.clipboard.write('')
-    host1StatusBar.getRightTiles()[0].item.element.click()
-    assert.equal(host1Package.clipboard.read(), host1Portal.id)
-
-    const host2Env = buildAtomEnvironment()
-    const host2Package = buildPackage(host2Env)
-    const host2Portal = await host2Package.sharePortal()
-
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = buildPackage(guestEnv)
-    const guestStatusBar = new FakeStatusBar()
-    guestPackage.consumeStatusBar(guestStatusBar)
-
-    await guestPackage.joinPortal(host1Portal.id)
-    await guestPackage.joinPortal(host2Portal.id)
-
-    assert.equal(guestStatusBar.getRightTiles().length, 2)
-    const [host1Tile, host2Tile] = guestStatusBar.getRightTiles()
-    assert(!host1Tile.item.element.classList.contains('focused'))
-    assert(host2Tile.item.element.classList.contains('focused'))
-
-    guestEnv.workspace.getActivePane().activateItemAtIndex(0)
-    assert(host1Tile.item.element.classList.contains('focused'))
-    assert(!host2Tile.item.element.classList.contains('focused'))
-
-    const localEditor = await guestEnv.workspace.open()
-    assert(!host1Tile.item.element.classList.contains('focused'))
-    assert(!host2Tile.item.element.classList.contains('focused'))
-    localEditor.destroy()
-
-    guestPackage.clipboard.write('')
-    host1Tile.item.element.click()
-    assert.equal(guestPackage.clipboard.read(), host1Portal.id)
-
-    guestPackage.clipboard.write('')
-    host2Tile.item.element.click()
-    assert.equal(guestPackage.clipboard.read(), host2Portal.id)
-
-    host1Package.closeHostPortal()
-    assert.equal(host1StatusBar.getRightTiles().length, 0)
-    await condition(() => deepEqual(guestStatusBar.getRightTiles(), [host2Tile]))
-
-    await guestPackage.leaveGuestPortal()
-    assert.equal(guestStatusBar.getRightTiles().length, 0)
-
-    await guestPackage.joinPortal(host2Portal.id)
-    await condition(() => guestStatusBar.getRightTiles().length === 1)
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-    await condition(() => guestStatusBar.getRightTiles().length === 0)
-  })
-
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
-    const host1Package = buildPackage(host1Env)
+    const host1Package = await buildPackage(host1Env)
     const host1Portal = await host1Package.sharePortal()
     assert(host1Env.workspace.getElement().classList.contains('realtime-Host'))
-    host1Package.closeHostPortal()
+    await host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
   })
 
   test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
     const env = buildAtomEnvironment()
-    const pack = buildPackage(env)
+    const pack = await buildPackage(env, {signIn: false})
     pack.client.initialize = async function () {
       await Promise.resolve()
       throw new Errors.ClientOutOfDateError()
@@ -874,7 +795,7 @@ suite('RealTimePackage', function () {
 
   test('reports errors attempting to initialize the client', async () => {
     const env = buildAtomEnvironment()
-    const pack = buildPackage(env)
+    const pack = await buildPackage(env, {signIn: false})
     pack.client.initialize = async function () {
       await Promise.resolve()
       throw new Error('an error')
@@ -909,7 +830,7 @@ suite('RealTimePackage', function () {
 
   test('client connection errors', async () => {
     const env = buildAtomEnvironment()
-    const pack = buildPackage(env)
+    const pack = await buildPackage(env)
     await pack.sharePortal()
     env.notifications.clear()
 
@@ -923,10 +844,8 @@ suite('RealTimePackage', function () {
   })
 
   let nextTokenId = 0
-  function buildPackage (env, options = {}) {
+  async function buildPackage (env, options = {}) {
     const credentialCache = new FakeCredentialCache()
-    credentialCache.set('oauth-token', 'token-' + nextTokenId++)
-
     const pack = new RealTimePackage({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
@@ -935,8 +854,13 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      credentialCache: options.credentialCache || credentialCache
+      credentialCache
     })
+
+    if (options.signIn == null || options.signIn) {
+      await credentialCache.set('oauth-token', 'token-' + nextTokenId++)
+      await pack.signInUsingSavedToken()
+    }
     packages.push(pack)
     return pack
   }
