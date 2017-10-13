@@ -243,6 +243,21 @@ suite('RealTimePackage', function () {
     }
   })
 
+  test('prompting for a portal ID when joining', async () => {
+    const pack = await buildPackage(buildAtomEnvironment())
+    await pack.consumeStatusBar(new FakeStatusBar())
+
+    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
+    await pack.joinPortal()
+    assert(pack.portalStatusBarIndicator.isPopoverVisible())
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    const {portalListComponent} = popoverComponent.refs
+    const {joinPortalComponent} = portalListComponent.refs
+    const {portalIdEditor} = joinPortalComponent.refs
+    assert(portalIdEditor.element.contains(document.activeElement))
+  })
+
   test('joining the same portal more than once', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
