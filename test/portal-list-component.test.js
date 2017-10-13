@@ -157,6 +157,23 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 3))
   })
 
+  test('prefilling portal ID from clipboard', async () => {
+    const {component} = await buildComponent()
+    const {clipboard} = component.props
+    const {joinPortalComponent} = component.refs
+
+    clipboard.write('bc282ad8-7643-42cb-80ca-c243771a618f')
+    await joinPortalComponent.showPrompt()
+
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
+
+    await joinPortalComponent.hidePrompt()
+    clipboard.write('not a portal id')
+    await joinPortalComponent.showPrompt()
+
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '')
+  })
+
   function queryParticipantElement (element, siteId) {
     const participants = element.querySelectorAll('.PortalParticipants-site-' + siteId)
     assert.equal(participants.length, 1)
@@ -171,6 +188,7 @@ suite('PortalListComponent', function () {
     const portalBindingManager = await buildPortalBindingManager()
     const component = new PortalListComponent({
       portalBindingManager,
+      clipboard: new FakeClipboard(),
       commandRegistry: new FakeCommandRegistry(),
       localUserIdentity: portalBindingManager.client.getLocalUserIdentity()
     })
