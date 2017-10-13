@@ -42,7 +42,7 @@ suite('PortalListComponent', function () {
     assert(component.refs.initializationSpinner)
     assert(!component.refs.hostPortalBindingComponent)
 
-    await etch.getScheduler().getNextUpdatePromise()
+    await component.initializationPromise
     assert(!component.refs.initializationSpinner)
     assert(component.refs.hostPortalBindingComponent)
   })
@@ -174,8 +174,8 @@ suite('PortalListComponent', function () {
       commandRegistry: new FakeCommandRegistry(),
       localUserIdentity: portalBindingManager.client.getLocalUserIdentity()
     })
+    await component.initializationPromise
 
-    await etch.getScheduler().getNextUpdatePromise()
     return {component, element: component.element, portalBindingManager}
   }
 
