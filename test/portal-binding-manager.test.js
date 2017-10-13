@@ -41,9 +41,9 @@ suite('PortalBindingManager', () => {
     test('idempotently creating guest portal bindings', () => {
       const manager = buildPortalBindingManager()
 
-      const portal1BindingPromise1 = manager.getGuestPortalBinding('1')
-      const portal1BindingPromise2 = manager.getGuestPortalBinding('1')
-      const portal2BindingPromise1 = manager.getGuestPortalBinding('2')
+      const portal1BindingPromise1 = manager.createGuestPortalBinding('1')
+      const portal1BindingPromise2 = manager.createGuestPortalBinding('1')
+      const portal2BindingPromise1 = manager.createGuestPortalBinding('2')
       assert.equal(portal1BindingPromise1, portal1BindingPromise2)
       assert.notEqual(portal1BindingPromise1, portal2BindingPromise1)
     })
@@ -51,11 +51,11 @@ suite('PortalBindingManager', () => {
     test('successfully fetching a binding after failing the first time', async () => {
       const manager = buildPortalBindingManager()
 
-      const portalBinding1Promise1 = manager.getGuestPortalBinding('1')
+      const portalBinding1Promise1 = manager.createGuestPortalBinding('1')
       manager.client.resolveLastJoinPortalPromise(null)
       assert(!await portalBinding1Promise1)
 
-      const portalBinding1Promise2 = manager.getGuestPortalBinding('1')
+      const portalBinding1Promise2 = manager.createGuestPortalBinding('1')
       assert.notEqual(portalBinding1Promise1, portalBinding1Promise2)
 
       manager.client.resolveLastJoinPortalPromise(buildPortal())
@@ -66,12 +66,12 @@ suite('PortalBindingManager', () => {
   test('adding and removing classes from the workspace element', async () => {
     const manager = buildPortalBindingManager()
 
-    const portalBinding1Promise = manager.getGuestPortalBinding('1')
+    const portalBinding1Promise = manager.createGuestPortalBinding('1')
     manager.client.resolveLastJoinPortalPromise(buildPortal())
     const portalBinding1 = await portalBinding1Promise
     assert(manager.workspace.element.classList.contains('realtime-Guest'))
 
-    const portalBinding2Promise = manager.getGuestPortalBinding('2')
+    const portalBinding2Promise = manager.createGuestPortalBinding('2')
     manager.client.resolveLastJoinPortalPromise(buildPortal())
     const portalBinding2 = await portalBinding2Promise
     assert(manager.workspace.element.classList.contains('realtime-Guest'))

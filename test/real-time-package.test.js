@@ -332,36 +332,6 @@ suite('RealTimePackage', function () {
   })
 
   suite('guest leaving portal', async () => {
-    test('via explicit leave operation', async () => {
-      const host1Env = buildAtomEnvironment()
-      const host1Package = await buildPackage(host1Env)
-      const host1Portal = await host1Package.sharePortal()
-      await host1Env.workspace.open(path.join(temp.path(), 'host-1'))
-
-      const host2Env = buildAtomEnvironment()
-      const host2Package = await buildPackage(host2Env)
-      const host2Portal = await host2Package.sharePortal()
-      await host2Env.workspace.open(path.join(temp.path(), 'host-2'))
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-
-      const guestPortal1 = await guestPackage.joinPortal(host1Portal.id)
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-
-      const guestPortal2 = await guestPackage.joinPortal(host2Portal.id)
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1', 'Remote Buffer: host-2']))
-
-      guestPackage.leaveGuestPortal()
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
-      assert(guestPortal2.disposed)
-
-      guestPackage.leaveGuestPortal()
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), []))
-      assert(guestPortal1.disposed)
-    })
-
     test('via closing text editor portal pane item', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
@@ -754,7 +724,7 @@ suite('RealTimePackage', function () {
 
   test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
     const env = buildAtomEnvironment()
-    const pack = await buildPackage(env)
+    const pack = await buildPackage(env, {signIn: false})
     pack.client.initialize = async function () {
       await Promise.resolve()
       throw new Errors.ClientOutOfDateError()
@@ -796,7 +766,7 @@ suite('RealTimePackage', function () {
 
   test('reports errors attempting to initialize the client', async () => {
     const env = buildAtomEnvironment()
-    const pack = await buildPackage(env)
+    const pack = await buildPackage(env, {signIn: false})
     pack.client.initialize = async function () {
       await Promise.resolve()
       throw new Error('an error')

@@ -58,10 +58,10 @@ suite('PortalListComponent', function () {
     const {portal} = await portalBindingManager.getHostPortalBinding()
 
     const guestPortalBindingManager1 = await buildPortalBindingManager()
-    await guestPortalBindingManager1.getGuestPortalBinding(portal.id)
+    await guestPortalBindingManager1.createGuestPortalBinding(portal.id)
 
     const guestPortalBindingManager2 = await buildPortalBindingManager()
-    await guestPortalBindingManager2.getGuestPortalBinding(portal.id)
+    await guestPortalBindingManager2.createGuestPortalBinding(portal.id)
 
     await condition(() => queryParticipantElements(element).length === 3)
     assert(queryParticipantElement(element, 1))
@@ -127,7 +127,7 @@ suite('PortalListComponent', function () {
 
     // Simulate another guest joining the portal.
     const newGuestPortalBindingManager = await buildPortalBindingManager()
-    await newGuestPortalBindingManager.getGuestPortalBinding(hostPortal.id)
+    await newGuestPortalBindingManager.createGuestPortalBinding(hostPortal.id)
 
     await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 3)
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
