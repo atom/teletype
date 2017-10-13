@@ -79,6 +79,24 @@ suite('PortalListComponent', function () {
     assert(!hostPortalBindingComponent.refs.toggleShareCheckbox.checked)
   })
 
+  test('automatically showing and hiding host connection info', async () => {
+    const {component, element, portalBindingManager} = await buildComponent()
+
+    const {hostPortalBindingComponent} = component.refs
+    assert(!hostPortalBindingComponent.props.isConnectionInfoVisible)
+
+    hostPortalBindingComponent.toggleShare()
+
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(hostPortalBindingComponent.props.isConnectionInfoVisible)
+
+    const hostPortalBinding = await portalBindingManager.getHostPortalBinding()
+    hostPortalBinding.close()
+
+    await etch.getScheduler().getNextUpdatePromise()
+    assert(!hostPortalBindingComponent.props.isConnectionInfoVisible)
+  })
+
   test('joining portals', async () => {
     const {component, element, portalBindingManager} = await buildComponent()
     const {joinPortalComponent, guestPortalBindingsContainer} = component.refs
