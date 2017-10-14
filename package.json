@@ -11,6 +11,7 @@
   "main": "index.js",
   "repository": "https://github.com/atom/teletype",
   "scripts": {
+    "lint": "standard --verbose",
     "test": "atom --test test"
   },
   "author": "",
