@@ -995,7 +995,7 @@ suite('TeletypePackage', function () {
 
   async function getNextActiveTextEditorPromise ({workspace}) {
     const currentEditor = workspace.getActiveTextEditor()
-    await condition(() => workspace.getActiveTextEditor() != currentEditor)
+    await condition(() => workspace.getActiveTextEditor() !== currentEditor)
     return workspace.getActiveTextEditor()
   }
 
