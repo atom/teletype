@@ -55,7 +55,7 @@ suite('GuestPortalBinding', () => {
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
   })
 
-  test.only('switching the active editor in rapid succession', async () => {
+  test('switching the active editor in rapid succession', async () => {
     const client = new RealTimeClient({})
     const atomEnv = buildAtomEnvironment()
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
