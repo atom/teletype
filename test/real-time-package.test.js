@@ -521,7 +521,7 @@ suite('RealTimePackage', function () {
     const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
     const guestEditor = await getNextActiveTextEditorPromise(guestEnv)
-    assert.equal(guestEditor.getText(), 'h1 ')
+    await editorsEqual(guestEditor, hostEditor)
 
     hostEditor.redo()
     hostEditor.redo()
@@ -676,40 +676,65 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
   })
 
-  test('autoscrolling to the host cursor position when changing the active editor', async () => {
+  test('following the cursors of other collaborators', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
-
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
-    // Attach the workspace element to the DOM, and give it an extremely small
-    // height so that we can be sure that the editor will be scrollable.
     const guestWorkspaceElement = guestEnv.views.getView(guestEnv.workspace)
-    guestWorkspaceElement.style.height = '10px'
+    guestWorkspaceElement.style.height = '100px'
+    guestWorkspaceElement.style.width = '250px'
     containerElement.appendChild(guestWorkspaceElement)
 
+    const hostEditor1 = await hostEnv.workspace.open()
+    hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
+    hostEditor1.setCursorBufferPosition([2, 2])
+
     const portal = await hostPackage.sharePortal()
+
+    global.debug = true
     guestPackage.joinPortal(portal.id)
 
-    const hostEditor1 = await hostEnv.workspace.open()
-    hostEditor1.setText('abc\ndef\nghi')
-    hostEditor1.setCursorBufferPosition([2, 0])
-
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
-    await condition(() => guestEditor1.getScrollTopRow() === 2)
 
-    const hostEditor2 = await hostEnv.workspace.open()
-    hostEditor2.setText('jkl\nmno\npqr\nstu')
-    hostEditor2.setCursorBufferPosition([3, 0])
+    // Jump to host cursor when joining
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
 
-    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
-    await condition(() => guestEditor2.getScrollTopRow() === 3)
+    // Initially, guests follow the host's cursor
+    hostEditor1.setCursorBufferPosition([3, 3])
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
 
-    await guestPackage.toggleFollowHostCursor()
-    hostEditor2.insertText('vwx')
-    hostEditor2.setCursorBufferPosition([0, 0])
-    await condition(() => guestEditor2.getText() === hostEditor2.getText())
-    assert.equal(guestEditor2.getScrollTopRow(), 3)
+    // When followers move their cursor, their cursor does not follow the
+    // leader's cursor so long as the leader's cursor stays within the
+    // follower's viewport
+    guestEditor1.setCursorBufferPosition([2, 10])
+    hostEditor1.setCursorBufferPosition([3, 5])
+    hostEditor1.insertText('y')
+    await condition(() => guestEditor1.lineTextForBufferRow(3).includes('y'))
+    assert(guestEditor1.getCursorBufferPosition().isEqual([2, 10]))
+
+    // When the leader moves their cursor out of the follower's viewport, the
+    // follower's cursor moves to the same position if the unfollow period
+    // has elapsed.
+    await timeout(guestPackage.tetherBreakPeriod)
+    hostEditor1.setCursorBufferPosition([20, 10])
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+
+    // If the leader moves to non-visible columns (not just rows), we update
+    // the tether
+    await condition(() => guestEditor1.getFirstVisibleScreenRow() > 0)
+    guestEditor1.setCursorBufferPosition([20, 9])
+    await timeout(guestPackage.tetherBreakPeriod)
+    hostEditor1.setCursorBufferPosition([20, 30])
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+
+    // Break tether if leader's cursor position moves within the tether break
+    // period
+    guestEditor1.setCursorBufferPosition([20, 29])
+    hostEditor1.setCursorBufferPosition([0, 0])
+    hostEditor1.insertText('y')
+    await condition(() => guestEditor1.lineTextForBufferRow(0).includes('y'))
+    assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
   })
 
   test('guest portal file path', async () => {
@@ -854,6 +879,7 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
+      tetherBreakPeriod: 300,
       credentialCache
     })
 
@@ -892,4 +918,8 @@ function getCursorDecoratedRanges (editor) {
     if (hasCursorDecoration) ranges.push(marker.getBufferRange())
   }
   return ranges.sort((a, b) => a.compare(b))
+}
+
+function timeout (t) {
+  return new Promise((resolve) => window.setTimeout(resolve, t))
 }
