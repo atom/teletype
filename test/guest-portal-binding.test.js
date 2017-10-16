@@ -55,6 +55,22 @@ suite('GuestPortalBinding', () => {
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
   })
 
+  test.only('switching the active editor in rapid succession', async () => {
+    const client = new RealTimeClient({})
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+
+    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-1'))
+    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-2'))
+    await portalBinding.setActiveEditorProxy(buildEditorProxy('uri-3'))
+
+    assert.deepEqual(getPaneItemTitles(atomEnv), ['Remote Buffer: uri-3'])
+  })
+
+  function getPaneItemTitles ({workspace}) {
+    return workspace.getPaneItems().map((i) => i.getTitle())
+  }
+
   function buildGuestPortalBinding (client, atomEnv, portalId) {
     return new GuestPortalBinding({
       client,
@@ -62,5 +78,22 @@ suite('GuestPortalBinding', () => {
       notificationManager: atomEnv.notifications,
       workspace: atomEnv.workspace
     })
+  }
+
+  function buildEditorProxy (uri) {
+    const bufferProxy = {
+      uri,
+      dispose () {},
+      setDelegate () {},
+      createCheckpoint () {},
+      groupChangesSinceCheckpoint () {},
+      applyGroupingInterval () {}
+    }
+    const editorProxy = {
+      bufferProxy,
+      setDelegate () {},
+      updateSelections () {}
+    }
+    return editorProxy
   }
 })
