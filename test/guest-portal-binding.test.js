@@ -60,16 +60,27 @@ suite('GuestPortalBinding', () => {
     const atomEnv = buildAtomEnvironment()
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
 
+    const activePaneItemChangeEvents = []
+    const disposable = atomEnv.workspace.onDidChangeActivePaneItem((item) => {
+      activePaneItemChangeEvents.push(item)
+    })
+
     portalBinding.setActiveEditorProxy(buildEditorProxy('uri-1'))
     portalBinding.setActiveEditorProxy(buildEditorProxy('uri-2'))
+    portalBinding.setActiveEditorProxy(null)
     await portalBinding.setActiveEditorProxy(buildEditorProxy('uri-3'))
 
-    assert.deepEqual(getPaneItemTitles(atomEnv), ['Remote Buffer: uri-3'])
-  })
+    assert.deepEqual(
+      activePaneItemChangeEvents.map((i) => i.getTitle()),
+      ['Remote Buffer: uri-1', 'Remote Buffer: uri-2', 'Portal: No Active File', 'Remote Buffer: uri-3']
+    )
+    assert.deepEqual(
+      atomEnv.workspace.getPaneItems().map((i) => i.getTitle()),
+      ['Remote Buffer: uri-3']
+    )
 
-  function getPaneItemTitles ({workspace}) {
-    return workspace.getPaneItems().map((i) => i.getTitle())
-  }
+    disposable.dispose()
+  })
 
   function buildGuestPortalBinding (client, atomEnv, portalId) {
     return new GuestPortalBinding({
