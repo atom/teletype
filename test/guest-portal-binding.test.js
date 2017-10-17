@@ -55,6 +55,33 @@ suite('GuestPortalBinding', () => {
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
   })
 
+  test('switching the active editor in rapid succession', async () => {
+    const client = new RealTimeClient({})
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+
+    const activePaneItemChangeEvents = []
+    const disposable = atomEnv.workspace.onDidChangeActivePaneItem((item) => {
+      activePaneItemChangeEvents.push(item)
+    })
+
+    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-1'))
+    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-2'))
+    portalBinding.setActiveEditorProxy(null)
+    await portalBinding.setActiveEditorProxy(buildEditorProxy('uri-3'))
+
+    assert.deepEqual(
+      activePaneItemChangeEvents.map((i) => i.getTitle()),
+      ['Remote Buffer: uri-1', 'Remote Buffer: uri-2', 'Portal: No Active File', 'Remote Buffer: uri-3']
+    )
+    assert.deepEqual(
+      atomEnv.workspace.getPaneItems().map((i) => i.getTitle()),
+      ['Remote Buffer: uri-3']
+    )
+
+    disposable.dispose()
+  })
+
   function buildGuestPortalBinding (client, atomEnv, portalId) {
     return new GuestPortalBinding({
       client,
@@ -62,5 +89,22 @@ suite('GuestPortalBinding', () => {
       notificationManager: atomEnv.notifications,
       workspace: atomEnv.workspace
     })
+  }
+
+  function buildEditorProxy (uri) {
+    const bufferProxy = {
+      uri,
+      dispose () {},
+      setDelegate () {},
+      createCheckpoint () {},
+      groupChangesSinceCheckpoint () {},
+      applyGroupingInterval () {}
+    }
+    const editorProxy = {
+      bufferProxy,
+      setDelegate () {},
+      updateSelections () {}
+    }
+    return editorProxy
   }
 })
