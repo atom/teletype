@@ -614,6 +614,37 @@ suite('RealTimePackage', function () {
     assert.equal(editor.getText(), 'hello world!')
   })
 
+  test('history serialization', async () => {
+    let serializedEnvironment
+
+    {
+      const env = buildAtomEnvironment()
+      const pack = await buildPackage(env)
+      await pack.sharePortal()
+
+      const editor = await env.workspace.open()
+      editor.insertText('a')
+      editor.insertText('b')
+      editor.insertText('c')
+
+      serializedEnvironment = env.serialize({isUnloading: true})
+    }
+
+    {
+      const env = buildAtomEnvironment()
+      await env.deserialize(serializedEnvironment)
+
+      const editor = env.workspace.getActiveTextEditor()
+      assert.equal(editor.getText(), 'abc')
+
+      editor.undo()
+      assert.equal(editor.getText(), 'ab')
+
+      editor.redo()
+      assert.equal(editor.getText(), 'abc')
+    }
+  })
+
   test('splitting editors', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
