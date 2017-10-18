@@ -676,7 +676,7 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
   })
 
-  test('following the cursors of other collaborators', async () => {
+  test('tethering to other collaborators', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
@@ -716,7 +716,7 @@ suite('RealTimePackage', function () {
     // When the leader moves their cursor out of the follower's viewport, the
     // follower's cursor moves to the same position if the unfollow period
     // has elapsed.
-    await timeout(guestPackage.tetherBreakPeriod)
+    await timeout(guestPackage.tetherDisconnectWindow)
     hostEditor1.setCursorBufferPosition([20, 10])
     await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
 
@@ -724,12 +724,12 @@ suite('RealTimePackage', function () {
     // the tether
     await condition(() => guestEditor1.getFirstVisibleScreenRow() > 0)
     guestEditor1.setCursorBufferPosition([20, 9])
-    await timeout(guestPackage.tetherBreakPeriod)
+    await timeout(guestPackage.tetherDisconnectWindow)
     hostEditor1.setCursorBufferPosition([20, 30])
     await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
 
-    // Break tether if leader's cursor position moves within the tether break
-    // period
+    // Disconnect tether if leader's cursor position moves within the tether
+    // disconnect window
     guestEditor1.setCursorBufferPosition([20, 29])
     hostEditor1.setCursorBufferPosition([0, 0])
     hostEditor1.insertText('y')
@@ -879,7 +879,7 @@ suite('RealTimePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
-      tetherBreakPeriod: 300,
+      tetherDisconnectWindow: 300,
       credentialCache
     })
 
