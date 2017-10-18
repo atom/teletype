@@ -733,6 +733,11 @@ suite('RealTimePackage', function () {
     hostEditor1.insertText('y')
     await condition(() => guestEditor1.lineTextForBufferRow(0).includes('y'))
     assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
+    await timeout(guestPackage.tetherDisconnectWindow)
+    hostEditor1.setCursorBufferPosition([1, 0])
+    hostEditor1.insertText('y')
+    await condition(() => guestEditor1.lineTextForBufferRow(1).includes('y'))
+    assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
 
     // Reconnect and retract the tether when the host switches editors
     const hostEditor2 = await hostEnv.workspace.open()
@@ -742,6 +747,21 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
     hostEditor2.setCursorBufferPosition([4, 4])
     await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+
+    // Disconnect tether if guest scrolls the tether position out of view
+    guestEditor2.setCursorBufferPosition([20, 0])
+    await timeout(guestPackage.tetherDisconnectWindow)
+    hostEditor2.setCursorBufferPosition([4, 5])
+    hostEditor2.insertText('z')
+    await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
+    assert(guestEditor2.getCursorBufferPosition().isEqual([20, 0]))
+
+    // When host switches back to an existing editor, reconnect the tether
+    hostEnv.workspace.getActivePane().activateItem(hostEditor1)
+    await getNextActiveTextEditorPromise(guestEnv)
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+    hostEditor1.setCursorBufferPosition([1, 20])
+    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
   })
 
   test('guest portal file path', async () => {
