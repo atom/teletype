@@ -335,7 +335,7 @@ suite('EditorBinding', function () {
       assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
-      assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
+      assert.equal(buffer.getPath(), '@some-host:fake-buffer-proxy-uri')
       assert(editor.element.classList.contains('realtime-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 

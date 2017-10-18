@@ -753,12 +753,12 @@ suite('RealTimePackage', function () {
 
     const unsavedFileEditor = await hostEnv.workspace.open()
     await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: untitled'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:untitled')
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), '@user-with-token-h:untitled')
 
     const standaloneFilePath = path.join(temp.path(), 'standalone.js')
     hostEnv.workspace.open(standaloneFilePath)
     await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: standalone.js'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:' + standaloneFilePath)
+    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), '@user-with-token-h:' + standaloneFilePath)
 
     const projectPath = path.join(temp.mkdirSync(), 'some-project')
     const projectSubDirPath = path.join(projectPath, 'sub-dir')
@@ -769,7 +769,7 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: file.js'))
     assert.equal(
       guestEnv.workspace.getActivePaneItem().getPath(),
-      `remote:${path.join('some-project', 'sub-dir', 'file.js')}`
+      `@user-with-token-h:${path.join('some-project', 'sub-dir', 'file.js')}`
     )
   })
 
