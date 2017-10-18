@@ -691,8 +691,6 @@ suite('RealTimePackage', function () {
     hostEditor1.setCursorBufferPosition([2, 2])
 
     const portal = await hostPackage.sharePortal()
-
-    global.debug = true
     guestPackage.joinPortal(portal.id)
 
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
@@ -735,6 +733,15 @@ suite('RealTimePackage', function () {
     hostEditor1.insertText('y')
     await condition(() => guestEditor1.lineTextForBufferRow(0).includes('y'))
     assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
+
+    // Reconnect and retract the tether when the host switches editors
+    const hostEditor2 = await hostEnv.workspace.open()
+    hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
+    hostEditor2.setCursorBufferPosition([2, 2])
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+    hostEditor2.setCursorBufferPosition([4, 4])
+    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
   })
 
   test('guest portal file path', async () => {
