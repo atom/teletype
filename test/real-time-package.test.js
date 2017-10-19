@@ -743,36 +743,6 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor2.getScrollTopRow(), 3)
   })
 
-  test('guest portal file path', async () => {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = await buildPackage(hostEnv, {token: 'h'})
-    const hostPortal = await hostPackage.sharePortal()
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    guestPackage.joinPortal(hostPortal.id)
-
-    const unsavedFileEditor = await hostEnv.workspace.open()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: untitled'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), '@user-with-token-h:untitled')
-
-    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
-    hostEnv.workspace.open(standaloneFilePath)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: standalone.js'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), '@user-with-token-h:' + standaloneFilePath)
-
-    const projectPath = path.join(temp.mkdirSync(), 'some-project')
-    const projectSubDirPath = path.join(projectPath, 'sub-dir')
-    fs.mkdirSync(projectPath)
-    fs.mkdirSync(projectSubDirPath)
-    hostEnv.workspace.project.setPaths([projectPath])
-    hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), '@user-with-token-h: file.js'))
-    assert.equal(
-      guestEnv.workspace.getActivePaneItem().getPath(),
-      `@user-with-token-h:${path.join('some-project', 'sub-dir', 'file.js')}`
-    )
-  })
-
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
