@@ -29,6 +29,7 @@
     color: @text-color;
     height: 300px;
     white-space: normal;
+    overflow-y: auto;
   }
 
   &.top .tooltip-arrow.tooltip-arrow {
@@ -160,7 +161,6 @@
 
 .PortalListComponent-GuestPortalsContainer {
   flex: 1;
-  overflow-y: auto;
 }
 
 .GuestPortalComponent {
@@ -229,5 +229,67 @@
     flex: none;
     width: 60px;
     margin-left: 5px;
+  }
+}
+
+.cursor.ParticipantCursor {
+  &--site-1 {
+    border-left-color: @ui-site-color-1;
+  }
+
+  &--site-2 {
+    border-left-color: @ui-site-color-2;
+  }
+
+  &--site-3 {
+    border-left-color: @ui-site-color-3;
+  }
+
+  &--site-4 {
+    border-left-color: @ui-site-color-4;
+  }
+
+  &--site-5 {
+    border-left-color: @ui-site-color-5;
+  }
+
+  &--site-6 {
+    border-left-color: spin(@ui-site-color-1, 25);
+  }
+
+  &--site-7 {
+    border-left-color: spin(@ui-site-color-2, 25);
+  }
+
+  &--site-8 {
+    border-left-color: spin(@ui-site-color-3, 25);
+  }
+
+  &--site-9 {
+    border-left-color: spin(@ui-site-color-4, 25);
+  }
+
+  &--site-10 {
+    border-left-color: spin(@ui-site-color-5, 25);
+  }
+
+  &--site-11 {
+    border-left-color: spin(@ui-site-color-1, 65);
+  }
+
+  &--site-12 {
+    border-left-color: spin(@ui-site-color-2, 65);
+  }
+
+  &--site-13 {
+    border-left-color: spin(@ui-site-color-3, 65);
+  }
+
+  &--site-14 {
+    border-left-color: spin(@ui-site-color-4, 65);
+  }
+
+  &--site-15 {
+    border-left-color: spin(@ui-site-color-5, 65);
   }
 }

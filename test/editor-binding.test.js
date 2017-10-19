@@ -290,6 +290,28 @@ suite('EditorBinding', function () {
     })
   })
 
+  test('decorates each cursor with a site-specific class name', () => {
+    const editor = new TextEditor()
+    editor.setText(SAMPLE_TEXT)
+    const binding = new EditorBinding({editor})
+    const editorProxy = new FakeEditorProxy(binding, {siteId: 2})
+
+    binding.setEditorProxy(editorProxy)
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2'])
+
+    binding.updateSelectionsForSiteId(1, {1: {range: Range([0, 0], [0, 0])}})
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1'])
+
+    binding.updateSelectionsForSiteId(3, {1: {range: Range([0, 0], [0, 0])}})
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1', 'ParticipantCursor--site-3'])
+
+    binding.clearSelectionsForSiteId(1)
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-3'])
+
+    binding.dispose()
+    assert.deepEqual(getCursorClasses(editor), [])
+  })
+
   function getCursorDecoratedRanges (editor) {
     const {decorationManager} = editor
     const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
@@ -303,13 +325,32 @@ suite('EditorBinding', function () {
       return {head: m.getHeadBufferPosition(), tail: m.getTailBufferPosition()}
     })
   }
+
+  function getCursorClasses (editor) {
+    const {decorationManager} = editor
+    const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
+    const cursorDecorations = []
+    for (const [marker, decorations] of decorationsByMarker) {
+      let className = ''
+      for (const decoration of decorations) {
+        if (decoration.type === 'cursor' && decoration.class) {
+          className += ' ' + decoration.class
+        }
+      }
+
+      if (className) cursorDecorations.push(className.slice(1))
+    }
+
+    return cursorDecorations
+  }
 })
 
 class FakeEditorProxy {
-  constructor (delegate) {
+  constructor (delegate, {siteId} = {}) {
     this.delegate = delegate
     this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
     this.selections = {}
+    this.siteId = (siteId == null) ? 1 : siteId
   }
 
   updateSelections (selectionUpdates) {
