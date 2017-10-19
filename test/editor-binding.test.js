@@ -13,7 +13,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(
@@ -82,7 +82,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -117,7 +117,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -159,7 +159,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     binding.updateSelectionsForSiteId(2, {
@@ -199,7 +199,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -241,7 +241,7 @@ suite('EditorBinding', function () {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -269,7 +269,7 @@ suite('EditorBinding', function () {
       guestEditor.setText(SAMPLE_TEXT)
       guestEditor.setCursorBufferPosition([0, 0])
 
-      const binding = new EditorBinding({editor: guestEditor, hostIdentity: buildIdentity()})
+      const binding = new EditorBinding({editor: guestEditor})
       binding.setEditorProxy(new FakeEditorProxy(binding))
 
       const scrollRequests = []
@@ -313,7 +313,7 @@ suite('EditorBinding', function () {
       guestEditor.setText(SAMPLE_TEXT)
       guestEditor.setCursorBufferPosition([0, 0])
 
-      const binding = new EditorBinding({editor: guestEditor, hostIdentity: buildIdentity()})
+      const binding = new EditorBinding({editor: guestEditor})
       binding.setEditorProxy(new FakeEditorProxy(binding))
 
       const scrollRequests = []
@@ -353,7 +353,7 @@ suite('EditorBinding', function () {
   test('decorates each cursor with a site-specific class name', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
-    const binding = new EditorBinding({editor, hostIdentity: buildIdentity()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding, {siteId: 2})
 
     binding.setEditorProxy(editorProxy)
@@ -371,10 +371,6 @@ suite('EditorBinding', function () {
     binding.dispose()
     assert.deepEqual(getCursorClasses(editor), [])
   })
-
-  function buildIdentity () {
-    return {login: 'some-login'}
-  }
 
   function getCursorDecoratedRanges (editor) {
     const {decorationManager} = editor
