@@ -58,6 +58,14 @@ suite('RealTimePackage', function () {
     const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
+
+    // Ensure we don't emit an add event more than once for a given guest editor
+    const observedGuestItems = new Set()
+    guestEnv.workspace.onDidAddPaneItem(({item}) => {
+      assert(!observedGuestItems.has(item))
+      observedGuestItems.add(item)
+    })
+
     const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
@@ -94,6 +102,8 @@ suite('RealTimePackage', function () {
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert(!guestEditor1.isModified())
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
+
+    assert.equal(observedGuestItems.size, 2)
   })
 
   test('host joining another portal as a guest', async () => {
