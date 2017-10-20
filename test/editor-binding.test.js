@@ -326,15 +326,16 @@ suite('EditorBinding', function () {
     test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
+      const hostIdentity = {login: 'some-host'}
 
-      const binding = new EditorBinding({editor, isHost: false})
+      const binding = new EditorBinding({editor, hostIdentity, isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
-      assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
+      assert.equal(editor.getTitle(), '@some-host: fake-buffer-proxy-uri')
       assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
-      assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
+      assert.equal(buffer.getPath(), '@some-host:fake-buffer-proxy-uri')
       assert(editor.element.classList.contains('realtime-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 
