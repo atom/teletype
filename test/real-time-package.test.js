@@ -320,6 +320,45 @@ suite('RealTimePackage', function () {
     assert.deepEqual(guestEnv.workspace.getPaneItems(), [guestEditor1, guestEditor2])
   })
 
+  test('indicating portal status via status bar icon', async () => {
+    isTransmitting = function (statusBar) {
+      return statusBar.getRightTiles()[0].item.element.classList.contains('transmitting')
+    }
+
+    const host1Env = buildAtomEnvironment()
+    const host1Package = await buildPackage(host1Env)
+    const host1StatusBar = new FakeStatusBar()
+    await host1Package.consumeStatusBar(host1StatusBar)
+    assert(!isTransmitting(host1StatusBar))
+
+    const host1Portal = await host1Package.sharePortal()
+    await condition(() => isTransmitting(host1StatusBar))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = await buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = await buildPackage(guestEnv)
+    const guestStatusBar = new FakeStatusBar()
+    await guestPackage.consumeStatusBar(guestStatusBar)
+    assert(!isTransmitting(guestStatusBar))
+
+    guestPackage.joinPortal(host1Portal.id)
+    await condition(() => isTransmitting(guestStatusBar))
+    await guestPackage.joinPortal(host2Portal.id)
+    assert(isTransmitting(guestStatusBar))
+
+    assert.equal(guestEnv.workspace.getPaneItems().length, 2)
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    assert(isTransmitting(guestStatusBar))
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await condition(() => !isTransmitting(guestStatusBar))
+
+    await host1Package.closeHostPortal()
+    await condition(() => !isTransmitting(host1StatusBar))
+  })
+
   test('attempting to join a nonexistent portal', async () => {
     const guestPackage = await buildPackage(buildAtomEnvironment())
     const notifications = []
