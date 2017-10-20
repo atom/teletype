@@ -111,16 +111,13 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    background-color: @inset-panel-background-color;
-    padding: @component-padding;
-    margin-left: -@component-padding;
-    margin-right: -@component-padding;
 
     &-heading {
       h1 {
+        .octicon(radio-tower);
         margin-top: @component-padding / 2;
         font-weight: lighter;
-        font-size: 125%;
+        font-size: 80%;
       }
     }
 
@@ -138,11 +135,6 @@
         margin-left: @component-padding / 2;
         flex: none;
       }
-    }
-
-    &-explanation p {
-      text-align: left;
-      margin: 0;
     }
   }
 }
