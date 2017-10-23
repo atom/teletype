@@ -360,38 +360,38 @@ suite('EditorBinding', function () {
       5: {row: 6, column: 6}, // collaborator inside of visible area
     })
 
-    assert.deepEqual(upwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
-    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
-    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [{login: 'site-3'}])
-    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}])
+    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
+    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [3])
+    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4])
 
     await setEditorScrollLeftInChars(editor, 0)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
-    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
-    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}, {login: 'site-5'}])
+    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
+    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4, 5])
 
     await setEditorScrollTopInLines(editor, 2)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}, {login: 'site-3'}, {login: 'site-4'}, {login: 'site-5'}])
-    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
+    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2, 3, 4, 5])
+    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [1])
 
     await setEditorHeightInLines(editor, 5)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
-    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-1'}, {login: 'site-4'}, {login: 'site-5'}])
+    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
+    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [1, 4, 5])
 
     await setEditorWidthInChars(editor, 6)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
-    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}])
+    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
+    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4])
   })
 
   function getCursorDecoratedRanges (editor) {
@@ -475,6 +475,8 @@ class FakeEditorProxy {
       }
     }
   }
+
+  follow () {}
 }
 
 class FakePortal {
