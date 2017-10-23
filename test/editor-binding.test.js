@@ -4,9 +4,20 @@ const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
+const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+
+  let attachedElements = []
+
+  teardown(() => {
+    while (element = attachedElements.pop()) {
+      element.remove()
+    }
+
+    destroyAtomEnvironments()
+  })
 
   test('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
     const editor = new TextEditor()
@@ -312,6 +323,77 @@ suite('EditorBinding', function () {
     assert.deepEqual(getCursorClasses(editor), [])
   })
 
+  test('showing the active position of other collaborators', async () => {
+    // Instantiating an AtomEnvironment will load the editor default styles, so
+    // that changing height, width and scroll position works correctly.
+    buildAtomEnvironment()
+
+    const editor = new TextEditor({autoHeight: false})
+    editor.setText(SAMPLE_TEXT)
+
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    const {
+      upwardSitePositionsComponent,
+      downwardSitePositionsComponent,
+      leftwardSitePositionsComponent,
+      rightwardSitePositionsComponent
+    } = binding
+    assert(editor.element.contains(upwardSitePositionsComponent.element))
+    assert(editor.element.contains(downwardSitePositionsComponent.element))
+    assert(editor.element.contains(leftwardSitePositionsComponent.element))
+    assert(editor.element.contains(rightwardSitePositionsComponent.element))
+
+    attachToDOM(editor.element)
+    await setEditorHeightInLines(editor, 3)
+    await setEditorWidthInChars(editor, 3)
+    await setEditorScrollTopInLines(editor, 5)
+    await setEditorScrollLeftInChars(editor, 5)
+
+    binding.updateActivePositions({
+      1: {row: 2, column: 5}, // collaborator below visible area
+      2: {row: 9, column: 5}, // collaborator above visible area
+      3: {row: 6, column: 1}, // collaborator to the left of visible area
+      4: {row: 6, column: 9}, // collaborator to the right of visible area
+      5: {row: 6, column: 6}, // collaborator inside of visible area
+    })
+
+    assert.deepEqual(upwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
+    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
+    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [{login: 'site-3'}])
+    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}])
+
+    await setEditorScrollLeftInChars(editor, 0)
+
+    assert.deepEqual(upwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
+    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
+    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}, {login: 'site-5'}])
+
+    await setEditorScrollTopInLines(editor, 2)
+
+    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}, {login: 'site-3'}, {login: 'site-4'}, {login: 'site-5'}])
+    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-1'}])
+
+    await setEditorHeightInLines(editor, 5)
+
+    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
+    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-1'}, {login: 'site-4'}, {login: 'site-5'}])
+
+    await setEditorWidthInChars(editor, 6)
+
+    assert.deepEqual(upwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(downwardSitePositionsComponent.props.sites, [{login: 'site-2'}])
+    assert.deepEqual(leftwardSitePositionsComponent.props.sites, [])
+    assert.deepEqual(rightwardSitePositionsComponent.props.sites, [{login: 'site-4'}])
+  })
+
   function getCursorDecoratedRanges (editor) {
     const {decorationManager} = editor
     const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
@@ -343,6 +425,34 @@ suite('EditorBinding', function () {
 
     return cursorDecorations
   }
+
+  function attachToDOM (element) {
+    attachedElements.push(element)
+    document.body.appendChild(element)
+  }
+
+  async function setEditorHeightInLines (editor, lines) {
+    editor.element.style.height = editor.getLineHeightInPixels() * lines + 'px'
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorWidthInChars (editor, chars) {
+    editor.element.style.width =
+      editor.component.getGutterContainerWidth() +
+      chars * editor.getDefaultCharWidth() +
+      'px'
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorScrollTopInLines (editor, lines) {
+    editor.element.setScrollTop(editor.getLineHeightInPixels() * lines)
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorScrollLeftInChars (editor, chars) {
+    editor.element.setScrollLeft(editor.getDefaultCharWidth() * chars)
+    return editor.component.getNextUpdatePromise()
+  }
 })
 
 class FakeEditorProxy {
@@ -353,6 +463,8 @@ class FakeEditorProxy {
     this.siteId = (siteId == null) ? 1 : siteId
   }
 
+  didScroll () {}
+
   updateSelections (selectionUpdates) {
     for (const id in selectionUpdates) {
       const selectionUpdate = selectionUpdates[id]
@@ -362,5 +474,11 @@ class FakeEditorProxy {
         delete this.selections[id]
       }
     }
+  }
+}
+
+class FakePortal {
+  getSiteIdentity (siteId) {
+    return {login: 'site-' + siteId}
   }
 }
