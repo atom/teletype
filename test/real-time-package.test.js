@@ -268,20 +268,6 @@ suite('RealTimePackage', function () {
     }
   })
 
-  test('showing portal sharing instructions when sharing', async () => {
-    const pack = await buildPackage(buildAtomEnvironment())
-    await pack.consumeStatusBar(new FakeStatusBar())
-
-    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
-    await pack.sharePortal()
-    assert(pack.portalStatusBarIndicator.isPopoverVisible())
-
-    const {popoverComponent} = pack.portalStatusBarIndicator
-    const {portalListComponent} = popoverComponent.refs
-    const {hostPortalBindingComponent} = portalListComponent.refs
-    assert(hostPortalBindingComponent.props.isConnectionInfoVisible)
-  })
-
   test('prompting for a portal ID when joining', async () => {
     const pack = await buildPackage(buildAtomEnvironment())
     await pack.consumeStatusBar(new FakeStatusBar())

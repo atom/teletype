@@ -34,7 +34,7 @@
     border: 1px solid @base-border-color;
     box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
     color: @text-color;
-    height: 300px;
+    max-height: 300px;
     white-space: normal;
     overflow-y: auto;
   }
@@ -87,25 +87,13 @@
     margin: @component-padding / 2;
 
     img {
-      width: 26px;
+      width: 22px;
       border-radius: 50%
     }
   }
 
   &-site-1 img {
-    width: 40px;
-  }
-
-  &-guests-add {
-    margin: @component-padding / 2;
-
-    .btn {
-      .octicon(plus, 15px);
-      width: 26px;
-      height: 26px;
-      padding: 0;
-      border-radius: 50% !important;
-    }
+    width: 28px;
   }
 }
 
@@ -126,20 +114,27 @@
     }
   }
 
+  &-connection-info,
+  &-GuestPortalsContainer {
+    border-bottom: 1px solid @base-border-color;
+  }
+
   &-connection-info {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    background-color: @inset-panel-background-color;
-    padding: @component-padding;
-    margin-left: -@component-padding;
-    margin-right: -@component-padding;
 
     &-heading {
       h1 {
-        margin-top: @component-padding / 2;
-        font-weight: lighter;
-        font-size: 125%;
+        margin-top: 0;
+        margin-bottom: @component-padding / 2;
+        font-weight: normal;
+        font-size: 80%;
+
+        &::before {
+          line-height: 1em;
+          margin-right: 5px;
+        }
       }
     }
 
@@ -158,11 +153,10 @@
         flex: none;
       }
     }
+  }
 
-    &-explanation p {
-      text-align: left;
-      margin: 0;
-    }
+  .host-id-input {
+    font-size: 80%;
   }
 }
 
