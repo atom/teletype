@@ -3,11 +3,18 @@
 
 .PortalStatusBarIndicator {
   .octicon(radio-tower);
-  color: @text-color-subtle;
 
   // Remove margin on the icon since there is no text that follows
   &&&:before {
     margin-right: 0;
+  }
+
+  &.transmitting {
+    color: @text-color-info;
+
+    &:hover {
+      color: @text-color-info;
+    }
   }
 }
 
