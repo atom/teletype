@@ -1020,8 +1020,11 @@ function getCursorDecoratedRanges (editor) {
   const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
   const ranges = []
   for (const [marker, decorations] of decorationsByMarker) {
-    const hasCursorDecoration = decorations.some((d) => d.type === 'cursor')
-    if (hasCursorDecoration) ranges.push(marker.getBufferRange())
+    const hasVisibleCursorDecoration = decorations.some((d) => d.type === 'cursor')
+    const hasHiddenCursorDecoration = decorations.some((d) => d.type === 'cursor' && d.opacity === 0)
+    if (hasVisibleCursorDecoration && !hasHiddenCursorDecoration) {
+      ranges.push(marker.getBufferRange())
+    }
   }
   return ranges.sort((a, b) => a.compare(b))
 }
