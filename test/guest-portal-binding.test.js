@@ -57,8 +57,18 @@ suite('GuestPortalBinding', () => {
 
   test('switching the active editor in rapid succession', async () => {
     const client = new RealTimeClient({})
+    const portal = {
+      getSiteIdentity (siteId) {
+        return {login: 'some-host'}
+      },
+      dispose () {}
+    }
+    client.joinPortal = function () {
+      return portal
+    }
     const atomEnv = buildAtomEnvironment()
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+    await portalBinding.initialize()
 
     const activePaneItemChangeEvents = []
     const disposable = atomEnv.workspace.onDidChangeActivePaneItem((item) => {
@@ -72,11 +82,11 @@ suite('GuestPortalBinding', () => {
 
     assert.deepEqual(
       activePaneItemChangeEvents.map((i) => i.getTitle()),
-      ['Remote Buffer: uri-1', 'Remote Buffer: uri-2', 'Portal: No Active File', 'Remote Buffer: uri-3']
+      ['@some-host: uri-1', '@some-host: uri-2', '@some-host: No Active File', '@some-host: uri-3']
     )
     assert.deepEqual(
       atomEnv.workspace.getPaneItems().map((i) => i.getTitle()),
-      ['Remote Buffer: uri-3']
+      ['@some-host: uri-3']
     )
 
     disposable.dispose()

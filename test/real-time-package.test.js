@@ -6,6 +6,7 @@ const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
+const EmptyPortalPaneItem = require('../lib/empty-portal-pane-item')
 const FakeCredentialCache = require('./helpers/fake-credential-cache')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
@@ -57,6 +58,14 @@ suite('RealTimePackage', function () {
     const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
+
+    // Ensure we don't emit an add event more than once for a given guest editor
+    const observedGuestItems = new Set()
+    guestEnv.workspace.onDidAddPaneItem(({item}) => {
+      assert(!observedGuestItems.has(item))
+      observedGuestItems.add(item)
+    })
+
     const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
@@ -67,7 +76,6 @@ suite('RealTimePackage', function () {
 
     let guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
-    assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
@@ -87,15 +95,15 @@ suite('RealTimePackage', function () {
 
     const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor2.getText(), '# Hello, World')
-    assert.equal(guestEditor2.getTitle(), `Remote Buffer: ${hostEditor2.getTitle()}`)
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
 
     hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
     guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
-    assert.equal(guestEditor1.getTitle(), `Remote Buffer: ${hostEditor1.getTitle()}`)
     assert(!guestEditor1.isModified())
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
+
+    assert.equal(observedGuestItems.size, 2)
   })
 
   test('host joining another portal as a guest', async () => {
@@ -108,19 +116,25 @@ suite('RealTimePackage', function () {
 
     // Start out as a host sharing a portal with a guest (Portal 1)
     const portal1Id = (await hostAndGuestPackage.sharePortal()).id
-    guestOnlyPackage.joinPortal(portal1Id)
-    const hostAndGuestEditor = await hostAndGuestEnv.workspace.open(path.join(temp.path(), 'host+guest'))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+    await guestOnlyPackage.joinPortal(portal1Id)
+    const hostAndGuestLocalEditor = await hostAndGuestEnv.workspace.open(path.join(temp.path(), 'host+guest'))
+    const guestOnlyRemotePaneItem1 = await getNextRemotePaneItemPromise(guestOnlyEnv)
+    assert(guestOnlyRemotePaneItem1 instanceof TextEditor)
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // While already hosting Portal 1, join Portal 2 as a guest
     const portal2Id = (await hostOnlyPackage.sharePortal()).id
     hostAndGuestPackage.joinPortal(portal2Id)
-    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only'))
-    await condition(() => deepEqual(getPaneItemTitles(hostAndGuestEnv), ['host+guest', 'Remote Buffer: host-only']))
+    hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only'))
+    const hostAndGuestRemotePaneItem = await getNextRemotePaneItemPromise(hostAndGuestEnv)
+    await condition(() => deepEqual(getPaneItems(hostAndGuestEnv), [hostAndGuestLocalEditor, hostAndGuestRemotePaneItem]))
 
     // No transitivity: When Portal 1 host is viewing contents of Portal 2, Portal 1 guests are placed on hold
-    assert.equal(hostAndGuestEnv.workspace.getActivePaneItem().getTitle(), 'Remote Buffer: host-only')
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+    assert.equal(hostAndGuestEnv.workspace.getActivePaneItem(), hostAndGuestRemotePaneItem)
+    await condition(() =>
+      getRemotePaneItems(guestOnlyEnv).length === 1 &&
+        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
+    )
   })
 
   test('guest sharing another portal as a host', async () => {
@@ -134,30 +148,41 @@ suite('RealTimePackage', function () {
     // Start out as a guest in another user's portal (Portal 1)
     const portal1Id = (await hostOnlyPackage.sharePortal()).id
     guestAndHostPackage.joinPortal(portal1Id)
-    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-1'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1']))
+    hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-1'))
+    const guestAndHostRemotePaneItem1 = await getNextRemotePaneItemPromise(guestAndHostEnv)
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1])
 
     // While already participating as a guest in Portal 1, share a new portal as a host (Portal 2)
+    const guestAndHostLocalEditor = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest'))
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostLocalEditor])
     const portal2Id = (await guestAndHostPackage.sharePortal()).id
     guestOnlyPackage.joinPortal(portal2Id)
-    await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-1', 'host+guest']))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+    const guestOnlyRemotePaneItem1 = await getNextRemotePaneItemPromise(guestOnlyEnv)
+    assert(guestOnlyRemotePaneItem1 instanceof TextEditor)
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // Portal 2 host continues to exist as a guest in Portal 1
-    await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-2', 'host+guest']))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Remote Buffer: host+guest']))
+    hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
+    const guestAndHostRemotePaneItem2 = await getNextRemotePaneItemPromise(guestAndHostEnv)
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem2, guestAndHostLocalEditor])
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests are placed on hold
     guestAndHostEnv.workspace.getActivePane().activateItemAtIndex(0)
-    assert.equal(guestAndHostEnv.workspace.getActivePaneItem().getTitle(), 'Remote Buffer: host-only-buffer-2')
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+    assert.equal(guestAndHostEnv.workspace.getActivePaneItem(), guestAndHostRemotePaneItem2)
+    await condition(() =>
+      getRemotePaneItems(guestOnlyEnv).length === 1 &&
+        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
+    )
 
     // Portal 2 guests remain on hold while Portal 2 host observes changes in Portal 1
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
-    await condition(() => deepEqual(getPaneItemTitles(guestAndHostEnv), ['Remote Buffer: host-only-buffer-3', 'host+guest']))
-    await condition(() => deepEqual(getPaneItemTitles(guestOnlyEnv), ['Portal: No Active File']))
+    const guestAndHostRemotePaneItem3 = await getNextRemotePaneItemPromise(guestAndHostEnv)
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem3, guestAndHostLocalEditor])
+    await condition(() =>
+      getRemotePaneItems(guestOnlyEnv).length === 1 &&
+        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
+    )
   })
 
   test('host attempting to share another portal', async () => {
@@ -243,20 +268,6 @@ suite('RealTimePackage', function () {
     }
   })
 
-  test('showing portal sharing instructions when sharing', async () => {
-    const pack = await buildPackage(buildAtomEnvironment())
-    await pack.consumeStatusBar(new FakeStatusBar())
-
-    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
-    await pack.sharePortal()
-    assert(pack.portalStatusBarIndicator.isPopoverVisible())
-
-    const {popoverComponent} = pack.portalStatusBarIndicator
-    const {portalListComponent} = popoverComponent.refs
-    const {hostPortalBindingComponent} = portalListComponent.refs
-    assert(hostPortalBindingComponent.props.isConnectionInfoVisible)
-  })
-
   test('prompting for a portal ID when joining', async () => {
     const pack = await buildPackage(buildAtomEnvironment())
     await pack.consumeStatusBar(new FakeStatusBar())
@@ -289,20 +300,59 @@ suite('RealTimePackage', function () {
     const guestEditor1Pane = guestEnv.workspace.getActivePane()
     guestPackage.joinPortal(portal1.id)
     guestPackage.joinPortal(portal1.id)
-    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    const guestEditor1 = await getNextRemotePaneItemPromise(guestEnv)
+    assert.deepEqual(getPaneItems(guestEnv), [guestEditor1])
 
     const guestEditor2Pane = guestEditor1Pane.splitRight()
     guestPackage.joinPortal(portal2.id)
-    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    const guestEditor2 = await getNextRemotePaneItemPromise(guestEnv)
+    assert.deepEqual(getPaneItems(guestEnv), [guestEditor1, guestEditor2])
 
-    assert.equal(guestEditor1.getTitle(), 'Remote Buffer: host-1')
-    assert.equal(guestEditor2.getTitle(), 'Remote Buffer: host-2')
     assert.equal(guestEnv.workspace.getActivePaneItem(), guestEditor2)
     assert.equal(guestEnv.workspace.getActivePane(), guestEditor2Pane)
 
     guestPackage.joinPortal(portal1.id)
     await condition(() => guestEnv.workspace.getActivePaneItem() === guestEditor1)
     assert.deepEqual(guestEnv.workspace.getPaneItems(), [guestEditor1, guestEditor2])
+  })
+
+  test('indicating portal status via status bar icon', async () => {
+    isTransmitting = function (statusBar) {
+      return statusBar.getRightTiles()[0].item.element.classList.contains('transmitting')
+    }
+
+    const host1Env = buildAtomEnvironment()
+    const host1Package = await buildPackage(host1Env)
+    const host1StatusBar = new FakeStatusBar()
+    await host1Package.consumeStatusBar(host1StatusBar)
+    assert(!isTransmitting(host1StatusBar))
+
+    const host1Portal = await host1Package.sharePortal()
+    await condition(() => isTransmitting(host1StatusBar))
+
+    const host2Env = buildAtomEnvironment()
+    const host2Package = await buildPackage(host2Env)
+    const host2Portal = await host2Package.sharePortal()
+
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = await buildPackage(guestEnv)
+    const guestStatusBar = new FakeStatusBar()
+    await guestPackage.consumeStatusBar(guestStatusBar)
+    assert(!isTransmitting(guestStatusBar))
+
+    guestPackage.joinPortal(host1Portal.id)
+    await condition(() => isTransmitting(guestStatusBar))
+    await guestPackage.joinPortal(host2Portal.id)
+    assert(isTransmitting(guestStatusBar))
+
+    assert.equal(guestEnv.workspace.getPaneItems().length, 2)
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    assert(isTransmitting(guestStatusBar))
+    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await condition(() => !isTransmitting(guestStatusBar))
+
+    await host1Package.closeHostPortal()
+    await condition(() => !isTransmitting(host1StatusBar))
   })
 
   test('attempting to join a nonexistent portal', async () => {
@@ -318,26 +368,23 @@ suite('RealTimePackage', function () {
   test('preserving guest portal position in workspace', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
-
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
 
-    await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
+    const guestLocalEditor1 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
+    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1])
 
-    const portalId = (await hostPackage.sharePortal()).id
-    await guestPackage.joinPortal(portalId)
-
+    const portal = await hostPackage.sharePortal()
+    await guestPackage.joinPortal(portal.id)
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1']))
+    const guestRemoteEditor1 = await getNextRemotePaneItemPromise(guestEnv)
+    const guestLocalEditor2 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
+    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor1, guestLocalEditor2])
 
-    await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
-    assert.deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1', 'guest-2'])
+    const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
+    const guestRemoteEditor2 = await getNextRemotePaneItemPromise(guestEnv)
 
-    await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-2', 'guest-2']))
-
-    hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['guest-1', 'Remote Buffer: host-1', 'guest-2']))
+    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor2, guestLocalEditor2])
   })
 
   test('host without an active text editor', async function () {
@@ -347,17 +394,21 @@ suite('RealTimePackage', function () {
     const guestPackage = await buildPackage(guestEnv)
     const portalId = (await hostPackage.sharePortal()).id
 
-    await guestPackage.joinPortal(portalId)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    guestPackage.joinPortal(portalId)
+    let guestEditor = await getNextRemotePaneItemPromise(guestEnv)
+    assert(guestEditor instanceof EmptyPortalPaneItem)
 
-    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
+    const hostEditor1 = await hostEnv.workspace.open()
+    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
+    assert(guestEditor instanceof TextEditor)
 
     hostEditor1.destroy()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
+    assert(guestEditor instanceof EmptyPortalPaneItem)
 
-    await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: some-file']))
+    await hostEnv.workspace.open()
+    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
+    assert(guestEditor instanceof TextEditor)
   })
 
   suite('guest leaving portal', async () => {
@@ -365,13 +416,14 @@ suite('RealTimePackage', function () {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
       const hostPortal = await hostPackage.sharePortal()
-      await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
+      await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
 
       const guestEnv = buildAtomEnvironment()
       const guestPackage = await buildPackage(guestEnv)
       const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Remote Buffer: host-1']))
+      const guestEditor = getRemotePaneItems(guestEnv)[0]
+      assert(guestEditor instanceof TextEditor)
       guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       assert(guestPortal.disposed)
     })
@@ -385,7 +437,8 @@ suite('RealTimePackage', function () {
       const guestPackage = await buildPackage(guestEnv)
       const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-      await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+      const guestEditor = getRemotePaneItems(guestEnv)[0]
+      assert(guestEditor instanceof EmptyPortalPaneItem)
       guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       assert(guestPortal.disposed)
     })
@@ -398,10 +451,10 @@ suite('RealTimePackage', function () {
     const guestPackage = await buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPackage.closeHostPortal()
-    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+    await condition(() => getRemotePaneItems(guestEnv).length === 0)
   })
 
   test('host losing connection', async function () {
@@ -411,10 +464,10 @@ suite('RealTimePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
     guestPackage.joinPortal(hostPortal.id)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv), ['Portal: No Active File']))
+    await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPortal.peerPool.disconnect()
-    await condition(() => guestEnv.workspace.getPaneItems().length === 0)
+    await condition(() => getRemotePaneItems(guestEnv).length === 0)
   })
 
   test('host disconnecting while there is an active shared editor', async function () {
@@ -433,7 +486,7 @@ suite('RealTimePackage', function () {
     const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
     hostEditor2.setText('const goodnight = "moon"')
     hostEditor2.setCursorBufferPosition([0, 2])
-    await condition(() => guestEnv.workspace.getActiveTextEditor().getTitle() === 'Remote Buffer: file-2')
+    await condition(() => guestEnv.workspace.getActiveTextEditor().getText() === 'const goodnight = "moon"')
 
     const guestEditor = guestEnv.workspace.getActiveTextEditor()
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor)))
@@ -614,6 +667,37 @@ suite('RealTimePackage', function () {
     assert.equal(editor.getText(), 'hello world!')
   })
 
+  test('history serialization', async () => {
+    let serializedEnvironment
+
+    {
+      const env = buildAtomEnvironment()
+      const pack = await buildPackage(env)
+      await pack.sharePortal()
+
+      const editor = await env.workspace.open()
+      editor.insertText('a')
+      editor.insertText('b')
+      editor.insertText('c')
+
+      serializedEnvironment = env.serialize({isUnloading: true})
+    }
+
+    {
+      const env = buildAtomEnvironment()
+      await env.deserialize(serializedEnvironment)
+
+      const editor = env.workspace.getActiveTextEditor()
+      assert.equal(editor.getText(), 'abc')
+
+      editor.undo()
+      assert.equal(editor.getText(), 'ab')
+
+      editor.redo()
+      assert.equal(editor.getText(), 'abc')
+    }
+  })
+
   test('splitting editors', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
@@ -764,36 +848,6 @@ suite('RealTimePackage', function () {
     await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
   })
 
-  test('guest portal file path', async () => {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = await buildPackage(hostEnv)
-    const hostPortal = await hostPackage.sharePortal()
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    guestPackage.joinPortal(hostPortal.id)
-
-    const unsavedFileEditor = await hostEnv.workspace.open()
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: untitled'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:untitled')
-
-    const standaloneFilePath = path.join(temp.path(), 'standalone.js')
-    hostEnv.workspace.open(standaloneFilePath)
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: standalone.js'))
-    assert.equal(guestEnv.workspace.getActivePaneItem().getPath(), 'remote:' + standaloneFilePath)
-
-    const projectPath = path.join(temp.mkdirSync(), 'some-project')
-    const projectSubDirPath = path.join(projectPath, 'sub-dir')
-    fs.mkdirSync(projectPath)
-    fs.mkdirSync(projectSubDirPath)
-    hostEnv.workspace.project.setPaths([projectPath])
-    hostEnv.workspace.open(path.join(projectSubDirPath, 'file.js'))
-    await condition(() => deepEqual(getPaneItemTitles(guestEnv).pop(), 'Remote Buffer: file.js'))
-    assert.equal(
-      guestEnv.workspace.getActivePaneItem().getPath(),
-      `remote:${path.join('some-project', 'sub-dir', 'file.js')}`
-    )
-  })
-
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
@@ -924,6 +978,25 @@ suite('RealTimePackage', function () {
     return workspace.getActiveTextEditor()
   }
 
+  async function getNextRemotePaneItemPromise (environment) {
+    const getTitles = (paneItems) => paneItems.map((item) => item.getTitle())
+
+    const originalRemotePaneItems = getRemotePaneItems(environment)
+    await condition(() => {
+      return !deepEqual(
+        getTitles(originalRemotePaneItems),
+        getTitles(getRemotePaneItems(environment))
+      )
+    })
+
+    const newRemotePaneItem = getRemotePaneItems(environment).find((item) => {
+      const originalRemotePaneItemTitles = getTitles(originalRemotePaneItems)
+      return !originalRemotePaneItemTitles.includes(item.getTitle())
+    })
+
+    return newRemotePaneItem
+  }
+
   function editorsEqual (editor1, editor2) {
     return condition(() => (
       editor1.getText() === editor2.getText() &&
@@ -932,8 +1005,14 @@ suite('RealTimePackage', function () {
   }
 })
 
-function getPaneItemTitles (environment) {
-  return environment.workspace.getPaneItems().map((i) => i.getTitle())
+function getPaneItems ({workspace}) {
+  return workspace.getPaneItems()
+}
+
+function getRemotePaneItems ({workspace}) {
+  return workspace.getPaneItems().filter((item) => {
+    return item.element.classList.contains('realtime-RemotePaneItem')
+  })
 }
 
 function getCursorDecoratedRanges (editor) {

@@ -24,7 +24,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(
@@ -93,7 +93,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -128,7 +128,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -170,7 +170,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     binding.updateSelectionsForSiteId(2, {
@@ -210,7 +210,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -252,7 +252,7 @@ suite('EditorBinding', function () {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -279,14 +279,14 @@ suite('EditorBinding', function () {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
 
-      const binding = new EditorBinding({editor, isHost: false})
+      const binding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
-      assert.equal(editor.getTitle(), 'Remote Buffer: fake-buffer-proxy-uri')
+      assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
       assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
-      assert.equal(buffer.getPath(), 'remote:fake-buffer-proxy-uri')
+      assert.equal(buffer.getPath(), '@site-1:fake-buffer-proxy-uri')
       assert(editor.element.classList.contains('realtime-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 
@@ -304,7 +304,7 @@ suite('EditorBinding', function () {
   test('decorates each cursor with a site-specific class name', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding, {siteId: 2})
 
     binding.setEditorProxy(editorProxy)
