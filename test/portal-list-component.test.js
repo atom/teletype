@@ -57,10 +57,11 @@ suite('PortalListComponent', function () {
     // Toggle sharing on.
     hostPortalBindingComponent.toggleShare()
     await condition(() => (
-      hostPortalBindingComponent.refs.toggleShareCheckbox.checked &&
+      !hostPortalBindingComponent.refs.toggleShareCheckbox &&
       hostPortalBindingComponent.refs.creatingPortalSpinner
     ))
     await condition(() => (
+      hostPortalBindingComponent.refs.toggleShareCheckbox &&
       hostPortalBindingComponent.refs.toggleShareCheckbox.checked &&
       !hostPortalBindingComponent.refs.creatingPortalSpinner
     ))
