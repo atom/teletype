@@ -311,13 +311,13 @@ suite('EditorBinding', function () {
     assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2'])
 
     binding.updateSelectionsForSiteId(1, {1: {range: Range([0, 0], [0, 0])}})
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1 non-blinking'])
 
     binding.updateSelectionsForSiteId(3, {1: {range: Range([0, 0], [0, 0])}})
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1', 'ParticipantCursor--site-3'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1 non-blinking', 'ParticipantCursor--site-3 non-blinking'])
 
     binding.clearSelectionsForSiteId(1)
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-3'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-3 non-blinking'])
 
     binding.dispose()
     assert.deepEqual(getCursorClasses(editor), [])
