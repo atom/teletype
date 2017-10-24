@@ -335,16 +335,9 @@ suite('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
-    const {
-      upwardSitePositionsComponent,
-      downwardSitePositionsComponent,
-      leftwardSitePositionsComponent,
-      rightwardSitePositionsComponent
-    } = binding
-    assert(editor.element.contains(upwardSitePositionsComponent.element))
-    assert(editor.element.contains(downwardSitePositionsComponent.element))
-    assert(editor.element.contains(leftwardSitePositionsComponent.element))
-    assert(editor.element.contains(rightwardSitePositionsComponent.element))
+    const {upperRightSitePositionsComponent, lowerRightSitePositionsComponent} = binding
+    assert(editor.element.contains(upperRightSitePositionsComponent.element))
+    assert(editor.element.contains(lowerRightSitePositionsComponent.element))
 
     attachToDOM(editor.element)
     await setEditorHeightInLines(editor, 3)
@@ -353,45 +346,35 @@ suite('EditorBinding', function () {
     await setEditorScrollLeftInChars(editor, 5)
 
     binding.updateActivePositions({
-      1: {row: 2, column: 5}, // collaborator below visible area
-      2: {row: 9, column: 5}, // collaborator above visible area
+      1: {row: 2, column: 5}, // collaborator above visible area
+      2: {row: 9, column: 5}, // collaborator below visible area
       3: {row: 6, column: 1}, // collaborator to the left of visible area
       4: {row: 6, column: 9}, // collaborator to the right of visible area
       5: {row: 6, column: 6}, // collaborator inside of visible area
     })
 
-    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
-    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4])
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 3, 4])
 
     await setEditorScrollLeftInChars(editor, 0)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
-    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4, 5])
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4, 5])
 
     await setEditorScrollTopInLines(editor, 2)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2, 3, 4, 5])
-    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
 
     await setEditorHeightInLines(editor, 5)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
-    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [1, 4, 5])
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
 
     await setEditorWidthInChars(editor, 6)
 
-    assert.deepEqual(upwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(downwardSitePositionsComponent.props.siteIds, [2])
-    assert.deepEqual(leftwardSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(rightwardSitePositionsComponent.props.siteIds, [4])
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4])
   })
 
   function getCursorDecoratedRanges (editor) {
