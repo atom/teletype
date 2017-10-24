@@ -2,6 +2,7 @@
 @import "octicon-mixins";
 
 @font-family-monospace: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+@join-leave-button-width: 50px;
 
 .PortalStatusBarIndicator {
   .octicon(radio-tower);
@@ -174,7 +175,7 @@
 
   &-leave.btn {
     flex: none;
-    width: 60px;
+    width: @join-leave-button-width;
 
     label {
       margin: 0;
@@ -231,7 +232,7 @@
 
   .btn {
     flex: none;
-    width: 60px;
+    width: @join-leave-button-width;
     margin-left: 5px;
   }
 }
