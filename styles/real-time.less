@@ -116,6 +116,7 @@
 
     label {
       margin: 0;
+      font-size: 80%;
     }
   }
 
@@ -184,6 +185,7 @@
 
     label {
       margin: 0;
+      font-size: 80%;
     }
   }
 }
@@ -203,6 +205,12 @@
   .octicon(mark-github, 40px);
 }
 
+.JoinPortalComponent--no-prompt,
+.JoinPortalComponent--prompt
+{
+  border-top: 1px solid @base-border-color;
+}
+
 .JoinPortalComponent--no-prompt {
   flex: none;
   height: 40px;
@@ -213,6 +221,8 @@
 
   label {
     color: @text-color-subtle;
+    font-size: 12px;
+    margin: 0;
   }
 
   label:hover {
@@ -229,7 +239,6 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid @base-border-color;
   padding: 0 @component-padding;
 
   atom-text-editor {
