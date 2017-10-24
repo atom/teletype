@@ -58,6 +58,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: @component-padding * -1; // Used to 'undo' the built-in padding
 }
 
 .PortalListComponent {
@@ -107,6 +108,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    padding: 0 @component-padding;
   }
 
   &-share-toggle {
@@ -120,12 +122,14 @@
   &-connection-info,
   &-GuestPortalsContainer {
     border-bottom: 1px solid @base-border-color;
+    padding: 0 @component-padding;
   }
 
   &-connection-info {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    padding: @component-padding @component-padding (@component-padding / 2);
 
     &-heading {
       h1 {
@@ -172,6 +176,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding: 0 @component-padding;
 
   &-leave.btn {
     flex: none;
@@ -224,6 +229,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  border-top: 1px solid @base-border-color;
+  padding: 0 @component-padding;
 
   atom-text-editor {
     flex: auto;
