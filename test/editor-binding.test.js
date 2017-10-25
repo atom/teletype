@@ -11,6 +11,12 @@ suite('EditorBinding', function () {
 
   let attachedElements = []
 
+  setup(() => {
+    // Instantiating an AtomEnvironment will load the editor default styles, so
+    // that changing height, width and scroll position works correctly.
+    buildAtomEnvironment()
+  })
+
   teardown(() => {
     while (element = attachedElements.pop()) {
       element.remove()
@@ -324,10 +330,6 @@ suite('EditorBinding', function () {
   })
 
   test('showing the active position of other collaborators', async () => {
-    // Instantiating an AtomEnvironment will load the editor default styles, so
-    // that changing height, width and scroll position works correctly.
-    buildAtomEnvironment()
-
     const editor = new TextEditor({autoHeight: false})
     editor.setText(SAMPLE_TEXT)
 
@@ -375,6 +377,30 @@ suite('EditorBinding', function () {
 
     assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4])
+  })
+
+  test('isPositionVisible(position)', async () => {
+    const editor = new TextEditor({autoHeight: false})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    attachToDOM(editor.element)
+    await setEditorHeightInLines(editor, 4)
+    await setEditorWidthInChars(editor, 4)
+
+    editor.setText('a pretty long line\n'.repeat(100))
+
+    assert(binding.isPositionVisible({row: 1, column: 0}))
+    assert(!binding.isPositionVisible({row: 0, column: 6}))
+    assert(!binding.isPositionVisible({row: 6, column: 0}))
+
+    setEditorScrollTopInLines(editor, 5)
+    setEditorScrollLeftInChars(editor, 5)
+
+    assert(binding.isPositionVisible({row: 6, column: 7}))
+    assert(!binding.isPositionVisible({row: 6, column: 0}))
+    assert(!binding.isPositionVisible({row: 3, column: 7}))
   })
 
   function getCursorDecoratedRanges (editor) {
