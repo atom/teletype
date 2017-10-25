@@ -15,7 +15,7 @@ const path = require('path')
 const temp = require('temp').track()
 
 suite('RealTimePackage', function () {
-  if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+  this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
 
   let testServer, containerElement, environments, packages, portals
 
@@ -1020,9 +1020,13 @@ function getCursorDecoratedRanges (editor) {
   const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
   const ranges = []
   for (const [marker, decorations] of decorationsByMarker) {
-    const hasVisibleCursorDecoration = decorations.some((d) => d.type === 'cursor')
-    const hasHiddenCursorDecoration = decorations.some((d) => d.type === 'cursor' && d.opacity === 0)
-    if (hasVisibleCursorDecoration && !hasHiddenCursorDecoration) {
+    const cursorDecorations = decorations.filter((d) => d.type === 'cursor')
+    const hasVisibleCursorDecoration = (
+      cursorDecorations.length > 0 &&
+      cursorDecorations.every((d) => !d.style || d.style.opacity !== 0)
+    )
+
+    if (hasVisibleCursorDecoration) {
       ranges.push(marker.getBufferRange())
     }
   }
