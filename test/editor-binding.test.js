@@ -342,8 +342,9 @@ suite('EditorBinding', function () {
     assert(editor.element.contains(lowerRightSitePositionsComponent.element))
 
     attachToDOM(editor.element)
+
     await setEditorHeightInLines(editor, 3)
-    await setEditorWidthInChars(editor, 3)
+    await setEditorWidthInChars(editor, 5)
     await setEditorScrollTopInLines(editor, 5)
     await setEditorScrollLeftInChars(editor, 5)
 
@@ -351,7 +352,7 @@ suite('EditorBinding', function () {
       1: {row: 2, column: 5}, // collaborator above visible area
       2: {row: 9, column: 5}, // collaborator below visible area
       3: {row: 6, column: 1}, // collaborator to the left of visible area
-      4: {row: 6, column: 11}, // collaborator to the right of visible area
+      4: {row: 6, column: 15}, // collaborator to the right of visible area
       5: {row: 6, column: 6}, // collaborator inside of visible area
     })
 
@@ -373,7 +374,7 @@ suite('EditorBinding', function () {
     assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
 
-    await setEditorWidthInChars(editor, 8)
+    await setEditorWidthInChars(editor, 10)
 
     assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4])
@@ -387,12 +388,12 @@ suite('EditorBinding', function () {
 
     attachToDOM(editor.element)
     await setEditorHeightInLines(editor, 4)
-    await setEditorWidthInChars(editor, 4)
+    await setEditorWidthInChars(editor, 7)
 
     editor.setText('a pretty long line\n'.repeat(100))
 
     assert(binding.isPositionVisible({row: 1, column: 0}))
-    assert(!binding.isPositionVisible({row: 0, column: 6}))
+    assert(!binding.isPositionVisible({row: 0, column: 9}))
     assert(!binding.isPositionVisible({row: 6, column: 0}))
 
     setEditorScrollTopInLines(editor, 5)
