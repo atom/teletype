@@ -135,8 +135,13 @@
     flex-direction: column;
     align-items: stretch;
     padding: @component-padding @component-padding (@component-padding / 2);
+    position: relative;
 
     &-heading {
+      &.creating-portal {
+        visibility: hidden;
+      }
+
       h1 {
         margin-top: 0;
         margin-bottom: @component-padding / 2;
@@ -155,6 +160,10 @@
       flex-direction: row;
       margin-bottom: 5px;
 
+      &.creating-portal {
+        visibility: hidden;
+      }
+
       .input-text {
         display: flex;
         flex: auto;
@@ -164,6 +173,13 @@
         margin-left: @component-padding / 2;
         flex: none;
       }
+    }
+
+    &-spinner {
+      position: absolute !important;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
     }
   }
 
