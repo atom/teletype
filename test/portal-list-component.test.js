@@ -52,11 +52,18 @@ suite('PortalListComponent', function () {
 
     const {hostPortalBindingComponent} = component.refs
     assert(!hostPortalBindingComponent.refs.toggleShareCheckbox.checked)
+    assert(!hostPortalBindingComponent.refs.creatingPortalSpinner)
 
     // Toggle sharing on.
-    component.refs.hostPortalBindingComponent.toggleShare()
-    await etch.getScheduler().getNextUpdatePromise()
-    assert(hostPortalBindingComponent.refs.toggleShareCheckbox.checked)
+    hostPortalBindingComponent.toggleShare()
+    await condition(() => (
+      hostPortalBindingComponent.refs.toggleShareCheckbox.checked &&
+      hostPortalBindingComponent.refs.creatingPortalSpinner
+    ))
+    await condition(() => (
+      hostPortalBindingComponent.refs.toggleShareCheckbox.checked &&
+      !hostPortalBindingComponent.refs.creatingPortalSpinner
+    ))
 
     // Simulate multiple guests joining.
     const {portal} = await portalBindingManager.getHostPortalBinding()
@@ -77,6 +84,7 @@ suite('PortalListComponent', function () {
 
     await condition(() => queryParticipantElements(element).length === 1)
     assert(!hostPortalBindingComponent.refs.toggleShareCheckbox.checked)
+    assert(!hostPortalBindingComponent.refs.creatingPortalSpinner)
   })
 
   test('joining portals', async () => {
