@@ -5,6 +5,7 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {FollowState} = require('@atom/real-time-client')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -402,6 +403,31 @@ suite('EditorBinding', function () {
     assert(binding.isPositionVisible({row: 6, column: 7}))
     assert(!binding.isPositionVisible({row: 6, column: 0}))
     assert(!binding.isPositionVisible({row: 3, column: 7}))
+  })
+
+  test('destroys folds intersecting the position of the leader', async () => {
+    const buffer = new TextBuffer({text: SAMPLE_TEXT})
+    const editor = new TextEditor({buffer})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    editor.foldBufferRange([[5, 4], [6, 12]])
+    editor.foldBufferRange([[9, 0], [10, 3]])
+    assert(editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.RETRACTED, {row: 6, column: 0})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.EXTENDED, {row: 9, column: 1})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.RETRACTED, {row: 9, column: 1})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(!editor.isFoldedAtBufferRow(10))
   })
 
   function getCursorDecoratedRanges (editor) {
