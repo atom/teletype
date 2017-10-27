@@ -17,7 +17,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/real-time-client": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/real-time-client/tarball/1f3630741b4f1112ac649233c8d671a4cea0a903",
+    "@atom/real-time-client": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/real-time-client/tarball/17bced1d8d62557c476c2492e43a321313c710cb",
     "etch": "^0.12.6"
   },
   "consumedServices": {
