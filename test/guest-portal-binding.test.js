@@ -112,6 +112,7 @@ suite('GuestPortalBinding', () => {
     }
     const editorProxy = {
       bufferProxy,
+      follow () {},
       setDelegate () {},
       updateSelections () {}
     }

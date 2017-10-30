@@ -4,16 +4,34 @@ const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
+const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {FollowState} = require('@atom/real-time-client')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
+
+  let attachedElements = []
+
+  setup(() => {
+    // Instantiating an AtomEnvironment will load the editor default styles, so
+    // that changing height, width and scroll position works correctly.
+    buildAtomEnvironment()
+  })
+
+  teardown(() => {
+    while (element = attachedElements.pop()) {
+      element.remove()
+    }
+
+    destroyAtomEnvironments()
+  })
 
   test('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(
@@ -82,7 +100,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -117,7 +135,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -159,7 +177,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     binding.updateSelectionsForSiteId(2, {
@@ -199,7 +217,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -241,7 +259,7 @@ suite('EditorBinding', function () {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -264,78 +282,18 @@ suite('EditorBinding', function () {
   })
 
   suite('guest editor binding', () => {
-    test('updates the scroll position based on the position of the last cursor on the host', () => {
-      const guestEditor = new TextEditor()
-      guestEditor.setText(SAMPLE_TEXT)
-      guestEditor.setCursorBufferPosition([0, 0])
-
-      const binding = new EditorBinding({editor: guestEditor})
-      binding.setEditorProxy(new FakeEditorProxy(binding))
-
-      const scrollRequests = []
-      guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
-
-      binding.updateSelectionsForSiteId(1, {
-        1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
-        2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}}
-      })
-      assert.deepEqual(scrollRequests, [{start: {row: 5, column: 0}, end: {row: 6, column: 0}}])
-
-      scrollRequests.length = 0
-      binding.updateSelectionsForSiteId(1, {
-        1: {range: {start: {row: 3, column: 0}, end: {row: 4, column: 2}}},
-        2: {range: {start: {row: 5, column: 0}, end: {row: 6, column: 1}}},
-        3: {range: {start: {row: 1, column: 0}, end: {row: 1, column: 3}}}
-      })
-      assert.deepEqual(scrollRequests, [{start: {row: 1, column: 0}, end: {row: 1, column: 3}}])
-
-      scrollRequests.length = 0
-      binding.updateSelectionsForSiteId(2, {
-        1: {range: {start: {row: 10, column: 0}, end: {row: 10, column: 2}}}
-      })
-      assert.deepEqual(scrollRequests, [])
-
-      binding.setFollowHostCursor(false)
-      binding.updateSelectionsForSiteId(1, {
-        1: {range: {start: {row: 6, column: 0}, end: {row: 7, column: 2}}}
-      })
-      assert.deepEqual(scrollRequests, [])
-
-      binding.setFollowHostCursor(true)
-      binding.updateSelectionsForSiteId(1, {
-        1: {range: {start: {row: 8, column: 0}, end: {row: 9, column: 2}}}
-      })
-      assert.deepEqual(scrollRequests, [{start: {row: 8, column: 0}, end: {row: 9, column: 2}}])
-    })
-
-    test('does not try to update the scroll position when the host has no cursor', () => {
-      const guestEditor = new TextEditor()
-      guestEditor.setText(SAMPLE_TEXT)
-      guestEditor.setCursorBufferPosition([0, 0])
-
-      const binding = new EditorBinding({editor: guestEditor})
-      binding.setEditorProxy(new FakeEditorProxy(binding))
-
-      const scrollRequests = []
-      guestEditor.onDidRequestAutoscroll(({screenRange}) => scrollRequests.push(screenRange))
-
-      binding.updateSelectionsForSiteId(1, {})
-      assert.deepEqual(scrollRequests, [])
-    })
-
     test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
-      const hostIdentity = {login: 'some-host'}
 
-      const binding = new EditorBinding({editor, hostIdentity, isHost: false})
+      const binding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
-      assert.equal(editor.getTitle(), '@some-host: fake-buffer-proxy-uri')
+      assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
       assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
-      assert.equal(buffer.getPath(), '@some-host:fake-buffer-proxy-uri')
+      assert.equal(buffer.getPath(), '@site-1:fake-buffer-proxy-uri')
       assert(editor.element.classList.contains('realtime-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 
@@ -353,23 +311,123 @@ suite('EditorBinding', function () {
   test('decorates each cursor with a site-specific class name', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
-    const binding = new EditorBinding({editor})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding, {siteId: 2})
 
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2'])
 
     binding.updateSelectionsForSiteId(1, {1: {range: Range([0, 0], [0, 0])}})
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1 non-blinking'])
 
     binding.updateSelectionsForSiteId(3, {1: {range: Range([0, 0], [0, 0])}})
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1', 'ParticipantCursor--site-3'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-1 non-blinking', 'ParticipantCursor--site-3 non-blinking'])
 
     binding.clearSelectionsForSiteId(1)
-    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-3'])
+    assert.deepEqual(getCursorClasses(editor), ['ParticipantCursor--site-2', 'ParticipantCursor--site-3 non-blinking'])
 
     binding.dispose()
     assert.deepEqual(getCursorClasses(editor), [])
+  })
+
+  test('showing the active position of other collaborators', async () => {
+    const editor = new TextEditor({autoHeight: false})
+    editor.setText(SAMPLE_TEXT)
+
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    const {upperRightSitePositionsComponent, lowerRightSitePositionsComponent} = binding
+    assert(editor.element.contains(upperRightSitePositionsComponent.element))
+    assert(editor.element.contains(lowerRightSitePositionsComponent.element))
+
+    attachToDOM(editor.element)
+
+    await setEditorHeightInLines(editor, 3)
+    await setEditorWidthInChars(editor, 5)
+    await setEditorScrollTopInLines(editor, 5)
+    await setEditorScrollLeftInChars(editor, 5)
+
+    binding.updateActivePositions({
+      1: {row: 2, column: 5}, // collaborator above visible area
+      2: {row: 9, column: 5}, // collaborator below visible area
+      3: {row: 6, column: 1}, // collaborator to the left of visible area
+      4: {row: 6, column: 15}, // collaborator to the right of visible area
+      5: {row: 6, column: 6}, // collaborator inside of visible area
+    })
+
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 3, 4])
+
+    await setEditorScrollLeftInChars(editor, 0)
+
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4, 5])
+
+    await setEditorScrollTopInLines(editor, 2)
+
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
+
+    await setEditorHeightInLines(editor, 7)
+
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
+
+    await setEditorWidthInChars(editor, 10)
+
+    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4])
+  })
+
+  test('isPositionVisible(position)', async () => {
+    const editor = new TextEditor({autoHeight: false})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    attachToDOM(editor.element)
+    await setEditorHeightInLines(editor, 4)
+    await setEditorWidthInChars(editor, 7)
+
+    editor.setText('a pretty long line\n'.repeat(100))
+
+    assert(binding.isPositionVisible({row: 1, column: 0}))
+    assert(!binding.isPositionVisible({row: 0, column: 9}))
+    assert(!binding.isPositionVisible({row: 6, column: 0}))
+
+    setEditorScrollTopInLines(editor, 5)
+    setEditorScrollLeftInChars(editor, 5)
+
+    assert(binding.isPositionVisible({row: 6, column: 7}))
+    assert(!binding.isPositionVisible({row: 6, column: 0}))
+    assert(!binding.isPositionVisible({row: 3, column: 7}))
+  })
+
+  test('destroys folds intersecting the position of the leader', async () => {
+    const buffer = new TextBuffer({text: SAMPLE_TEXT})
+    const editor = new TextEditor({buffer})
+    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    editor.foldBufferRange([[5, 4], [6, 12]])
+    editor.foldBufferRange([[9, 0], [10, 3]])
+    assert(editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.RETRACTED, {row: 6, column: 0})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.EXTENDED, {row: 9, column: 1})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(editor.isFoldedAtBufferRow(10))
+
+    binding.updateTether(FollowState.RETRACTED, {row: 9, column: 1})
+    assert(!editor.isFoldedAtBufferRow(5))
+    assert(!editor.isFoldedAtBufferRow(10))
   })
 
   function getCursorDecoratedRanges (editor) {
@@ -403,6 +461,34 @@ suite('EditorBinding', function () {
 
     return cursorDecorations
   }
+
+  function attachToDOM (element) {
+    attachedElements.push(element)
+    document.body.appendChild(element)
+  }
+
+  async function setEditorHeightInLines (editor, lines) {
+    editor.element.style.height = editor.getLineHeightInPixels() * lines + 'px'
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorWidthInChars (editor, chars) {
+    editor.element.style.width =
+      editor.component.getGutterContainerWidth() +
+      chars * editor.getDefaultCharWidth() +
+      'px'
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorScrollTopInLines (editor, lines) {
+    editor.element.setScrollTop(editor.getLineHeightInPixels() * lines)
+    return editor.component.getNextUpdatePromise()
+  }
+
+  async function setEditorScrollLeftInChars (editor, chars) {
+    editor.element.setScrollLeft(editor.getDefaultCharWidth() * chars)
+    return editor.component.getNextUpdatePromise()
+  }
 })
 
 class FakeEditorProxy {
@@ -413,6 +499,8 @@ class FakeEditorProxy {
     this.siteId = (siteId == null) ? 1 : siteId
   }
 
+  didScroll () {}
+
   updateSelections (selectionUpdates) {
     for (const id in selectionUpdates) {
       const selectionUpdate = selectionUpdates[id]
@@ -422,5 +510,13 @@ class FakeEditorProxy {
         delete this.selections[id]
       }
     }
+  }
+
+  follow () {}
+}
+
+class FakePortal {
+  getSiteIdentity (siteId) {
+    return {login: 'site-' + siteId}
   }
 }

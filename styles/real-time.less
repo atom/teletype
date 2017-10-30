@@ -271,6 +271,10 @@
   }
 }
 
+.cursors.blink-off .cursor.non-blinking {
+  opacity: 1;
+}
+
 .cursor.ParticipantCursor {
   &--site-1 {
     border-left-color: @ui-site-color-1;
@@ -330,5 +334,36 @@
 
   &--site-15 {
     border-left-color: spin(@ui-site-color-5, 65);
+  }
+}
+
+.SitePositionsComponent {
+  @corner-margin: @component-padding * 1.5;
+  @avatar-margin: @component-padding / 2;
+
+  width: 40px;
+  position: absolute;
+  right: @corner-margin;
+
+  img {
+    cursor: pointer;
+    width: 40px;
+    border-radius: 50%
+  }
+
+  &.upper-right {
+    top: @corner-margin;
+
+    img {
+      margin-bottom: @avatar-margin;
+    }
+  }
+
+  &.lower-right {
+    bottom: @corner-margin;
+
+    img {
+      margin-top: @avatar-margin;
+    }
   }
 }
