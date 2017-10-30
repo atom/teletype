@@ -338,9 +338,14 @@ suite('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
-    const {upperRightSitePositionsComponent, lowerRightSitePositionsComponent} = binding
-    assert(editor.element.contains(upperRightSitePositionsComponent.element))
-    assert(editor.element.contains(lowerRightSitePositionsComponent.element))
+    const {
+      aboveViewportSitePositionsComponent,
+      insideViewportSitePositionsComponent,
+      outsideViewportSitePositionsComponent
+    } = binding
+    assert(editor.element.contains(aboveViewportSitePositionsComponent.element))
+    assert(editor.element.contains(insideViewportSitePositionsComponent.element))
+    assert(editor.element.contains(outsideViewportSitePositionsComponent.element))
 
     attachToDOM(editor.element)
 
@@ -357,28 +362,33 @@ suite('EditorBinding', function () {
       5: {row: 6, column: 6}, // collaborator inside of visible area
     })
 
-    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 3, 4])
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [5])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 3, 4])
 
     await setEditorScrollLeftInChars(editor, 0)
 
-    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4, 5])
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 5])
 
     await setEditorScrollTopInLines(editor, 2)
 
-    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
 
     await setEditorHeightInLines(editor, 7)
 
-    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
 
     await setEditorWidthInChars(editor, 10)
 
-    assert.deepEqual(upperRightSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(lowerRightSitePositionsComponent.props.siteIds, [2, 4])
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4])
   })
 
   test('isPositionVisible(position)', async () => {
@@ -512,7 +522,15 @@ class FakeEditorProxy {
     }
   }
 
-  follow () {}
+  follow (siteId) {
+    this.leaderSiteId = siteId
+  }
+
+  resolveLeaderSiteId () {
+    return this.leaderSiteId
+  }
+
+  resolveFollowState() {}
 }
 
 class FakePortal {
