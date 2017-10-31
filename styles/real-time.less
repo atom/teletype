@@ -345,7 +345,7 @@
 
   position: absolute;
   right: @corner-margin;
-  text-align: center;
+  text-align: right;
 
   img {
     cursor: pointer;
@@ -366,10 +366,15 @@
   &.middle-right {
     top: 50%;
     transform: translateY(-50%);
-    width: @avatar-size;
+    width: @avatar-size * 2;
 
     .SitePositionsComponent-site {
       margin-bottom: @avatar-margin;
+
+      div.icon-link {
+        display: inline-block;
+        vertical-align: middle;
+      }
     }
   }
 
