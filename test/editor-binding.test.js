@@ -389,6 +389,14 @@ suite('EditorBinding', function () {
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
     assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4])
+
+    // Selecting a site will follow them.
+    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
+    assert.equal(editorProxy.resolveLeaderSiteId(), 2)
+
+    // Selecting the same site again will unfollow them.
+    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
+    assert(!editorProxy.resolveLeaderSiteId())
   })
 
   test('isPositionVisible(position)', async () => {
@@ -524,13 +532,21 @@ class FakeEditorProxy {
 
   follow (siteId) {
     this.leaderSiteId = siteId
+    this.followState = FollowState.RETRACTED
+  }
+
+  unfollow () {
+    this.leaderSiteId = null
+    this.followState = FollowState.DISCONNECTED
   }
 
   resolveLeaderSiteId () {
     return this.leaderSiteId
   }
 
-  resolveFollowState() {}
+  resolveFollowState() {
+    return this.followState
+  }
 }
 
 class FakePortal {
