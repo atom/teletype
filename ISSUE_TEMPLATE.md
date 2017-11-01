@@ -9,12 +9,10 @@ Do you want to ask a question? Are you looking for support? The Atom message boa
 ### Prerequisites
 
 * [ ] Put an X between the brackets on this line if you have done all of the following:
-    * Reproduced the problem in [Safe Mode][safe-mode]
     * Followed all applicable steps in the [debugging guide][debugging-guide]
     * Checked the FAQs on the [message board][message-board] for common solutions
     * Checked that your issue [isn't already filed][already-filed]?
 
-[safe-mode]: http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode
 [debugging-guide]: http://flight-manual.atom.io/hacking-atom/sections/debugging/
 [message-board]: https://discuss.atom.io/c/faq
 [already-filed]: https://github.com/atom/real-time/issues
