@@ -46,5 +46,3 @@ You can get this information from copy and pasting the output of `atom --version
 ### Additional Information
 
 Please include any additional information, configuration or data that might be necessary to reproduce the issue. Screenshots, if appropriate, are helpful as well.
-
-If your issue involves a repository, and that repository is public, please include a link to it.
