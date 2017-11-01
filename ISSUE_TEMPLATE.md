@@ -8,10 +8,11 @@ Do you want to ask a question? Are you looking for support? The Atom message boa
 
 ### Prerequisites
 
-* Have you tried to reproduce the problem in [Safe Mode][safe-mode]?
-* Have you followed all applicable steps in the [debugging guide][debugging-guide]?
-* Have you checked the FAQs on the [message board][message-board] for common solutions?
-* Have you checked that your issue [isn't already filed][already-filed]?
+* [ ] Put an X between the brackets on this line if you have done all of the following:
+    * Reproduced the problem in [Safe Mode][safe-mode]
+    * Followed all applicable steps in the [debugging guide][debugging-guide]
+    * Checked the FAQs on the [message board][message-board] for common solutions
+    * Checked that your issue [isn't already filed][already-filed]?
 
 [safe-mode]: http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode
 [debugging-guide]: http://flight-manual.atom.io/hacking-atom/sections/debugging/
