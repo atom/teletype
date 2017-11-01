@@ -343,47 +343,61 @@
   @avatar-margin: @component-padding / 2;
   @avatar-size: 40px;
 
+  display: flex;
+  flex-direction: column;
   position: absolute;
   right: @corner-margin;
   text-align: right;
 
   img {
     cursor: pointer;
-    width: @avatar-size;
+    height: @avatar-size;
     border-radius: 50%
+  }
+
+  .SitePositionsComponent-site {
+    display: flex;
   }
 
   &.upper-right {
     top: @corner-margin;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 
     .SitePositionsComponent-site {
       margin-left: @avatar-margin;
-      float: left;
-      text-align: center;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
     }
   }
 
   &.middle-right {
     top: 50%;
     transform: translateY(-50%);
-    width: @avatar-size * 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 
     .SitePositionsComponent-site {
       margin-bottom: @avatar-margin;
-
-      div.icon-link {
-        display: inline-block;
-        vertical-align: middle;
-      }
+      flex-direction: row;
+      align-items: center;
     }
   }
 
   &.lower-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
     bottom: @corner-margin;
 
     .SitePositionsComponent-site {
       margin-left: @avatar-margin;
-      float: left;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
     }
   }
 }
