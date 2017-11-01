@@ -341,30 +341,63 @@
 .SitePositionsComponent {
   @corner-margin: @component-padding * 1.5;
   @avatar-margin: @component-padding / 2;
+  @avatar-size: 40px;
 
-  width: 40px;
+  display: flex;
+  flex-direction: column;
   position: absolute;
   right: @corner-margin;
+  text-align: right;
 
   img {
     cursor: pointer;
-    width: 40px;
+    height: @avatar-size;
     border-radius: 50%
+  }
+
+  .SitePositionsComponent-site {
+    display: flex;
   }
 
   &.upper-right {
     top: @corner-margin;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 
-    img {
+    .SitePositionsComponent-site {
+      margin-left: @avatar-margin;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+  }
+
+  &.middle-right {
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .SitePositionsComponent-site {
       margin-bottom: @avatar-margin;
+      flex-direction: row;
+      align-items: center;
     }
   }
 
   &.lower-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
     bottom: @corner-margin;
 
-    img {
-      margin-top: @avatar-margin;
+    .SitePositionsComponent-site {
+      margin-left: @avatar-margin;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
     }
   }
 }
