@@ -433,6 +433,9 @@ suite('EditorBinding', function () {
     assert(!binding.isPositionVisible({row: 0, column: 9}))
     assert(!binding.isPositionVisible({row: 6, column: 0}))
 
+    // Ensure text is rendered, so that we can scroll down/right.
+    await editor.component.getNextUpdatePromise()
+
     setEditorScrollTopInLines(editor, 5)
     setEditorScrollLeftInChars(editor, 5)
 
