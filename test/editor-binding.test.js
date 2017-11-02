@@ -410,11 +410,11 @@ suite('EditorBinding', function () {
 
     // Selecting a site will follow them.
     outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert.equal(editorProxy.resolveLeaderSiteId(), 2)
+    assert.equal(editorProxy.getFollowedSiteId(), 2)
 
     // Selecting the same site again will unfollow them.
     outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert(!editorProxy.resolveLeaderSiteId())
+    assert.equal(editorProxy.getFollowedSiteId(), null)
   })
 
   test('isPositionVisible(position)', async () => {
@@ -552,21 +552,21 @@ class FakeEditorProxy {
   }
 
   follow (siteId) {
-    this.leaderSiteId = siteId
+    this.followedSiteId = siteId
     this.followState = FollowState.RETRACTED
   }
 
   unfollow () {
-    this.leaderSiteId = null
+    this.followedSiteId = null
     this.followState = FollowState.DISCONNECTED
   }
 
-  resolveLeaderSiteId () {
-    return this.leaderSiteId
-  }
-
-  resolveFollowState() {
-    return this.followState
+  getFollowedSiteId () {
+    if (this.followState === FollowState.DISCONNECTED) {
+      return null
+    } else {
+      return this.followedSiteId
+    }
   }
 }
 
