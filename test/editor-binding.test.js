@@ -13,17 +13,35 @@ suite('EditorBinding', function () {
   let attachedElements = []
 
   setup(() => {
-    // Instantiating an AtomEnvironment will load the editor default styles, so
-    // that changing height, width and scroll position works correctly.
-    buildAtomEnvironment()
+    // Load the editor default styles by instantiating a new AtomEnvironment.
+    const environment = buildAtomEnvironment()
+    // Load also package style sheets, so that additional UI elements are styled
+    // correctly.
+    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'real-time.less')
+    const compiledStyleSheet = environment.themes.loadStylesheet(packageStyleSheetPath)
+    environment.styles.addStyleSheet(compiledStyleSheet)
+    // Position editor absolutely to prevent its size from being affected by the
+    // window size of the test runner. We also give it an initial width and
+    // height so that the editor component can perform initial measurements.
+    environment.styles.addStyleSheet(`
+      atom-text-editor {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 50px;
+        height: 50px;
+      }
+    `)
   })
 
-  teardown(() => {
-    while (element = attachedElements.pop()) {
-      element.remove()
-    }
+  teardown(async () => {
+    if (!global.debugContent) {
+      while (element = attachedElements.pop()) {
+        element.remove()
+      }
 
-    destroyAtomEnvironments()
+      await destroyAtomEnvironments()
+    }
   })
 
   test('relays local selections and creates cursor decorations on the local editor based on the remote ones', () => {
@@ -482,7 +500,7 @@ suite('EditorBinding', function () {
 
   function attachToDOM (element) {
     attachedElements.push(element)
-    document.body.appendChild(element)
+    document.body.insertBefore(element, document.body.firstChild)
   }
 
   async function setEditorHeightInLines (editor, lines) {
