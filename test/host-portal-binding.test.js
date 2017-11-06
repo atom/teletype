@@ -10,7 +10,8 @@ suite('HostPortalBinding', () => {
   })
 
   test('handling an unexpected error when joining a portal', async () => {
-    const client = new RealTimeClient({})
+    const stubPubSubGateway = {}
+    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
     client.createPortal = function () {
       throw new Error('It broke!')
     }
@@ -27,7 +28,8 @@ suite('HostPortalBinding', () => {
   })
 
   test('showing notifications when sites join or leave', async () => {
-    const client = new RealTimeClient({})
+    const stubPubSubGateway = {}
+    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       setDelegate (delegate) {
         this.delegate = delegate

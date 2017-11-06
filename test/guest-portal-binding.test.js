@@ -9,7 +9,8 @@ suite('GuestPortalBinding', () => {
   })
 
   test('handling an unexpected error when joining a portal', async () => {
-    const client = new RealTimeClient({})
+    const stubPubSubGateway = {}
+    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
     client.joinPortal = function () {
       throw new Error('It broke!')
     }
@@ -26,7 +27,8 @@ suite('GuestPortalBinding', () => {
   })
 
   test('showing notifications when sites join or leave', async () => {
-    const client = new RealTimeClient({})
+    const stubPubSubGateway = {}
+    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       setDelegate (delegate) {
         this.delegate = delegate
@@ -56,7 +58,8 @@ suite('GuestPortalBinding', () => {
   })
 
   test('switching the active editor in rapid succession', async () => {
-    const client = new RealTimeClient({})
+    const stubPubSubGateway = {}
+    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       getSiteIdentity (siteId) {
         return {login: 'some-host'}
