@@ -1,6 +1,6 @@
 const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
-const {RealTimeClient} = require('@atom/real-time-client')
+const {TeletypeClient} = require('@atom/teletype-client')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
 
 suite('GuestPortalBinding', () => {
@@ -10,7 +10,7 @@ suite('GuestPortalBinding', () => {
 
   test('handling an unexpected error when joining a portal', async () => {
     const stubPubSubGateway = {}
-    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
     client.joinPortal = function () {
       throw new Error('It broke!')
     }
@@ -28,7 +28,7 @@ suite('GuestPortalBinding', () => {
 
   test('showing notifications when sites join or leave', async () => {
     const stubPubSubGateway = {}
-    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       setDelegate (delegate) {
         this.delegate = delegate
@@ -59,7 +59,7 @@ suite('GuestPortalBinding', () => {
 
   test('switching the active editor in rapid succession', async () => {
     const stubPubSubGateway = {}
-    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       getSiteIdentity (siteId) {
         return {login: 'some-host'}

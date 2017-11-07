@@ -1,4 +1,4 @@
-**Please be sure to read the [contributor's guide](https://github.com/atom/real-time/blob/master/CONTRIBUTING.md) before submitting any pull requests.**
+**Please be sure to read the [contributor's guide](https://github.com/atom/teletype/blob/master/CONTRIBUTING.md) before submitting any pull requests.**
 
 ### Requirements
 

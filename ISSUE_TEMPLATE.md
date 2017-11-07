@@ -15,7 +15,7 @@ Do you want to ask a question? Are you looking for support? The Atom message boa
 
 [debugging-guide]: http://flight-manual.atom.io/hacking-atom/sections/debugging/
 [message-board]: https://discuss.atom.io/c/faq
-[already-filed]: https://github.com/atom/real-time/issues
+[already-filed]: https://github.com/atom/teletype/issues
 
 ### Description
 

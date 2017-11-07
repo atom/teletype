@@ -5,7 +5,7 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
-const {FollowState} = require('@atom/real-time-client')
+const {FollowState} = require('@atom/teletype-client')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -17,7 +17,7 @@ suite('EditorBinding', function () {
     const environment = buildAtomEnvironment()
     // Load also package style sheets, so that additional UI elements are styled
     // correctly.
-    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'real-time.less')
+    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'teletype.less')
     const compiledStyleSheet = environment.themes.loadStylesheet(packageStyleSheetPath)
     environment.styles.addStyleSheet(compiledStyleSheet)
     // Position editor absolutely to prevent its size from being affected by the
@@ -239,7 +239,7 @@ suite('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
-    // Ensure exclusivity is being relayed. This enables tachyon to resolve
+    // Ensure exclusivity is being relayed. This enables teletype-crdt to resolve
     // logical ranges correctly when the local site performs an insertion right
     // at a remote site cursor position, but before such cursor has been relayed
     // to the local site.
@@ -312,7 +312,7 @@ suite('EditorBinding', function () {
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
       assert.equal(buffer.getPath(), '@site-1:fake-buffer-proxy-uri')
-      assert(editor.element.classList.contains('realtime-RemotePaneItem'))
+      assert(editor.element.classList.contains('teletype-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 
       binding.dispose()
@@ -321,7 +321,7 @@ suite('EditorBinding', function () {
       assert.notEqual(editor.copy(), null)
       assert.notEqual(editor.serialize(), null)
       assert.equal(buffer.getPath(), null)
-      assert(!editor.element.classList.contains('realtime-RemotePaneItem'))
+      assert(!editor.element.classList.contains('teletype-RemotePaneItem'))
       assert(editor.getBuffer().isModified())
     })
   })

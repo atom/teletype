@@ -28,7 +28,7 @@ addons:
   postgresql: '9.6'
 
 before_script:
-  - createdb real-time-test
+  - createdb teletype-test
 
 script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
