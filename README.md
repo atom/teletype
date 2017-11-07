@@ -28,8 +28,8 @@ Welcome to the **TOP SECRET** teletype package!
 
 Once you've installed the package, you're ready to start collaborating in teletype.
 
-- To share your workspace, open the command palette and run the _Real Time: Share Portal_ command. Then, use Slack to send the portal ID to the GitHubbers that you want to collaborate with.
-- To join a portal,  open the command palette, run the _Real Time: Join Portal_ command, and enter the portal ID.
+- To share your workspace, open the command palette and run the _Teletype: Share Portal_ command. Then, use Slack to send the portal ID to the GitHubbers that you want to collaborate with.
+- To join a portal,  open the command palette, run the _Teletype: Join Portal_ command, and enter the portal ID.
 
 ## Demo
 
