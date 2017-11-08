@@ -69,18 +69,18 @@ suite('PortalBindingManager', () => {
     const portalBinding1Promise = manager.createGuestPortalBinding('1')
     manager.client.resolveLastJoinPortalPromise(buildPortal())
     const portalBinding1 = await portalBinding1Promise
-    assert(manager.workspace.element.classList.contains('realtime-Guest'))
+    assert(manager.workspace.element.classList.contains('teletype-Guest'))
 
     const portalBinding2Promise = manager.createGuestPortalBinding('2')
     manager.client.resolveLastJoinPortalPromise(buildPortal())
     const portalBinding2 = await portalBinding2Promise
-    assert(manager.workspace.element.classList.contains('realtime-Guest'))
+    assert(manager.workspace.element.classList.contains('teletype-Guest'))
 
     portalBinding1.leave()
-    assert(manager.workspace.element.classList.contains('realtime-Guest'))
+    assert(manager.workspace.element.classList.contains('teletype-Guest'))
 
     portalBinding2.leave()
-    assert(!manager.workspace.element.classList.contains('realtime-Guest'))
+    assert(!manager.workspace.element.classList.contains('teletype-Guest'))
   })
 })
 

@@ -3,8 +3,8 @@ const etch = require('etch')
 const condition = require('./helpers/condition')
 const {Disposable} = require('atom')
 const FakeClipboard = require('./helpers/fake-clipboard')
-const {RealTimeClient} = require('@atom/real-time-client')
-const {startTestServer} = require('@atom/real-time-server')
+const {TeletypeClient} = require('@atom/teletype-client')
+const {startTestServer} = require('@atom/teletype-server')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 const PortalListComponent = require('../lib/portal-list-component')
 
@@ -14,7 +14,7 @@ suite('PortalListComponent', function () {
   let testServer, portalBindingManagers
 
   suiteSetup(async function () {
-    testServer = await startTestServer({databaseURL: 'postgres://localhost:5432/real-time-test'})
+    testServer = await startTestServer({databaseURL: 'postgres://localhost:5432/teletype-test'})
   })
 
   suiteTeardown(() => {
@@ -188,7 +188,7 @@ suite('PortalListComponent', function () {
   }
 
   async function buildPortalBindingManager () {
-    const client = new RealTimeClient({
+    const client = new TeletypeClient({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway
     })

@@ -1,5 +1,5 @@
-const RealTimePackage = require('../lib/real-time-package')
-const {Errors} = require('@atom/real-time-client')
+const TeletypePackage = require('../lib/teletype-package')
+const {Errors} = require('@atom/teletype-client')
 const {TextBuffer, TextEditor} = require('atom')
 
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
@@ -14,15 +14,15 @@ const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 
-suite('RealTimePackage', function () {
+suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
 
   let testServer, containerElement, environments, packages, portals
 
   suiteSetup(async function () {
-    const {startTestServer} = require('@atom/real-time-server')
+    const {startTestServer} = require('@atom/teletype-server')
     testServer = await startTestServer({
-      databaseURL: 'postgres://localhost:5432/real-time-test',
+      databaseURL: 'postgres://localhost:5432/teletype-test',
       // Uncomment and provide credentials to test against Pusher.
       // pusherCredentials: {
       //   appId: '123',
@@ -852,9 +852,9 @@ suite('RealTimePackage', function () {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
     const host1Portal = await host1Package.sharePortal()
-    assert(host1Env.workspace.getElement().classList.contains('realtime-Host'))
+    assert(host1Env.workspace.getElement().classList.contains('teletype-Host'))
     await host1Package.closeHostPortal()
-    assert(!host1Env.workspace.getElement().classList.contains('realtime-Host'))
+    assert(!host1Env.workspace.getElement().classList.contains('teletype-Host'))
   })
 
   test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
@@ -873,11 +873,11 @@ suite('RealTimePackage', function () {
       assert.equal(env.notifications.getNotifications().length, 1)
       const notification = env.notifications.getNotifications()[0]
       assert.equal(notification.type, 'error')
-      assert.equal(notification.message, 'The real-time package is out of date')
+      assert.equal(notification.message, 'The teletype package is out of date')
       const openedURIs = []
       env.workspace.open = (uri) => openedURIs.push(uri)
       notification.options.buttons[0].onDidClick()
-      assert.deepEqual(openedURIs, ['atom://config/packages/real-time'])
+      assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
       assert(notification.isDismissed())
     }
 
@@ -890,11 +890,11 @@ suite('RealTimePackage', function () {
       assert.equal(env.notifications.getNotifications().length, 1)
       const notification = env.notifications.getNotifications()[0]
       assert.equal(notification.type, 'error')
-      assert.equal(notification.message, 'The real-time package is out of date')
+      assert.equal(notification.message, 'The teletype package is out of date')
       const openedURIs = []
       env.workspace.open = (uri) => openedURIs.push(uri)
       notification.options.buttons[0].onDidClick()
-      assert.deepEqual(openedURIs, ['atom://config/packages/real-time'])
+      assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
       assert(notification.isDismissed())
     }
   })
@@ -916,7 +916,7 @@ suite('RealTimePackage', function () {
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
       assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the real-time package')
+      assert.equal(message, 'Failed to initialize the teletype package')
       assert(description.includes('an error'))
     }
 
@@ -929,7 +929,7 @@ suite('RealTimePackage', function () {
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
       assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the real-time package')
+      assert.equal(message, 'Failed to initialize the teletype package')
       assert(description.includes('an error'))
     }
   })
@@ -952,7 +952,7 @@ suite('RealTimePackage', function () {
   let nextTokenId = 0
   async function buildPackage (env, options = {}) {
     const credentialCache = new FakeCredentialCache()
-    const pack = new RealTimePackage({
+    const pack = new TeletypePackage({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway,
       workspace: env.workspace,
@@ -1011,7 +1011,7 @@ function getPaneItems ({workspace}) {
 
 function getRemotePaneItems ({workspace}) {
   return workspace.getPaneItems().filter((item) => {
-    return item.element.classList.contains('realtime-RemotePaneItem')
+    return item.element.classList.contains('teletype-RemotePaneItem')
   })
 }
 

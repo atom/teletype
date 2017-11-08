@@ -1,6 +1,6 @@
 const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
-const {RealTimeClient} = require('@atom/real-time-client')
+const {TeletypeClient} = require('@atom/teletype-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
 const FakeClipboard = require('./helpers/fake-clipboard')
 
@@ -11,7 +11,7 @@ suite('HostPortalBinding', () => {
 
   test('handling an unexpected error when joining a portal', async () => {
     const stubPubSubGateway = {}
-    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
     client.createPortal = function () {
       throw new Error('It broke!')
     }
@@ -29,7 +29,7 @@ suite('HostPortalBinding', () => {
 
   test('showing notifications when sites join or leave', async () => {
     const stubPubSubGateway = {}
-    const client = new RealTimeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
     const portal = {
       setDelegate (delegate) {
         this.delegate = delegate
