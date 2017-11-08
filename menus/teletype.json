@@ -1,0 +1,22 @@
+{
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "Teletype",
+          "submenu": [
+            {
+              "label": "Share Portal",
+              "command": "teletype:share-portal"
+            },
+            {
+              "label": "Join Portal",
+              "command": "teletype:join-portal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
