@@ -934,6 +934,26 @@ suite('TeletypePackage', function () {
     }
   })
 
+  test('reports errors attempting to sign in', async () => {
+    const env = buildAtomEnvironment()
+    const pack = await buildPackage(env, {signIn: false})
+    await pack.consumeStatusBar(new FakeStatusBar())
+    pack.client.signIn = async function () {
+      throw new Error('some error')
+    }
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
+    await popoverComponent.refs.signInComponent.signIn()
+
+    assert.equal(env.notifications.getNotifications().length, 1)
+    const {type, message, options} = env.notifications.getNotifications()[0]
+    const {description} = options
+    assert.equal(type, 'error')
+    assert.equal(message, 'Failed to authenticate to teletype')
+    assert(description.includes('some error'))
+  })
+
   test('client connection errors', async () => {
     const env = buildAtomEnvironment()
     const pack = await buildPackage(env)
