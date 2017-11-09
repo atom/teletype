@@ -861,42 +861,24 @@ suite('TeletypePackage', function () {
     const env = buildAtomEnvironment()
     const pack = await buildPackage(env, {signIn: false})
     pack.client.initialize = async function () {
-      await Promise.resolve()
       throw new Errors.ClientOutOfDateError()
     }
 
-    {
-      env.notifications.clear()
+    await pack.consumeStatusBar(new FakeStatusBar())
+    const {portalStatusBarIndicator} = pack
+    const {popoverComponent} = portalStatusBarIndicator
+    const {packageOutdatedComponent} = popoverComponent.refs
 
-      await pack.sharePortal()
+    assert(portalStatusBarIndicator.element.classList.contains('outdated'))
 
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const notification = env.notifications.getNotifications()[0]
-      assert.equal(notification.type, 'error')
-      assert.equal(notification.message, 'The teletype package is out of date')
-      const openedURIs = []
-      env.workspace.open = (uri) => openedURIs.push(uri)
-      notification.options.buttons[0].onDidClick()
-      assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
-      assert(notification.isDismissed())
-    }
+    assert(packageOutdatedComponent)
+    assert(!popoverComponent.refs.portalListComponent)
+    assert(!popoverComponent.refs.signInComponent)
 
-
-    {
-      env.notifications.clear()
-
-      await pack.joinPortal()
-
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const notification = env.notifications.getNotifications()[0]
-      assert.equal(notification.type, 'error')
-      assert.equal(notification.message, 'The teletype package is out of date')
-      const openedURIs = []
-      env.workspace.open = (uri) => openedURIs.push(uri)
-      notification.options.buttons[0].onDidClick()
-      assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
-      assert(notification.isDismissed())
-    }
+    const openedURIs = []
+    env.workspace.open = (uri) => openedURIs.push(uri)
+    packageOutdatedComponent.refs.viewPackageSettingsButton.click()
+    assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
   })
 
   test('reports errors attempting to initialize the client', async () => {
