@@ -17,7 +17,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/teletype-client/tarball/v0.25.0",
+    "@atom/teletype-client": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/teletype-client/tarball/v0.25.1",
     "etch": "^0.12.6"
   },
   "consumedServices": {
