@@ -2,6 +2,12 @@
   "name": "teletype",
   "version": "0.1.0",
   "description": "",
+  "keywords": [
+    "collaboration",
+    "collaborative-editing",
+    "pair-programming",
+    "real-time"
+  ],
   "main": "index.js",
   "repository": "https://github.com/atom/teletype",
   "scripts": {
