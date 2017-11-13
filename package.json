@@ -11,7 +11,7 @@
   "license": "MIT",
   "atomTestRunner": "./test/setup",
   "devDependencies": {
-    "@atom/teletype-server": "https://user-with-just-readonly-access-to-realtime-repos:924792417376b236ca11cc234bcc95d306dcd1cb@api.github.com/repos/atom/teletype-server/tarball/v0.16.0",
+    "@atom/teletype-server": "^0.16.0",
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^1.0.1",
     "temp": "^0.8.3"
