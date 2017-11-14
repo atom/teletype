@@ -50,13 +50,13 @@ To run teletype tests locally, you'll first need to have:
     git clone https://github.com/atom/teletype.git
     cd teletype
     createdb teletype-test
-    npm install
+    apm install
     ```
 
 2. Run the tests
 
     ```
-    npm test
+    atom --test test
     ```
 
 ## TODO
