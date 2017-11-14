@@ -58,7 +58,3 @@ To run teletype tests locally, you'll first need to have:
     ```
     atom --test test
     ```
-
-## TODO
-
-- [ ] Document setup process for local development
