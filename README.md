@@ -30,8 +30,8 @@ Learn more at [teletype.atom.io](https://teletype.atom.io).
 
 This package is powered by three main components:
 
-- [teletype-server](https://github.com/atom/teletype-server). The server-side application that facilitates peer discovery.
 - [teletype-crdt](https://github.com/atom/teletype-crdt). The string-wise sequence CRDT that enables peer-to-peer collaborative editing.
+- [teletype-server](https://github.com/atom/teletype-server). The server-side application that facilitates peer discovery.
 - [teletype-client](https://github.com/atom/teletype-client). The editor-agnostic library that manages the interaction with other clients.
 
 ### Dependencies
