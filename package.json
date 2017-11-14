@@ -1,7 +1,13 @@
 {
   "name": "teletype",
   "version": "0.1.0",
-  "description": "",
+  "description": "Share your workspace with team members and collaborate on code in real time",
+  "keywords": [
+    "collaboration",
+    "collaborative-editing",
+    "pair-programming",
+    "real-time"
+  ],
   "main": "index.js",
   "repository": "https://github.com/atom/teletype",
   "scripts": {
