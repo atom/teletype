@@ -33,6 +33,32 @@ This package is powered by three main components:
 - [teletype-server](https://github.com/atom/teletype-server). The server-side application that facilitates peer discovery.
 - [teletype-crdt](https://github.com/atom/teletype-crdt). The string-wise sequence CRDT that enables peer-to-peer collaborative editing.
 - [teletype-client](https://github.com/atom/teletype-client). The editor-agnostic library that manages the interaction with other clients.
+
+### Dependencies
+
+To run teletype tests locally, you'll first need to have:
+
+- Atom 1.22 or later
+- Node 7+
+- PostgreSQL 9.x
+
+### Running locally
+
+1. Clone and bootstrap
+
+    ```
+    git clone https://github.com/atom/teletype.git
+    cd teletype
+    createdb teletype-test
+    npm install
+    ```
+
+2. Run the tests
+
+    ```
+    npm test
+    ```
+
 ## TODO
 
 - [ ] Document setup process for local development
