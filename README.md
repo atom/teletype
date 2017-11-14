@@ -10,7 +10,7 @@ Learn more at [teletype.atom.io](https://teletype.atom.io).
 
 ### Command Line
 
-1. Install [Atom 1.21](https://atom.io) or newer
+1. Install [Atom 1.22](https://atom.io) or newer
 2. In the terminal, install the package via apm:
 
     ```sh
