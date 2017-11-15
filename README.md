@@ -19,7 +19,7 @@ Learn more at [teletype.atom.io](https://teletype.atom.io).
 
 ### GUI
 
-1. Install [Atom 1.21](https://atom.io) or newer
+1. Install [Atom 1.22](https://atom.io) or newer
 1. Launch Atom
 1. Open Settings View using <kbd>Cmd+,</kbd> on macOS or <kbd>Ctrl+,</kbd> on other platforms
 1. Click the Install tab on the left side
