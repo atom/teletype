@@ -626,7 +626,7 @@ suite('TeletypePackage', function () {
     assert.equal(hostEditor.getText(), 'abcdefg')
   })
 
-  test('reverting to a checkpoint', async () => {
+  test('checkpoints', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
     const hostEditor = await hostEnv.workspace.open()
@@ -645,6 +645,13 @@ suite('TeletypePackage', function () {
     hostEditor.insertText('j')
     assert.equal(hostEditor.getText(), 'abcdefghij')
     await editorsEqual(hostEditor, guestEditor)
+
+    const changesSinceCheckpoint = hostEditor.getBuffer().getChangesSinceCheckpoint(checkpoint)
+    assert.equal(changesSinceCheckpoint.length, 1)
+    assert.deepEqual(changesSinceCheckpoint[0].oldRange, {start: {row: 0, column: 7}, end: {row: 0, column: 7}})
+    assert.deepEqual(changesSinceCheckpoint[0].oldText, '')
+    assert.deepEqual(changesSinceCheckpoint[0].newRange, {start: {row: 0, column: 7}, end: {row: 0, column: 10}})
+    assert.deepEqual(changesSinceCheckpoint[0].newText, 'hij')
 
     hostEditor.revertToCheckpoint(checkpoint)
     assert.equal(hostEditor.getText(), 'abcdefg')
