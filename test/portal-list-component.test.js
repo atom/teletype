@@ -193,7 +193,7 @@ suite('PortalListComponent', function () {
     clipboard.write('\tbc282ad8-7643-42cb-80ca-c243771a618f  \n')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '\tbc282ad8-7643-42cb-80ca-c243771a618f  \n')
 
     await joinPortalComponent.hidePrompt()
     clipboard.write('not a portal id')
