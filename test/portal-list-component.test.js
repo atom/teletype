@@ -138,6 +138,8 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 2))
     
     // Insert a valid portal id but with leading and trailing whitespace.
+    await joinPortalComponent.showPrompt()
+
     joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortal.id + '\n\r\n')
     joinPortalComponent.joinPortal()
 
@@ -190,7 +192,7 @@ suite('PortalListComponent', function () {
     clipboard.write('\tbc282ad8-7643-42cb-80ca-c243771a618f  \n')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '\tbc282ad8-7643-42cb-80ca-c243771a618f  \n')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
 
     await joinPortalComponent.hidePrompt()
     clipboard.write('not a portal id')
