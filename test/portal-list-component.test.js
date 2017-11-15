@@ -138,9 +138,6 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 2))
     
     // Insert a valid portal id but with leading and trailing whitespace.
-    const hostPortalBindingManager = await buildPortalBindingManager()
-    const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
-
     joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortal.id + '\n\r\n')
     joinPortalComponent.joinPortal()
 
