@@ -23,7 +23,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.27.0",
+    "@atom/teletype-client": "^0.28.0",
     "etch": "^0.12.6"
   },
   "consumedServices": {
@@ -50,6 +50,13 @@
       "type": "string",
       "default": "f119821248b7429bece3",
       "order": 2
+    },
+    "pusherCluster": {
+      "title": "Pusher cluster name",
+      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+      "type": "string",
+      "default": "mt1",
+      "order": 3
     }
   }
 }
