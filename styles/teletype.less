@@ -18,7 +18,7 @@
     }
   }
 
-  &.outdated {
+  &.outdated, &.initialization-error {
     color: @text-color-error;
 
     &:hover {
@@ -411,7 +411,7 @@
   }
 }
 
-.PackageOutdatedComponent {
+.PackageOutdatedComponent, .PackageInitializationErrorComponent {
   color: @text-color;
   text-align: center;
   padding: 0 @component-padding @component-padding @component-padding;
