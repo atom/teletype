@@ -34,7 +34,7 @@
     }
   },
   "engines": {
-    "atom": ">=1.21.0"
+    "atom": ">=1.22.0"
   },
   "configSchema": {
     "baseURL": {
