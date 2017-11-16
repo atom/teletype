@@ -940,6 +940,7 @@ suite('TeletypePackage', function () {
       assert(description.includes('an error'))
 
       const {popoverComponent} = pack.portalStatusBarIndicator
+      assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
       assert(popoverComponent.refs.packageInitializationErrorComponent)
     }
   })
