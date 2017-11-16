@@ -172,28 +172,20 @@ suite('PortalListComponent', function () {
     const {clipboard} = component.props
     const {joinPortalComponent} = component.refs
 
+    // Clipboard containing a portal ID
     clipboard.write('bc282ad8-7643-42cb-80ca-c243771a618f')
     await joinPortalComponent.showPrompt()
 
     assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
 
+    // Clipboard containing a portal ID with surrounding whitespace
     await joinPortalComponent.hidePrompt()
-    clipboard.write('not a portal id')
+    clipboard.write('\te40fa1b5-8144-4d09-9dff-c26e7b10b366  \n')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '')
-  })
-  
-  test('prefilling portal ID with whitespace from clipboard', async () => {
-    const {component} = await buildComponent()
-    const {clipboard} = component.props
-    const {joinPortalComponent} = component.refs
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'e40fa1b5-8144-4d09-9dff-c26e7b10b366')
 
-    clipboard.write('\tbc282ad8-7643-42cb-80ca-c243771a618f  \n')
-    await joinPortalComponent.showPrompt()
-
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
-
+    // Clipboard containing something that is NOT a portal ID
     await joinPortalComponent.hidePrompt()
     clipboard.write('not a portal id')
     await joinPortalComponent.showPrompt()
