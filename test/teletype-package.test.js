@@ -884,13 +884,13 @@ suite('TeletypePackage', function () {
     {
       const env = buildAtomEnvironment()
       const pack = await buildPackage(env, {signIn: false})
+      assert.equal(env.notifications.getNotifications().length, 1)
+
       pack.client.initialize = async function () {
         throw new Error('an error')
       }
 
       await pack.sharePortal()
-
-      assert.equal(env.notifications.getNotifications()[1].message, '???')
 
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
