@@ -913,6 +913,8 @@ suite('TeletypePackage', function () {
       assert.equal(type, 'error')
       assert.equal(message, 'Failed to initialize the teletype package')
       assert(description.includes('an error'))
+
+      console.log(env.notifications.getNotifications()[1].message)
     }
 
     {
