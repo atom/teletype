@@ -907,14 +907,14 @@ suite('TeletypePackage', function () {
 
       await pack.joinPortal()
 
+      assert.equal(env.notifications.getNotifications()[1].message, '???')
+
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
       assert.equal(type, 'error')
       assert.equal(message, 'Failed to initialize the teletype package')
       assert(description.includes('an error'))
-
-      process.stdout.write(env.notifications.getNotifications()[1].message)
     }
 
     {
