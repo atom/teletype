@@ -947,8 +947,8 @@ suite('TeletypePackage', function () {
       throw new Error('some error')
     }
 
-    const {popoverComponent} = pack.portalStatusBarIndicator
     await pack.portalStatusBarIndicator.handleInitialClick() // Initialize popover component
+    const {popoverComponent} = pack.portalStatusBarIndicator
     popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
     await popoverComponent.refs.signInComponent.signIn()
 
