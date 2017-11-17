@@ -884,7 +884,6 @@ suite('TeletypePackage', function () {
     {
       const env = buildAtomEnvironment()
       const pack = await buildPackage(env, {signIn: false})
-
       pack.client.initialize = async function () {
         throw new Error('an error')
       }
