@@ -945,7 +945,7 @@ suite('TeletypePackage', function () {
     }
 
     const {popoverComponent} = pack.portalStatusBarIndicator
-    await portalStatusBarIndicator.handleInitialClick() // Initialize popover component
+    await pack.portalStatusBarIndicator.handleInitialClick() // Initialize popover component
     popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
     await popoverComponent.refs.signInComponent.signIn()
 
