@@ -48,7 +48,7 @@ suite('TeletypePackage', function () {
     containerElement.remove()
 
     for (const pack of packages) {
-      await pack.dispose()
+      await pack.deactivate()
     }
     await destroyAtomEnvironments()
   })
