@@ -34,13 +34,13 @@ Editors for remote buffers are *only* automatically opened when you are followin
 
 As a guest of a shared workspace, you don't automatically receive access to the host's file system. Tools like the tree view, the file finder, and project search don't have access to their current project. (This capability will be the subject of an upcoming RFC).
 
-For now, however, the file finder *will* be augmented to make it easy for you to navigate any buffer that the host current has open in their workspace. These remote buffers will be decorated with the avatar of the host that owns their workspace.
+For now, however, the file finder *will* be augmented to make it easy for you to navigate any buffer that the host currently has open in their workspace. These remote buffers will be decorated with the avatar of the host that owns their workspace.
 
 ## Drawbacks
 
 Currently, a portal always corresponds to a single tab. This keeps things really simple. To leave the portal, you just close the tab. Now there could be multiple editors in your workspace that are part of a remote workspace, which increases complexity.
 
-When you follow someone between multiple buffers, editors for remote buffers may start to stack up in your workspace. Some may consider this to be too cluttered. If this becomes problematic, we could adding an option to automatically close an editor upon following a collaborator to a different buffer or just make that the default behavior.
+When you follow someone between multiple buffers, editors for remote buffers may start to stack up in your workspace. Some may consider this to be too cluttered. If this becomes problematic, we could add an option to automatically close an editor upon following a collaborator to a different buffer or just make that the default behavior.
 
 ## Rationale and alternatives
 
