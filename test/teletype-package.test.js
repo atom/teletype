@@ -890,6 +890,8 @@ suite('TeletypePackage', function () {
 
       await pack.sharePortal()
 
+      assert.equal(env.notifications.getNotifications()[1].message, '???')
+
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
       const {description} = options
@@ -906,8 +908,6 @@ suite('TeletypePackage', function () {
       }
 
       await pack.joinPortal()
-
-      assert.equal(env.notifications.getNotifications()[1].message, '???')
 
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
