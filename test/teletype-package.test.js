@@ -924,6 +924,7 @@ suite('TeletypePackage', function () {
       }
 
       await pack.consumeStatusBar(new FakeStatusBar())
+      await pack.portalStatusBarIndicator.handleInitialClick() // Initialize popover component
 
       assert.equal(env.notifications.getNotifications().length, 1)
       const {type, message, options} = env.notifications.getNotifications()[0]
