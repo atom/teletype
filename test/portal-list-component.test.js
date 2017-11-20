@@ -95,7 +95,7 @@ suite('PortalListComponent', function () {
     assert(!joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(!joinPortalComponent.refs.joinButton)
-    
+
     await joinPortalComponent.showPrompt()
 
     assert(!joinPortalComponent.refs.joinPortalLabel)
@@ -123,7 +123,7 @@ suite('PortalListComponent', function () {
     // Insert a valid portal id.
     const hostPortalBindingManager = await buildPortalBindingManager()
     const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
-    
+
     joinPortalComponent.refs.portalIdEditor.setText(hostPortal.id)
     joinPortalComponent.joinPortal()
 
@@ -140,7 +140,7 @@ suite('PortalListComponent', function () {
     await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 2)
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
     assert(queryParticipantElement(guestPortalBindingsContainer, 2))
-    
+
     // Insert a valid portal id but with leading and trailing whitespace.
     await joinPortalComponent.showPrompt()
 
