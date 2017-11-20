@@ -113,18 +113,21 @@ suite('PortalListComponent', function () {
 
     // Insert an invalid portal id.
     joinPortalComponent.refs.portalIdEditor.setText('invalid-portal-id')
-    joinPortalComponent.joinPortal()
+    assert(joinPortalComponent.refs.joinButton.disabled)
+
+    await joinPortalComponent.joinPortal()
 
     assert(!joinPortalComponent.refs.joinPortalLabel)
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(joinPortalComponent.refs.portalIdEditor)
-    assert(joinPortalComponent.refs.joinButton.disabled)
 
     // Insert a valid portal id.
     const hostPortalBindingManager = await buildPortalBindingManager()
     const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
 
     joinPortalComponent.refs.portalIdEditor.setText(hostPortal.id)
+    assert(!joinPortalComponent.refs.joinButton.disabled)
+
     joinPortalComponent.joinPortal()
 
     await condition(() => (
