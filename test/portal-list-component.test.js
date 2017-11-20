@@ -103,8 +103,8 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
 
-    // Use no portal id
-    joinPortalComponent.joinPortal()
+    // Attempt to join without inserting a portal id.
+    await joinPortalComponent.joinPortal()
 
     assert(!joinPortalComponent.refs.joinPortalLabel)
     assert(!joinPortalComponent.refs.joiningSpinner)
