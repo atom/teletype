@@ -106,6 +106,7 @@ suite('PortalListComponent', function () {
     // Attempt to join without inserting a portal id.
     await joinPortalComponent.joinPortal()
 
+    assert.equal(component.props.notificationManager.errorCount, 1)
     assert(!joinPortalComponent.refs.joinPortalLabel)
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(joinPortalComponent.refs.portalIdEditor)
@@ -117,6 +118,7 @@ suite('PortalListComponent', function () {
 
     await joinPortalComponent.joinPortal()
 
+    assert.equal(component.props.notificationManager.errorCount, 2)
     assert(!joinPortalComponent.refs.joinPortalLabel)
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(joinPortalComponent.refs.portalIdEditor)
@@ -211,9 +213,11 @@ suite('PortalListComponent', function () {
   }
 
   async function buildComponent () {
-    const portalBindingManager = await buildPortalBindingManager()
+    const notificationManager = new FakeNotificationManager()
+    const portalBindingManager = await buildPortalBindingManager({notificationManager})
     const component = new PortalListComponent({
       portalBindingManager,
+      notificationManager,
       clipboard: new FakeClipboard(),
       commandRegistry: new FakeCommandRegistry(),
       localUserIdentity: portalBindingManager.client.getLocalUserIdentity()
@@ -223,7 +227,7 @@ suite('PortalListComponent', function () {
     return {component, element: component.element, portalBindingManager}
   }
 
-  async function buildPortalBindingManager () {
+  async function buildPortalBindingManager (options = {}) {
     const client = new TeletypeClient({
       baseURL: testServer.address,
       pubSubGateway: testServer.pubSubGateway
@@ -234,7 +238,7 @@ suite('PortalListComponent', function () {
     const portalBindingManager = new PortalBindingManager({
       client,
       workspace: new FakeWorkspace(),
-      notificationManager: new FakeNotificationManager()
+      notificationManager: options.notificationManager || new FakeNotificationManager()
     })
     portalBindingManagers.push(portalBindingManager)
     return portalBindingManager
@@ -254,11 +258,17 @@ class FakeWorkspace {
 }
 
 class FakeNotificationManager {
+  constructor () {
+    this.errorCount = 0
+  }
+
   addInfo () {}
 
   addSuccess () {}
 
-  addError () {}
+  addError () {
+    this.errorCount++
+  }
 }
 
 class FakeCommandRegistry {
