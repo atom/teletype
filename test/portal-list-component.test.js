@@ -94,32 +94,36 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.joinPortalLabel)
     assert(!joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
-
+    assert(!joinPortalComponent.refs.joinButton)
+    
     await joinPortalComponent.showPrompt()
 
     assert(!joinPortalComponent.refs.joinPortalLabel)
+    assert(joinPortalComponent.refs.joinButton.disabled)
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
+
+    // Use no portal id
+    joinPortalComponent.joinPortal()
+
+    assert(!joinPortalComponent.refs.joinPortalLabel)
+    assert(!joinPortalComponent.refs.joiningSpinner)
+    assert(joinPortalComponent.refs.portalIdEditor)
+    assert(joinPortalComponent.refs.joinButton.disabled)
 
     // Insert an invalid portal id.
     joinPortalComponent.refs.portalIdEditor.setText('invalid-portal-id')
     joinPortalComponent.joinPortal()
 
-    await condition(() => (
-      !joinPortalComponent.refs.joinPortalLabel &&
-      joinPortalComponent.refs.joiningSpinner &&
-      !joinPortalComponent.refs.portalIdEditor
-    ))
-    await condition(() => (
-      !joinPortalComponent.refs.joinPortalLabel &&
-      !joinPortalComponent.refs.joiningSpinner &&
-      joinPortalComponent.refs.portalIdEditor
-    ))
+    assert(!joinPortalComponent.refs.joinPortalLabel)
+    assert(!joinPortalComponent.refs.joiningSpinner)
+    assert(joinPortalComponent.refs.portalIdEditor)
+    assert(joinPortalComponent.refs.joinButton.disabled)
 
     // Insert a valid portal id.
     const hostPortalBindingManager = await buildPortalBindingManager()
     const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
-
+    
     joinPortalComponent.refs.portalIdEditor.setText(hostPortal.id)
     joinPortalComponent.joinPortal()
 
@@ -255,5 +259,5 @@ class FakeNotificationManager {
 }
 
 class FakeCommandRegistry {
-  add () {}
+  add () { return new Set() }
 }
