@@ -214,7 +214,7 @@ suite('TeletypePackage', function () {
     // Show popover when running the "Share Portal" command, but prevent sharing unless user is authenticated.
     assert(!pack.portalStatusBarIndicator.isPopoverVisible())
     assert(!await pack.sharePortal())
-    await pack1.portalStatusBarIndicator.initialOpenPromise
+    await pack.portalStatusBarIndicator.initialOpenPromise
     assert(pack.portalStatusBarIndicator.isPopoverVisible())
 
     // Show popover when running the "Join Portal" command, but prevent sharing unless user is authenticated.
