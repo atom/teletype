@@ -50,7 +50,7 @@ When you follow someone between multiple buffers, editors for remote buffers may
 
 ## Rationale and alternatives
 
-The workspace and the project are *both* pieces of state worth sharing. The workspace is more transient, representing a "working set" of resources that a developer is looking at *right now*. Ideally, anything in resource in this working set should be able to be accessed by collaborators. This includes the set of open buffers, but it could also include other state such as a terminal session, a debugger, console output, etc.
+The workspace and the project are *both* pieces of state worth sharing. The workspace is more transient, representing a "working set" of resources that a developer is looking at *right now*. Ideally, any resource in this working set should be able to be accessed by collaborators. This includes the set of open buffers, but it could also include other state such as a terminal session, a debugger, console output, etc.
 
 We want to *also* give access to a host's entire project, which represents a set of file system directories they're currently working on, a much larger set of resources than their current working set. However, even when we do add this feature, there's a role for being able to access any buffer a host has open in their workspace, because not every buffer corresponds to a file in a project. The host could open any file on their file system without adding its parent folder to their project, and we still want to be able to collaborate on it.
 
