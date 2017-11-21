@@ -26,6 +26,8 @@ When you first join a portal as a guest, you're automatically *following* the ho
 
 In order to jump to the host's current position, an editor is automatically added to your workspace for their active buffer when you first join their workspace. If you continue to follow the host, any time they switch to a new buffer, a new editor for that remote buffer is automatically added to your workspace and focused. Existing editors for previous remote buffers are not automatically closed when this switch occurs.
 
+When a host closes a buffer, it will be removed from all guest portals. If another participant is working in that same buffer (i.e., not following the host), Teletype will first ask the host to confirm their intention to remove the buffer from the portal.
+
 You can follow any other guest participating in the host's workspace in the exact same way. If they move between buffers, you will follow them. The host does not enjoy any special privilege with respect to the ability to be followed between different files.
 
 Editors for remote buffers are *only* automatically opened when you are following another collaborator. If you are not following someone, no editors are automatically opened. When you start following another collaborator again, an editor will be automatically opened based on their location. You can also open any buffer in the host's workspace directly by navigating to it...
