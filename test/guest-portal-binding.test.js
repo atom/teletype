@@ -78,18 +78,17 @@ suite('GuestPortalBinding', () => {
       activePaneItemChangeEvents.push(item)
     })
 
-    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-1'))
-    portalBinding.setActiveEditorProxy(buildEditorProxy('uri-2'))
-    portalBinding.setActiveEditorProxy(null)
-    await portalBinding.setActiveEditorProxy(buildEditorProxy('uri-3'))
+    portalBinding.activateEditorProxy(buildEditorProxy('uri-1'))
+    portalBinding.activateEditorProxy(buildEditorProxy('uri-2'))
+    await portalBinding.activateEditorProxy(buildEditorProxy('uri-3'))
 
     assert.deepEqual(
       activePaneItemChangeEvents.map((i) => i.getTitle()),
-      ['@some-host: uri-1', '@some-host: uri-2', '@some-host: No Active File', '@some-host: uri-3']
+      ['@some-host: uri-1', '@some-host: uri-2', '@some-host: uri-3']
     )
     assert.deepEqual(
       atomEnv.workspace.getPaneItems().map((i) => i.getTitle()),
-      ['@some-host: uri-3']
+      ['@some-host: uri-1', '@some-host: uri-2', '@some-host: uri-3']
     )
 
     disposable.dispose()

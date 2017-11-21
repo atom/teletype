@@ -106,6 +106,42 @@ suite('TeletypePackage', function () {
     assert.equal(observedGuestItems.size, 2)
   })
 
+  test('opening and closing multiple editors on the host', async function () {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = await buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = await buildPackage(guestEnv)
+    const portalId = (await hostPackage.sharePortal()).id
+
+    guestPackage.joinPortal(portalId)
+    const emptyPortalPaneItem = await getNextRemotePaneItemPromise(guestEnv)
+    assert(emptyPortalPaneItem instanceof EmptyPortalPaneItem)
+
+    const hostEditor1 = await hostEnv.workspace.open()
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(getPaneItems(guestEnv).length, 1)
+
+    const hostEditor2 = await hostEnv.workspace.open()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    assert.equal(getPaneItems(guestEnv).length, 2)
+
+    hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
+    assert.equal(await getNextActiveTextEditorPromise(guestEnv), guestEditor1)
+    assert.equal(getPaneItems(guestEnv).length, 2)
+
+    hostEditor1.destroy()
+    await condition(() => getPaneItems(guestEnv).length === 1)
+
+    hostEditor2.destroy()
+    assert.equal(await getNextRemotePaneItemPromise(guestEnv), emptyPortalPaneItem)
+    assert.equal(getPaneItems(guestEnv).length, 1)
+
+    await hostEnv.workspace.open()
+    const guestEditor3 = await getNextRemotePaneItemPromise(guestEnv)
+    assert(guestEditor3 instanceof TextEditor)
+    assert.equal(getPaneItems(guestEnv).length, 1)
+  })
+
   test('host joining another portal as a guest', async () => {
     const hostAndGuestEnv = buildAtomEnvironment()
     const hostAndGuestPackage = await buildPackage(hostAndGuestEnv)
@@ -131,10 +167,7 @@ suite('TeletypePackage', function () {
 
     // No transitivity: When Portal 1 host is viewing contents of Portal 2, Portal 1 guests are placed on hold
     assert.equal(hostAndGuestEnv.workspace.getActivePaneItem(), hostAndGuestRemotePaneItem)
-    await condition(() =>
-      getRemotePaneItems(guestOnlyEnv).length === 1 &&
-        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
-    )
+    await condition(() => deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1]))
   })
 
   test('guest sharing another portal as a host', async () => {
@@ -153,8 +186,8 @@ suite('TeletypePackage', function () {
     assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1])
 
     // While already participating as a guest in Portal 1, share a new portal as a host (Portal 2)
-    const guestAndHostLocalEditor = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest'))
-    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostLocalEditor])
+    const guestAndHostLocalEditor1 = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest-buffer-1'))
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostLocalEditor1])
     const portal2Id = (await guestAndHostPackage.sharePortal()).id
     guestOnlyPackage.joinPortal(portal2Id)
     const guestOnlyRemotePaneItem1 = await getNextRemotePaneItemPromise(guestOnlyEnv)
@@ -164,25 +197,24 @@ suite('TeletypePackage', function () {
     // Portal 2 host continues to exist as a guest in Portal 1
     hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
     const guestAndHostRemotePaneItem2 = await getNextRemotePaneItemPromise(guestAndHostEnv)
-    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem2, guestAndHostLocalEditor])
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2])
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
-    // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests are placed on hold
+    // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests can only see contents of Portal 2
     guestAndHostEnv.workspace.getActivePane().activateItemAtIndex(0)
-    assert.equal(guestAndHostEnv.workspace.getActivePaneItem(), guestAndHostRemotePaneItem2)
-    await condition(() =>
-      getRemotePaneItems(guestOnlyEnv).length === 1 &&
-        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
-    )
+    assert.equal(guestAndHostEnv.workspace.getActivePaneItem(), guestAndHostRemotePaneItem1)
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
-    // Portal 2 guests remain on hold while Portal 2 host observes changes in Portal 1
+    // As Portal 2 host observes changes in Portal 1, Portal 2 guests continue to only see contents of Portal 2
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
     const guestAndHostRemotePaneItem3 = await getNextRemotePaneItemPromise(guestAndHostEnv)
-    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem3, guestAndHostLocalEditor])
-    await condition(() =>
-      getRemotePaneItems(guestOnlyEnv).length === 1 &&
-        getRemotePaneItems(guestOnlyEnv)[0] instanceof EmptyPortalPaneItem
-    )
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostRemotePaneItem3, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2])
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
+
+    // When Portal 2 host shares another local buffer, Portal 2 guests see that buffer
+    const guestAndHostLocalEditor2 = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest-buffer-2'))
+    const guestOnlyRemotePaneItem2 = await getNextRemotePaneItemPromise(guestOnlyEnv)
+    assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1, guestOnlyRemotePaneItem2])
   })
 
   test('host attempting to share another portal', async () => {
@@ -336,9 +368,9 @@ suite('TeletypePackage', function () {
     assert(isTransmitting(guestStatusBar))
 
     assert.equal(guestEnv.workspace.getPaneItems().length, 2)
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await guestPackage.leavePortal()
     assert(isTransmitting(guestStatusBar))
-    guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+    await guestPackage.leavePortal()
     await condition(() => !isTransmitting(guestStatusBar))
 
     await host1Package.closeHostPortal()
@@ -355,83 +387,21 @@ suite('TeletypePackage', function () {
     assert(errorNotification, 'Expected notifications to include "Portal not found" error')
   })
 
-  test('preserving guest portal position in workspace', async function () {
+  test('guest leaving portal', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
-
-    const guestLocalEditor1 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-1'))
-    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1])
-
     const portal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(portal.id)
-    await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
-    const guestRemoteEditor1 = await getNextRemotePaneItemPromise(guestEnv)
-    const guestLocalEditor2 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
-    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor1, guestLocalEditor2])
-
-    await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
-    const guestRemoteEditor2 = await getNextRemotePaneItemPromise(guestEnv)
-
-    assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor2, guestLocalEditor2])
-  })
-
-  test('host without an active text editor', async function () {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = await buildPackage(hostEnv)
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    const portalId = (await hostPackage.sharePortal()).id
-
-    guestPackage.joinPortal(portalId)
-    let guestEditor = await getNextRemotePaneItemPromise(guestEnv)
-    assert(guestEditor instanceof EmptyPortalPaneItem)
-
-    const hostEditor1 = await hostEnv.workspace.open()
-    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
-    assert(guestEditor instanceof TextEditor)
-
-    hostEditor1.destroy()
-    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
-    assert(guestEditor instanceof EmptyPortalPaneItem)
 
     await hostEnv.workspace.open()
-    guestEditor = await getNextRemotePaneItemPromise(guestEnv)
-    assert(guestEditor instanceof TextEditor)
-  })
+    await hostEnv.workspace.open()
+    await hostEnv.workspace.open()
+    await condition(() => getPaneItems(guestEnv).length === 3)
 
-  suite('guest leaving portal', async () => {
-    test('via closing text editor portal pane item', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const hostPortal = await hostPackage.sharePortal()
-      await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      const guestEditor = getRemotePaneItems(guestEnv)[0]
-      assert(guestEditor instanceof TextEditor)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
-
-    test('via closing empty portal pane item', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const hostPortal = await hostPackage.sharePortal()
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      const guestEditor = getRemotePaneItems(guestEnv)[0]
-      assert(guestEditor instanceof EmptyPortalPaneItem)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
+    await guestPackage.leavePortal()
+    await condition(() => getPaneItems(guestEnv).length === 0)
   })
 
   test('host closing portal', async function () {
@@ -471,34 +441,43 @@ suite('TeletypePackage', function () {
     const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
     hostEditor1.setText('const hello = "world"')
     hostEditor1.setCursorBufferPosition([0, 4])
-    await getNextActiveTextEditorPromise(guestEnv)
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
 
     const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
     hostEditor2.setText('const goodnight = "moon"')
     hostEditor2.setCursorBufferPosition([0, 2])
-    await condition(() => guestEnv.workspace.getActiveTextEditor().getText() === 'const goodnight = "moon"')
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
 
-    const guestEditor = guestEnv.workspace.getActiveTextEditor()
-    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor)))
-    guestEditor.setCursorBufferPosition([0, 5])
+    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
+    guestEditor2.setCursorBufferPosition([0, 5])
 
-    const guestEditorTitleChangeEvents = []
-    guestEditor.onDidChangeTitle((title) => guestEditorTitleChangeEvents.push(title))
+    const guestEditor1TitleChangeEvents = []
+    const guestEditor2TitleChangeEvents = []
+    guestEditor1.onDidChangeTitle((title) => guestEditor1TitleChangeEvents.push(title))
+    guestEditor2.onDidChangeTitle((title) => guestEditor2TitleChangeEvents.push(title))
 
     hostPackage.closeHostPortal()
-    await condition(() => guestEditor.getTitle() === 'untitled')
-    assert.deepEqual(guestEditorTitleChangeEvents, ['untitled'])
-    assert.equal(guestEditor.getText(), 'const goodnight = "moon"')
-    assert(guestEditor.isModified())
-    assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
+    await condition(() => guestEditor1.getTitle() === 'untitled' && guestEditor2.getTitle() === 'untitled')
+
+    assert.deepEqual(guestEditor1TitleChangeEvents, ['untitled'])
+    assert.equal(guestEditor1.getText(), 'const hello = "world"')
+    assert(guestEditor1.isModified())
+    assert.deepEqual(getCursorDecoratedRanges(guestEditor1), [
+      {start: {row: 0, column: 4}, end: {row: 0, column: 4}}
+    ])
+
+    assert.deepEqual(guestEditor2TitleChangeEvents, ['untitled'])
+    assert.equal(guestEditor2.getText(), 'const goodnight = "moon"')
+    assert(guestEditor2.isModified())
+    assert.deepEqual(getCursorDecoratedRanges(guestEditor2), [
       {start: {row: 0, column: 5}, end: {row: 0, column: 5}}
     ])
 
     // Ensure that the guest can still edit the buffer or modify selections.
-    guestEditor.getBuffer().setTextInRange([[0, 0], [0, 5]], 'let')
-    guestEditor.setCursorBufferPosition([0, 7])
-    assert.equal(guestEditor.getText(), 'let goodnight = "moon"')
-    assert.deepEqual(getCursorDecoratedRanges(guestEditor), [
+    guestEditor2.getBuffer().setTextInRange([[0, 0], [0, 5]], 'let')
+    guestEditor2.setCursorBufferPosition([0, 7])
+    assert.equal(guestEditor2.getText(), 'let goodnight = "moon"')
+    assert.deepEqual(getCursorDecoratedRanges(guestEditor2), [
       {start: {row: 0, column: 7}, end: {row: 0, column: 7}}
     ])
   })

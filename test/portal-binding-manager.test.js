@@ -106,6 +106,9 @@ function buildPortalBindingManager () {
 
   const workspace = {
     element: document.createElement('div'),
+    async open () {
+
+    },
     getElement () {
       return this.element
     },
@@ -114,14 +117,21 @@ function buildPortalBindingManager () {
     },
     observeActivePaneItem () {
       return new Disposable(() => {})
+    },
+    onDidDestroyPaneItem () {
+      return new Disposable(() => {})
     }
   }
 
   return new PortalBindingManager({client, workspace, notificationManager})
 }
 
+let nextIdentityId = 1
 function buildPortal () {
   return {
+    getSiteIdentity () {
+      return {login: 'identity-' + nextIdentityId++}
+    },
     dispose () {
       this.delegate.dispose()
     },

@@ -254,6 +254,12 @@ class FakeWorkspace {
   observeActiveTextEditor () {
     return new Disposable(() => {})
   }
+
+  onDidDestroyPaneItem () {
+    return new Disposable(() => {})
+  }
+
+  paneForItem () {}
 }
 
 class FakeNotificationManager {
