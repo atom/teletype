@@ -20,6 +20,8 @@ Ideally, guests would be able to edit any file in the host's current project, bu
 
 Just as guests can open editors for local buffers corresponding to files on their local file system, they can also open editors for *remote buffers* corresponding to buffers in any remote workspace that they have joined.
 
+When the host closes the portal, all the remote buffers in the guest's workspace are preserved, but will become untitled and unsaved (just as they did prior to this RFC).
+
 ### Following
 
 When you first join a portal as a guest, you're automatically *following* the host. This means that you jump to the host's current position and continue to follow them as they move between buffers.
