@@ -30,6 +30,8 @@ When a host closes a buffer, it will be removed from all guest portals. If anoth
 
 You can follow any other guest participating in the host's workspace in the exact same way. If they move between buffers, you will follow them. The host does not enjoy any special privilege with respect to the ability to be followed between different files.
 
+When a participant is viewing a different buffer than you are viewing, that participant's avatar appears in the bottom right with an icon (e.g., https://octicons.github.com/icon/link-external) indicating that they're working on a different buffer.
+
 Editors for remote buffers are *only* automatically opened when you are following another collaborator. If you are not following someone, no editors are automatically opened. When you start following another collaborator again, an editor will be automatically opened based on their location. You can also open any buffer in the host's workspace directly by navigating to it...
 
 ### Navigation
