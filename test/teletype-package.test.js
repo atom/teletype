@@ -22,9 +22,9 @@ suite('TeletypePackage', function () {
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/teletype-server')
     testServer = await startTestServer({
-      databaseURL: 'postgres://localhost:5432/teletype-test',
+      databaseURL: 'postgres://localhost:5432/teletype-test'
       // Uncomment and provide credentials to test against Pusher.
-      // pusherCredentials: {
+      // , pusherCredentials: {
       //   appId: '123',
       //   key: '123',
       //   secret: '123'

@@ -377,7 +377,7 @@ suite('EditorBinding', function () {
       2: {row: 9, column: 5}, // collaborator below visible area
       3: {row: 6, column: 1}, // collaborator to the left of visible area
       4: {row: 6, column: 15}, // collaborator to the right of visible area
-      5: {row: 6, column: 6}, // collaborator inside of visible area
+      5: {row: 6, column: 6} // collaborator inside of visible area
     })
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
