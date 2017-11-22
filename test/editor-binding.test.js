@@ -158,14 +158,13 @@ suite('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
-    const originalLocalSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
     const originalRemoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
     binding.updateSelectionsForSiteId(2, {1: {range: originalRemoteSelection}})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 0}, head: {row: 1, column: 5}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 5}}  // remote selection
       ]
     )
 
@@ -175,18 +174,17 @@ suite('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 0}, head: {row: 1, column: 0}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 0}}  // remote selection
       ]
     )
 
     editor.getBuffer().setTextInRange([remoteSelectionAfterDelete.start, remoteSelectionAfterDelete.start], 'a', {undo: 'skip'})
-    const remoteSelectionAfterInsert = {start: {row: 1, column: 1}, end: {row: 1, column: 1}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}  // remote selection
       ]
     )
   })
