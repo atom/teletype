@@ -36,6 +36,7 @@ suite('EditorBinding', function () {
 
   teardown(async () => {
     if (!global.debugContent) {
+      let element
       while (element = attachedElements.pop()) {
         element.remove()
       }
