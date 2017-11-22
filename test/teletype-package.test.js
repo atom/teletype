@@ -307,7 +307,7 @@ suite('TeletypePackage', function () {
   })
 
   test('indicating portal status via status bar icon', async () => {
-    isTransmitting = function (statusBar) {
+    const isTransmitting = function (statusBar) {
       return statusBar.getRightTiles()[0].item.element.classList.contains('transmitting')
     }
 
