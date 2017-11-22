@@ -62,14 +62,11 @@
     }
   },
   "standard": {
+    "env": {
+      "mocha": true
+    },
     "globals": [
-      "atom",
-      "setup",
-      "suite",
-      "suiteSetup",
-      "suiteTeardown",
-      "teardown",
-      "test"
+      "atom"
     ],
     "ignore": ["test/fixtures"]
   }
