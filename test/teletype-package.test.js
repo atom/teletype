@@ -366,12 +366,12 @@ suite('TeletypePackage', function () {
 
     const portal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(portal.id)
-    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
+    await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
     const guestRemoteEditor1 = await getNextRemotePaneItemPromise(guestEnv)
     const guestLocalEditor2 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
     assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor1, guestLocalEditor2])
 
-    const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
+    await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
     const guestRemoteEditor2 = await getNextRemotePaneItemPromise(guestEnv)
 
     assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor2, guestLocalEditor2])
