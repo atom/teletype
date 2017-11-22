@@ -487,7 +487,7 @@ suite('EditorBinding', function () {
     const {decorationManager} = editor
     const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
     const cursorDecorations = []
-    for (const [marker, decorations] of decorationsByMarker) {
+    for (const [marker, decorations] of decorationsByMarker) { // eslint-disable-line no-unused-vars
       let className = ''
       for (const decoration of decorations) {
         if (decoration.type === 'cursor' && decoration.class) {
