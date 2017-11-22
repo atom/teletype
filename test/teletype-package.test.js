@@ -846,12 +846,12 @@ suite('TeletypePackage', function () {
   })
 
   test('adding and removing workspace element classes when sharing a portal', async () => {
-    const host1Env = buildAtomEnvironment()
-    const host1Package = await buildPackage(host1Env)
-    await host1Package.sharePortal()
-    assert(host1Env.workspace.getElement().classList.contains('teletype-Host'))
-    await host1Package.closeHostPortal()
-    assert(!host1Env.workspace.getElement().classList.contains('teletype-Host'))
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = await buildPackage(hostEnv)
+    await hostPackage.sharePortal()
+    assert(hostEnv.workspace.getElement().classList.contains('teletype-Host'))
+    await hostPackage.closeHostPortal()
+    assert(!hostEnv.workspace.getElement().classList.contains('teletype-Host'))
   })
 
   test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
