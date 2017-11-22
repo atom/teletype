@@ -17,7 +17,7 @@ const temp = require('temp').track()
 suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
 
-  let testServer, containerElement, packages, portals
+  let testServer, containerElement, packages
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/teletype-server')
