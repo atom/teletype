@@ -1,5 +1,4 @@
 const assert = require('assert')
-const etch = require('etch')
 const condition = require('./helpers/condition')
 const {Disposable} = require('atom')
 const FakeClipboard = require('./helpers/fake-clipboard')
