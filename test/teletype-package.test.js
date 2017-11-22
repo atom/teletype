@@ -957,47 +957,47 @@ suite('TeletypePackage', function () {
 
   test('disables button when empty token specified', async () => {
     {
-        const env = buildAtomEnvironment()
-        const pack = await buildPackage(env, {signIn: false})
-        //this is to trigger the on change event in the token input
-        const editor = await env.workspace.open()
+      const env = buildAtomEnvironment()
+      const pack = await buildPackage(env, {signIn: false})
+      //this is to trigger the on change event in the token input
+      const editor = await env.workspace.open()
 
-        await pack.consumeStatusBar(new FakeStatusBar())
+      await pack.consumeStatusBar(new FakeStatusBar())
 
-        const {popoverComponent} = pack.portalStatusBarIndicator
+      const {popoverComponent} = pack.portalStatusBarIndicator
 
-        //it should be disabled by default
-        assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
+      //it should be disabled by default
+      assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
     }
 
     {
-        const env = buildAtomEnvironment()
-        const pack = await buildPackage(env, {signIn: false})
-        //this is to trigger the on change event in the token input
-        const editor = await env.workspace.open()
+      const env = buildAtomEnvironment()
+      const pack = await buildPackage(env, {signIn: false})
+      //this is to trigger the on change event in the token input
+      const editor = await env.workspace.open()
 
-        await pack.consumeStatusBar(new FakeStatusBar())
+      await pack.consumeStatusBar(new FakeStatusBar())
 
-        const {popoverComponent} = pack.portalStatusBarIndicator
+      const {popoverComponent} = pack.portalStatusBarIndicator
 
-        // whitespace should also leave the button disabled
-        popoverComponent.refs.signInComponent.refs.editor.setText('    ')
-        assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
+      // whitespace should also leave the button disabled
+      popoverComponent.refs.signInComponent.refs.editor.setText('    ')
+      assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
     }
 
     {
-        const env = buildAtomEnvironment()
-        const pack = await buildPackage(env, {signIn: false})
-        //this is to trigger the on change event in the token input
-        const editor = await env.workspace.open()
+      const env = buildAtomEnvironment()
+      const pack = await buildPackage(env, {signIn: false})
+      //this is to trigger the on change event in the token input
+      const editor = await env.workspace.open()
 
-        await pack.consumeStatusBar(new FakeStatusBar())
+      await pack.consumeStatusBar(new FakeStatusBar())
 
-        const {popoverComponent} = pack.portalStatusBarIndicator
+      const {popoverComponent} = pack.portalStatusBarIndicator
 
-        //it should be disabled when set to empty
-        popoverComponent.refs.signInComponent.refs.editor.setText('')
-        assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
+      //it should be disabled when set to empty
+      popoverComponent.refs.signInComponent.refs.editor.setText('')
+      assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
     }
   })
 
