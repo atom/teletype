@@ -87,7 +87,7 @@ suite('PortalListComponent', function () {
   })
 
   test('joining portals', async () => {
-    const {component, portalBindingManager} = await buildComponent()
+    const {component} = await buildComponent()
     const {joinPortalComponent, guestPortalBindingsContainer} = component.refs
 
     assert(joinPortalComponent.refs.joinPortalLabel)
