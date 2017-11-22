@@ -37,7 +37,7 @@ suite('EditorBinding', function () {
   teardown(async () => {
     if (!global.debugContent) {
       let element
-      while (element = attachedElements.pop()) {
+      while (element = attachedElements.pop()) { // eslint-disable-line no-cond-assign
         element.remove()
       }
 
