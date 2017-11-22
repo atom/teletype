@@ -848,7 +848,7 @@ suite('TeletypePackage', function () {
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const host1Env = buildAtomEnvironment()
     const host1Package = await buildPackage(host1Env)
-    const host1Portal = await host1Package.sharePortal()
+    await host1Package.sharePortal()
     assert(host1Env.workspace.getElement().classList.contains('teletype-Host'))
     await host1Package.closeHostPortal()
     assert(!host1Env.workspace.getElement().classList.contains('teletype-Host'))
