@@ -11,6 +11,7 @@
   "main": "index.js",
   "repository": "https://github.com/atom/teletype",
   "scripts": {
+    "lint": "standard --verbose",
     "test": "atom --test test"
   },
   "author": "",
@@ -20,6 +21,7 @@
     "@atom/teletype-server": "^0.17.0",
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^1.0.1",
+    "standard": "^10.0.3",
     "temp": "^0.8.3"
   },
   "dependencies": {
@@ -58,5 +60,15 @@
       "default": "mt1",
       "order": 3
     }
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    },
+    "globals": [
+      "atom",
+      "ErrorEvent"
+    ],
+    "ignore": ["test/fixtures"]
   }
 }

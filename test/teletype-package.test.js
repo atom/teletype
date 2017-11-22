@@ -17,14 +17,14 @@ const temp = require('temp').track()
 suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
 
-  let testServer, containerElement, environments, packages, portals
+  let testServer, containerElement, packages
 
   suiteSetup(async function () {
     const {startTestServer} = require('@atom/teletype-server')
     testServer = await startTestServer({
-      databaseURL: 'postgres://localhost:5432/teletype-test',
+      databaseURL: 'postgres://localhost:5432/teletype-test'
       // Uncomment and provide credentials to test against Pusher.
-      // pusherCredentials: {
+      // , pusherCredentials: {
       //   appId: '123',
       //   key: '123',
       //   secret: '123'
@@ -307,7 +307,7 @@ suite('TeletypePackage', function () {
   })
 
   test('indicating portal status via status bar icon', async () => {
-    isTransmitting = function (statusBar) {
+    const isTransmitting = function (statusBar) {
       return statusBar.getRightTiles()[0].item.element.classList.contains('transmitting')
     }
 
@@ -346,11 +346,11 @@ suite('TeletypePackage', function () {
   })
 
   test('attempting to join a nonexistent portal', async () => {
-    const guestPackage = await buildPackage(buildAtomEnvironment())
+    const pack = await buildPackage(buildAtomEnvironment())
     const notifications = []
-    guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
+    pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
-    const guestPortal = await guestPackage.joinPortal('some-nonexistent-portal-id')
+    await pack.joinPortal('some-nonexistent-portal-id')
     const errorNotification = notifications.find((n) => n.message === 'Portal not found')
     assert(errorNotification, 'Expected notifications to include "Portal not found" error')
   })
@@ -366,12 +366,12 @@ suite('TeletypePackage', function () {
 
     const portal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(portal.id)
-    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
+    await hostEnv.workspace.open(path.join(temp.path(), 'host-1'))
     const guestRemoteEditor1 = await getNextRemotePaneItemPromise(guestEnv)
     const guestLocalEditor2 = await guestEnv.workspace.open(path.join(temp.path(), 'guest-2'))
     assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor1, guestLocalEditor2])
 
-    const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
+    await hostEnv.workspace.open(path.join(temp.path(), 'host-2'))
     const guestRemoteEditor2 = await getNextRemotePaneItemPromise(guestEnv)
 
     assert.deepEqual(getPaneItems(guestEnv), [guestLocalEditor1, guestRemoteEditor2, guestLocalEditor2])
@@ -846,12 +846,12 @@ suite('TeletypePackage', function () {
   })
 
   test('adding and removing workspace element classes when sharing a portal', async () => {
-    const host1Env = buildAtomEnvironment()
-    const host1Package = await buildPackage(host1Env)
-    const host1Portal = await host1Package.sharePortal()
-    assert(host1Env.workspace.getElement().classList.contains('teletype-Host'))
-    await host1Package.closeHostPortal()
-    assert(!host1Env.workspace.getElement().classList.contains('teletype-Host'))
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = await buildPackage(hostEnv)
+    await hostPackage.sharePortal()
+    assert(hostEnv.workspace.getElement().classList.contains('teletype-Host'))
+    await hostPackage.closeHostPortal()
+    assert(!hostEnv.workspace.getElement().classList.contains('teletype-Host'))
   })
 
   test('reports when the package needs to be upgraded due to an out-of-date protocol version', async () => {
@@ -995,7 +995,7 @@ suite('TeletypePackage', function () {
 
   async function getNextActiveTextEditorPromise ({workspace}) {
     const currentEditor = workspace.getActiveTextEditor()
-    await condition(() => workspace.getActiveTextEditor() != currentEditor)
+    await condition(() => workspace.getActiveTextEditor() !== currentEditor)
     return workspace.getActiveTextEditor()
   }
 
