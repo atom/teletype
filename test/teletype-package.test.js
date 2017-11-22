@@ -346,11 +346,11 @@ suite('TeletypePackage', function () {
   })
 
   test('attempting to join a nonexistent portal', async () => {
-    const guestPackage = await buildPackage(buildAtomEnvironment())
+    const pack = await buildPackage(buildAtomEnvironment())
     const notifications = []
-    guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
+    pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
-    await guestPackage.joinPortal('some-nonexistent-portal-id')
+    await pack.joinPortal('some-nonexistent-portal-id')
     const errorNotification = notifications.find((n) => n.message === 'Portal not found')
     assert(errorNotification, 'Expected notifications to include "Portal not found" error')
   })
