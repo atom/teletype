@@ -54,6 +54,7 @@ suite('SignInComponent', function () {
 
       authenticationProvider.signIn = (token) => {
         notifications.addError()
+        return false
       }
       component.refs.editor.setText('some-token')
       await component.signIn()
