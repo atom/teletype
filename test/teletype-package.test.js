@@ -959,22 +959,22 @@ suite('TeletypePackage', function () {
     {
       const env = buildAtomEnvironment()
       const pack = await buildPackage(env, {signIn: false})
-      //this is to trigger the on change event in the token input
-      const editor = await env.workspace.open()
+      // this is to trigger the on change event in the token input
+      await env.workspace.open()
 
       await pack.consumeStatusBar(new FakeStatusBar())
 
       const {popoverComponent} = pack.portalStatusBarIndicator
 
-      //it should be disabled by default
+      // it should be disabled by default
       assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
     }
 
     {
       const env = buildAtomEnvironment()
       const pack = await buildPackage(env, {signIn: false})
-      //this is to trigger the on change event in the token input
-      const editor = await env.workspace.open()
+      // this is to trigger the on change event in the token input
+      await env.workspace.open()
 
       await pack.consumeStatusBar(new FakeStatusBar())
 
@@ -988,14 +988,14 @@ suite('TeletypePackage', function () {
     {
       const env = buildAtomEnvironment()
       const pack = await buildPackage(env, {signIn: false})
-      //this is to trigger the on change event in the token input
-      const editor = await env.workspace.open()
+      // this is to trigger the on change event in the token input
+      await env.workspace.open()
 
       await pack.consumeStatusBar(new FakeStatusBar())
 
       const {popoverComponent} = pack.portalStatusBarIndicator
 
-      //it should be disabled when set to empty
+      // it should be disabled when set to empty
       popoverComponent.refs.signInComponent.refs.editor.setText('')
       assert(popoverComponent.refs.signInComponent.refs.loginButton.disabled)
     }
@@ -1005,17 +1005,17 @@ suite('TeletypePackage', function () {
     const env = buildAtomEnvironment()
     const pack = await buildPackage(env, {signIn: false})
 
-    //this is to trigger the on change event in the token input
-    const editor = await env.workspace.open()
-    
+    // this is to trigger the on change event in the token input
+    await env.workspace.open()
+
     await pack.consumeStatusBar(new FakeStatusBar())
 
     const {popoverComponent} = pack.portalStatusBarIndicator
-    //set empty text first
+    // set empty text first
 
     popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
 
-    //it should be enabled when not empty
+    // it should be enabled when not empty
     assert(!popoverComponent.refs.signInComponent.refs.loginButton.disabled)
   })
 
@@ -1027,8 +1027,8 @@ suite('TeletypePackage', function () {
     const {popoverComponent} = pack.portalStatusBarIndicator
 
     await popoverComponent.refs.signInComponent.signIn()
-    
-    //it should show an error notification about an empty token
+
+    // it should show an error notification about an empty token
     assert.equal(env.notifications.getNotifications().length, 1)
     const {type, message, options} = env.notifications.getNotifications()[0]
     const {description} = options
