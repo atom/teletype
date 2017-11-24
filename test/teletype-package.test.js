@@ -950,6 +950,44 @@ suite('TeletypePackage', function () {
     assert(description.includes('connection-error'))
   })
 
+  test('prompting for a token when signing in', async () => {
+    const env = buildAtomEnvironment()
+    const pack = await buildPackage(env, {signIn: false})
+    await pack.consumeStatusBar(new FakeStatusBar())
+
+    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
+    await pack.joinPortal()
+    assert(pack.portalStatusBarIndicator.isPopoverVisible())
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    const {signInComponent} = popoverComponent.refs
+    const {editor, loginButton, errorMessage} = signInComponent.refs
+
+    assert(editor)
+    assert(loginButton)
+    assert(!errorMessage)
+  })
+
+  test('reports errors attempting to sign in', async () => {
+    const env = buildAtomEnvironment()
+    const pack = await buildPackage(env, {signIn: false})
+    await pack.consumeStatusBar(new FakeStatusBar())
+    pack.client.signIn = async function () {
+      throw new Error('some error')
+    }
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
+    await popoverComponent.refs.signInComponent.signIn()
+
+    assert.equal(env.notifications.getNotifications().length, 1)
+    const {type, message, options} = env.notifications.getNotifications()[0]
+    const {description} = options
+    assert.equal(type, 'error')
+    assert.equal(message, 'Failed to authenticate to teletype')
+    assert(description.includes('some error'))
+  })
+
   let nextTokenId = 0
   async function buildPackage (env, options = {}) {
     const credentialCache = new FakeCredentialCache()

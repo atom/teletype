@@ -2,8 +2,7 @@ const {Disposable} = require('atom')
 
 module.exports =
 class FakeAuthenticationProvider {
-  constructor ({shouldFailSignIn, notificationManager}) {
-    this.shouldFailSignIn = shouldFailSignIn
+  constructor ({notificationManager}) {
     this.notificationManager = notificationManager
   }
 
@@ -12,10 +11,7 @@ class FakeAuthenticationProvider {
   }
 
   async signIn (token) {
-    if (this.shouldFailSignIn) {
-      this.notificationManager.addError()
-    }
-    return !this.shouldFailSignIn
+    return true
   }
 
   isSigningIn () {

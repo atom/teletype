@@ -49,12 +49,17 @@ suite('SignInComponent', function () {
   test('reports errors attempting to sign in', async () => {
     {
       const component = buildComponent()
+      const {authenticationProvider} = component.props
+      const notifications = authenticationProvider.notificationManager
 
+      authenticationProvider.signIn = (token) => {
+        notifications.addError()
+      }
       component.refs.editor.setText('some-token')
       await component.signIn()
 
       // it should prompt an error message when the login attempt fails
-      assert.equal(component.props.authenticationProvider.notificationManager.errorCount, 1)
+      assert.equal(notifications.errorCount, 1)
     }
 
     {
@@ -72,7 +77,6 @@ suite('SignInComponent', function () {
     return new SignInComponent({
       commandRegistry: new FakeCommandRegistry(),
       authenticationProvider: new FakeAuthenticationProvider({
-        shouldFailSignIn: true,
         notificationManager: new FakeNotificationManager()
       })
     })
