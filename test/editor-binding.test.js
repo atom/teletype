@@ -36,7 +36,8 @@ suite('EditorBinding', function () {
 
   teardown(async () => {
     if (!global.debugContent) {
-      while (element = attachedElements.pop()) {
+      let element
+      while (element = attachedElements.pop()) { // eslint-disable-line no-cond-assign
         element.remove()
       }
 
@@ -157,14 +158,13 @@ suite('EditorBinding', function () {
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
-    const originalLocalSelection = {start: {row: 0, column: 0}, end: {row: 0, column: 0}}
     const originalRemoteSelection = {start: {row: 1, column: 0}, end: {row: 1, column: 5}}
     binding.updateSelectionsForSiteId(2, {1: {range: originalRemoteSelection}})
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 0}, head: {row: 1, column: 5}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 5}}  // remote selection
       ]
     )
 
@@ -174,18 +174,17 @@ suite('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 0}, head: {row: 1, column: 0}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 0}, head: {row: 1, column: 0}}  // remote selection
       ]
     )
 
     editor.getBuffer().setTextInRange([remoteSelectionAfterDelete.start, remoteSelectionAfterDelete.start], 'a', {undo: 'skip'})
-    const remoteSelectionAfterInsert = {start: {row: 1, column: 1}, end: {row: 1, column: 1}}
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}},
-        {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}
+        {tail: {row: 0, column: 0}, head: {row: 0, column: 0}}, // local selection
+        {tail: {row: 1, column: 1}, head: {row: 1, column: 1}}  // remote selection
       ]
     )
   })
@@ -377,7 +376,7 @@ suite('EditorBinding', function () {
       2: {row: 9, column: 5}, // collaborator below visible area
       3: {row: 6, column: 1}, // collaborator to the left of visible area
       4: {row: 6, column: 15}, // collaborator to the right of visible area
-      5: {row: 6, column: 6}, // collaborator inside of visible area
+      5: {row: 6, column: 6} // collaborator inside of visible area
     })
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
@@ -487,7 +486,7 @@ suite('EditorBinding', function () {
     const {decorationManager} = editor
     const decorationsByMarker = decorationManager.decorationPropertiesByMarkerForScreenRowRange(0, Infinity)
     const cursorDecorations = []
-    for (const [marker, decorations] of decorationsByMarker) {
+    for (const [marker, decorations] of decorationsByMarker) { // eslint-disable-line no-unused-vars
       let className = ''
       for (const decoration of decorations) {
         if (decoration.type === 'cursor' && decoration.class) {
