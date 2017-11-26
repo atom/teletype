@@ -988,6 +988,29 @@ suite('TeletypePackage', function () {
     assert(description.includes('some error'))
   })
 
+  test('resets editor and button after failed sign-in attempt', async () => {
+    const env = buildAtomEnvironment()
+    const pack = await buildPackage(env, {signIn: false})
+    await pack.consumeStatusBar(new FakeStatusBar())
+    pack.client.signIn = async function () {
+      throw new Error('some error')
+    }
+
+    const {popoverComponent} = pack.portalStatusBarIndicator
+    const {signInComponent} = popoverComponent.refs
+
+    signInComponent.refs.editor.setText('some-token')
+
+    await signInComponent.signIn()
+
+    // TODO: Find out why these refs are not updating.
+    // by now, the button should be disabled,
+    // and the text should be reset
+    assert(signInComponent.refs.loginButton.disabled)
+    assert(!signInComponent.refs.editor.getText())
+    assert(signInComponent.refs.errorMessage)
+  })
+
   let nextTokenId = 0
   async function buildPackage (env, options = {}) {
     const credentialCache = new FakeCredentialCache()
