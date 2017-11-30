@@ -1,6 +1,6 @@
 const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
-const {TeletypeClient} = require('@atom/teletype-client')
+const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
 
 suite('GuestPortalBinding', () => {
@@ -78,9 +78,9 @@ suite('GuestPortalBinding', () => {
       activePaneItemChangeEvents.push(item)
     })
 
-    portalBinding.activateEditorProxy(buildEditorProxy('uri-1'))
-    portalBinding.activateEditorProxy(buildEditorProxy('uri-2'))
-    await portalBinding.activateEditorProxy(buildEditorProxy('uri-3'))
+    portalBinding.updateTether(FollowState.RETRACTED, buildEditorProxy('uri-1'))
+    portalBinding.updateTether(FollowState.RETRACTED, buildEditorProxy('uri-2'))
+    await portalBinding.updateTether(FollowState.RETRACTED, buildEditorProxy('uri-3'))
 
     assert.deepEqual(
       activePaneItemChangeEvents.map((i) => i.getTitle()),
