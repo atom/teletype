@@ -25,7 +25,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "https://github.com/atom/teletype-client#e5dd46f7ba13134d43411a2fa92b1b87061efac3",
+    "@atom/teletype-client": "https://github.com/atom/teletype-client#multi-buffer-sharing",
     "etch": "^0.12.6"
   },
   "consumedServices": {
