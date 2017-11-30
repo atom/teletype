@@ -416,11 +416,15 @@ suite('EditorBinding', function () {
     assert.equal(editorProxy.getFollowedSiteId(), null)
   })
 
-  test('isPositionVisible(position)', async () => {
+  test('isScrollNeededToViewPosition(position)', async () => {
     const editor = new TextEditor({autoHeight: false})
     const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
+
+    // If the editor is not yet attached to the DOM, scrolling isn't gonna help.
+    assert(!binding.isScrollNeededToViewPosition({row: 1, column: 0}))
+    assert(!binding.isScrollNeededToViewPosition({row: 0, column: 9}))
 
     attachToDOM(editor.element)
     await setEditorHeightInLines(editor, 4)
@@ -428,9 +432,9 @@ suite('EditorBinding', function () {
 
     editor.setText('a pretty long line\n'.repeat(100))
 
-    assert(binding.isPositionVisible({row: 1, column: 0}))
-    assert(!binding.isPositionVisible({row: 0, column: 9}))
-    assert(!binding.isPositionVisible({row: 6, column: 0}))
+    assert(!binding.isScrollNeededToViewPosition({row: 1, column: 0}))
+    assert(binding.isScrollNeededToViewPosition({row: 0, column: 9}))
+    assert(binding.isScrollNeededToViewPosition({row: 6, column: 0}))
 
     // Ensure text is rendered, so that we can scroll down/right.
     await editor.component.getNextUpdatePromise()
@@ -438,9 +442,9 @@ suite('EditorBinding', function () {
     setEditorScrollTopInLines(editor, 5)
     setEditorScrollLeftInChars(editor, 5)
 
-    assert(binding.isPositionVisible({row: 6, column: 7}))
-    assert(!binding.isPositionVisible({row: 6, column: 0}))
-    assert(!binding.isPositionVisible({row: 3, column: 7}))
+    assert(!binding.isScrollNeededToViewPosition({row: 6, column: 7}))
+    assert(binding.isScrollNeededToViewPosition({row: 6, column: 0}))
+    assert(binding.isScrollNeededToViewPosition({row: 3, column: 7}))
   })
 
   test('destroys folds intersecting the position of the leader', async () => {
