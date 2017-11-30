@@ -122,7 +122,7 @@ suite('TeletypePackage', function () {
     assert.equal(getPaneItems(guestEnv).length, 1)
 
     const hostEditor2 = await hostEnv.workspace.open()
-    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv) // eslint-disable-line no-unused-vars
     assert.equal(getPaneItems(guestEnv).length, 2)
 
     hostEnv.workspace.paneForItem(hostEditor1).activateItem(hostEditor1)
@@ -212,7 +212,7 @@ suite('TeletypePackage', function () {
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // When Portal 2 host shares another local buffer, Portal 2 guests see that buffer
-    const guestAndHostLocalEditor2 = await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest-buffer-2'))
+    await guestAndHostEnv.workspace.open(path.join(temp.path(), 'host+guest-buffer-2'))
     const guestOnlyRemotePaneItem2 = await getNextRemotePaneItemPromise(guestOnlyEnv)
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1, guestOnlyRemotePaneItem2])
   })
