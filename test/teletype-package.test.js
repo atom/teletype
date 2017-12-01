@@ -198,11 +198,7 @@ suite('TeletypePackage', function () {
     // Portal 2 host continues to exist as a guest in Portal 1
     hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
     const guestAndHostRemotePaneItem2 = await getNextRemotePaneItemPromise(guestAndHostEnv)
-    // TODO Remove sorting. Order should be guaranteed.
-    assert.deepEqual(
-      getPaneItems(guestAndHostEnv).sort((a, b) => a.id - b.id),
-      [guestAndHostRemotePaneItem1, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2].sort((a, b) => a.id - b.id)
-    )
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2])
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // No transitivity: When Portal 2 host is viewing contents of Portal 1, Portal 2 guests can only see contents of Portal 2
@@ -213,11 +209,7 @@ suite('TeletypePackage', function () {
     // As Portal 2 host observes changes in Portal 1, Portal 2 guests continue to only see contents of Portal 2
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
     const guestAndHostRemotePaneItem3 = await getNextRemotePaneItemPromise(guestAndHostEnv)
-    // TODO Remove sorting. Order should be guaranteed.
-    assert.deepEqual(
-      getPaneItems(guestAndHostEnv).sort((a, b) => a.id - b.id),
-      [guestAndHostRemotePaneItem1, guestAndHostRemotePaneItem3, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2].sort((a, b) => a.id - b.id)
-    )
+    assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1, guestAndHostRemotePaneItem3, guestAndHostLocalEditor1, guestAndHostRemotePaneItem2])
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
 
     // When Portal 2 host shares another local buffer, Portal 2 guests see that buffer
