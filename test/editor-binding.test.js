@@ -347,7 +347,8 @@ suite('EditorBinding', function () {
     assert.deepEqual(getCursorClasses(editor), [])
   })
 
-  test('showing the active position of other collaborators', async () => {
+  test.skip('showing the active position of other collaborators', async () => {
+    // TODO: move this test into portal binding tests.
     const editor = new TextEditor({autoHeight: false})
     editor.setText(SAMPLE_TEXT)
 
