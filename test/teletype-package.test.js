@@ -890,7 +890,7 @@ suite('TeletypePackage', function () {
       await condition(() => followerEditors[0].lineTextForBufferRow(1).includes('Y'))
       assert(followerEditors[0].getCursorBufferPosition().isEqual([20, 29]))
 
-      // Retract follower's tether and ensure following across tabs still works.
+      // When re-following, ensure that you are taken to the leader's current tab.
       leaderEnv.workspace.paneForItem(leaderEditors[1]).activateItem(leaderEditors[1])
       followerPortal.follow(leaderPortal.siteId)
 
