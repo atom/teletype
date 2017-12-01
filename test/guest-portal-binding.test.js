@@ -2,6 +2,7 @@ const assert = require('assert')
 const fs = require('fs')
 const path = require('path')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
@@ -100,13 +101,7 @@ suite('GuestPortalBinding', () => {
   test('showing the active position of other collaborators', async () => {
     const environment = buildAtomEnvironment()
 
-    // TODO Extract helper: loadPackageStylesheets
-    // Load also package style sheets, so that additional UI elements are styled
-    // correctly.
-    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'teletype.less')
-    const compiledStyleSheet = environment.themes.loadStylesheet(packageStyleSheetPath)
-    environment.styles.addStyleSheet(compiledStyleSheet)
-
+    loadPackageStyleSheets(environment)
     const {workspace} = environment
     attachToDOM(workspace.getElement())
 

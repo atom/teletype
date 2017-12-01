@@ -5,6 +5,7 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const {
   setEditorHeightInLines,
   setEditorWidthInChars,
@@ -21,11 +22,7 @@ suite('EditorBinding', function () {
   setup(() => {
     // Load the editor default styles by instantiating a new AtomEnvironment.
     const environment = buildAtomEnvironment()
-    // Load also package style sheets, so that additional UI elements are styled
-    // correctly.
-    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'teletype.less')
-    const compiledStyleSheet = environment.themes.loadStylesheet(packageStyleSheetPath)
-    environment.styles.addStyleSheet(compiledStyleSheet)
+    loadPackageStyleSheets(environment)
     // Position editor absolutely to prevent its size from being affected by the
     // window size of the test runner. We also give it an initial width and
     // height so that the editor component can perform initial measurements.
