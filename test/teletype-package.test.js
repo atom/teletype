@@ -909,12 +909,21 @@ suite('TeletypePackage', function () {
       // Retract follower's tether and ensure it gets disconnected after switching to a different tab.
       followerPortal.follow(leaderPortal.siteId)
       await condition(() => deepEqual(followerEditors[1].getCursorBufferPosition(), leaderEditors[1].getCursorBufferPosition()))
+
       followerEnv.workspace.getActivePane().activateItem(followerEditors[0])
       await timeout(followerPortal.tetherDisconnectWindow)
+
+      followerEditors[0].setCursorBufferPosition([3, 4])
       leaderEditors[1].setCursorBufferPosition([8, 2])
       leaderEditors[1].insertText('X')
+
       await condition(() => followerEditors[1].lineTextForBufferRow(8).includes('X'))
-      assert(!followerEditors[1].getCursorBufferPosition().isEqual(leaderEditors[1].getCursorBufferPosition()))
+
+      assert.equal(followerEnv.workspace.getActivePaneItem(), followerEditors[0])
+      assert(getCursorDecoratedRanges(followerEditors[0]).find((r) => r.isEqual([[3, 4], [3, 4]])))
+
+      assert.equal(leaderEnv.workspace.getActivePaneItem(), leaderEditors[1])
+      assert(getCursorDecoratedRanges(leaderEditors[1]).find((r) => r.isEqual([[8, 3], [8, 3]])))
     }
   })
 
