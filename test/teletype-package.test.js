@@ -740,100 +740,182 @@ suite('TeletypePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
   })
 
-  test.only('tethering to other collaborators', async () => {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = await buildPackage(hostEnv)
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    const guestWorkspaceElement = guestEnv.views.getView(guestEnv.workspace)
-    guestWorkspaceElement.style.height = '100px'
-    guestWorkspaceElement.style.width = '250px'
-    containerElement.appendChild(guestWorkspaceElement)
+  suite('tethering', () => {
+    test('guest following host', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
 
-    const hostEditor1 = await hostEnv.workspace.open()
-    hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
-    hostEditor1.setCursorBufferPosition([2, 2])
+      const hostPortal = await hostPackage.sharePortal()
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-    const hostPortal = await hostPackage.sharePortal()
-    const guestPortal = await guestPackage.joinPortal(hostPortal.id)
+      const hostEditor1 = await hostEnv.workspace.open()
+      hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
+      hostEditor1.setCursorBufferPosition([2, 2])
 
-    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
+      const hostEditor2 = await hostEnv.workspace.open()
+      hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
+      hostEditor2.setCursorBufferPosition([2, 2])
 
-    // Jump to host cursor when joining
-    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+      await condition(() => guestEnv.workspace.getTextEditors().length === 2)
 
-    // Initially, guests follow the host's cursor
-    hostEditor1.setCursorBufferPosition([3, 3])
-    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+      await verifyTetheringRules({
+        leaderEnv: hostEnv,
+        leaderPortal: hostPortal,
+        followerEnv: guestEnv,
+        followerPortal: guestPortal
+      })
+    })
 
-    // When followers move their cursor, their cursor does not follow the
-    // leader's cursor so long as the leader's cursor stays within the
-    // follower's viewport
-    guestEditor1.setCursorBufferPosition([2, 10])
-    hostEditor1.setCursorBufferPosition([3, 5])
-    hostEditor1.insertText('y')
-    await condition(() => guestEditor1.lineTextForBufferRow(3).includes('y'))
-    assert(guestEditor1.getCursorBufferPosition().isEqual([2, 10]))
+    test.skip('host following guest', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
 
-    // When the leader moves their cursor out of the follower's viewport, the
-    // follower's cursor moves to the same position if the unfollow period
-    // has elapsed.
-    await timeout(guestPackage.tetherDisconnectWindow)
-    hostEditor1.setCursorBufferPosition([20, 10])
-    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+      const hostPortal = await hostPackage.sharePortal()
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-    // If the leader moves to non-visible columns (not just rows), we update
-    // the tether
-    await condition(() => guestEditor1.getFirstVisibleScreenRow() > 0)
-    guestEditor1.setCursorBufferPosition([20, 9])
-    await timeout(guestPackage.tetherDisconnectWindow)
-    hostEditor1.setCursorBufferPosition([20, 30])
-    await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+      const hostEditor1 = await hostEnv.workspace.open()
+      hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
+      hostEditor1.setCursorBufferPosition([2, 2])
 
-    // Disconnect tether if leader's cursor position moves within the tether
-    // disconnect window
-    guestEditor1.setCursorBufferPosition([20, 29])
-    hostEditor1.setCursorBufferPosition([0, 0])
-    hostEditor1.insertText('y')
-    await condition(() => guestEditor1.lineTextForBufferRow(0).includes('y'))
-    assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
-    await timeout(guestPackage.tetherDisconnectWindow)
-    hostEditor1.setCursorBufferPosition([1, 0])
-    hostEditor1.insertText('y')
-    await condition(() => guestEditor1.lineTextForBufferRow(1).includes('y'))
-    assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
+      const hostEditor2 = await hostEnv.workspace.open()
+      hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
+      hostEditor2.setCursorBufferPosition([2, 2])
 
-    // Retract guest's tether and ensure following across tabs still works.
-    const hostEditor2 = await hostEnv.workspace.open()
-    hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
-    hostEditor2.setCursorBufferPosition([2, 2])
+      await condition(() => guestEnv.workspace.getTextEditors().length === 2)
 
-    guestPortal.follow(1)
+      await verifyTetheringRules({
+        leaderEnv: guestEnv,
+        leaderPortal: guestPortal,
+        followerEnv: hostEnv,
+        followerPortal: hostPortal
+      })
+    })
 
-    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
-    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
-    hostEditor2.setCursorBufferPosition([4, 4])
-    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+    test('guest following guest', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
 
-    // Disconnect tether if guest scrolls the tether position out of view
-    guestEditor2.setCursorBufferPosition([20, 0])
-    await timeout(guestPackage.tetherDisconnectWindow)
-    hostEditor2.setCursorBufferPosition([4, 5])
-    hostEditor2.insertText('z')
-    await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
-    assert(guestEditor2.getCursorBufferPosition().isEqual([20, 0]))
+      const guest1Env = buildAtomEnvironment()
+      const guest1Package = await buildPackage(guest1Env)
 
-    // Retract guest's tether and ensure it gets disconnected after switching to a different tab.
-    guestPortal.follow(1)
-    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
-    guestEnv.workspace.getActivePane().activateItem(guestEditor1)
-    await timeout(guestPackage.tetherDisconnectWindow)
-    hostEditor2.setCursorBufferPosition([8, 2])
-    hostEditor2.insertText('x')
-    await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
-    assert(!guestEditor2.getCursorBufferPosition().isEqual(hostEditor2.getCursorBufferPosition()))
+      const guest2Env = buildAtomEnvironment()
+      const guest2Package = await buildPackage(guest2Env)
 
-    // TODO: ensure host can follow guest.
+      const hostPortal = await hostPackage.sharePortal()
+      const guest1Portal = await guest1Package.joinPortal(hostPortal.id)
+      const guest2Portal = await guest2Package.joinPortal(hostPortal.id)
+
+      const hostEditor1 = await hostEnv.workspace.open()
+      hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
+      hostEditor1.setCursorBufferPosition([2, 2])
+
+      const hostEditor2 = await hostEnv.workspace.open()
+      hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
+      hostEditor2.setCursorBufferPosition([2, 2])
+
+      await condition(() => guest1Env.workspace.getTextEditors().length === 2)
+      await condition(() => guest2Env.workspace.getTextEditors().length === 2)
+
+      await verifyTetheringRules({
+        leaderEnv: guest1Env,
+        leaderPortal: guest1Portal,
+        followerEnv: guest2Env,
+        followerPortal: guest2Portal
+      })
+    })
+
+    async function verifyTetheringRules ({leaderEnv, leaderPortal, followerEnv, followerPortal}) {
+      // Setup DOM for follower's workspace.
+      const followerWorkspaceElement = followerEnv.views.getView(followerEnv.workspace)
+      followerWorkspaceElement.style.height = '100px'
+      followerWorkspaceElement.style.width = '250px'
+      containerElement.appendChild(followerWorkspaceElement)
+
+      const leaderEditors = leaderEnv.workspace.getTextEditors()
+      const followerEditors = followerEnv.workspace.getTextEditors()
+
+      // Reset follow state.
+      leaderPortal.unfollow()
+      followerPortal.unfollow()
+
+      // Jump to leader cursor and follow it as it moves.
+      leaderEnv.workspace.getActivePane().activateItem(leaderEditors[0])
+      followerPortal.follow(leaderPortal.siteId)
+      await condition(() => (
+        followerEnv.workspace.getActivePaneItem() === followerEditors[0] &&
+        deepEqual(followerEditors[0].getCursorBufferPosition(), leaderEditors[0].getCursorBufferPosition())
+      ))
+
+      leaderEditors[0].setCursorBufferPosition([3, 3])
+      await condition(() => deepEqual(followerEditors[0].getCursorBufferPosition(), leaderEditors[0].getCursorBufferPosition()))
+
+      // When followers move their cursor, their cursor does not follow the
+      // leader's cursor so long as the leader's cursor stays within the
+      // follower's viewport.
+      followerEditors[0].setCursorBufferPosition([2, 10])
+      leaderEditors[0].setCursorBufferPosition([3, 5])
+      leaderEditors[0].insertText('Y')
+      await condition(() => followerEditors[0].lineTextForBufferRow(3).includes('Y'))
+      assert(followerEditors[0].getCursorBufferPosition().isEqual([2, 10]))
+
+      // When the leader moves their cursor out of the follower's viewport, the
+      // follower's cursor moves to the same position if the unfollow period
+      // has elapsed.
+      await timeout(followerPortal.tetherDisconnectWindow)
+      leaderEditors[0].setCursorBufferPosition([20, 10])
+      await condition(() => deepEqual(followerEditors[0].getCursorBufferPosition(), leaderEditors[0].getCursorBufferPosition()))
+
+      // If the leader moves to non-visible columns (not just rows), we update
+      // the tether.
+      await condition(() => followerEditors[0].getFirstVisibleScreenRow() > 0)
+      followerEditors[0].setCursorBufferPosition([20, 9])
+      await timeout(followerPortal.tetherDisconnectWindow)
+      leaderEditors[0].setCursorBufferPosition([20, 30])
+      await condition(() => deepEqual(followerEditors[0].getCursorBufferPosition(), leaderEditors[0].getCursorBufferPosition()))
+
+      // Disconnect tether if leader's cursor position moves within the tether
+      // disconnect window.
+      followerEditors[0].setCursorBufferPosition([20, 29])
+      leaderEditors[0].setCursorBufferPosition([0, 0])
+      leaderEditors[0].insertText('Y')
+      await condition(() => followerEditors[0].lineTextForBufferRow(0).includes('Y'))
+      assert(followerEditors[0].getCursorBufferPosition().isEqual([20, 29]))
+      await timeout(followerPortal.tetherDisconnectWindow)
+      leaderEditors[0].setCursorBufferPosition([1, 0])
+      leaderEditors[0].insertText('Y')
+      await condition(() => followerEditors[0].lineTextForBufferRow(1).includes('Y'))
+      assert(followerEditors[0].getCursorBufferPosition().isEqual([20, 29]))
+
+      // Retract follower's tether and ensure following across tabs still works.
+      leaderEnv.workspace.paneForItem(leaderEditors[1]).activateItem(leaderEditors[1])
+      followerPortal.follow(leaderPortal.siteId)
+
+      await condition(() => deepEqual(followerEditors[1].getCursorBufferPosition(), leaderEditors[1].getCursorBufferPosition()))
+      leaderEditors[1].setCursorBufferPosition([4, 4])
+      await condition(() => deepEqual(followerEditors[1].getCursorBufferPosition(), leaderEditors[1].getCursorBufferPosition()))
+
+      // Disconnect tether if follower scrolls the tether position out of view.
+      followerEditors[1].setCursorBufferPosition([20, 0])
+      await timeout(followerPortal.tetherDisconnectWindow)
+      leaderEditors[1].setCursorBufferPosition([4, 5])
+      leaderEditors[1].insertText('Z')
+      await condition(() => followerEditors[1].lineTextForBufferRow(4).includes('Z'))
+      assert(followerEditors[1].getCursorBufferPosition().isEqual([20, 0]))
+
+      // Retract follower's tether and ensure it gets disconnected after switching to a different tab.
+      followerPortal.follow(leaderPortal.siteId)
+      await condition(() => deepEqual(followerEditors[1].getCursorBufferPosition(), leaderEditors[1].getCursorBufferPosition()))
+      followerEnv.workspace.getActivePane().activateItem(followerEditors[0])
+      await timeout(followerPortal.tetherDisconnectWindow)
+      leaderEditors[1].setCursorBufferPosition([8, 2])
+      leaderEditors[1].insertText('X')
+      await condition(() => followerEditors[1].lineTextForBufferRow(8).includes('X'))
+      assert(!followerEditors[1].getCursorBufferPosition().isEqual(leaderEditors[1].getCursorBufferPosition()))
+    }
   })
 
   test('adding and removing workspace element classes when sharing a portal', async () => {
