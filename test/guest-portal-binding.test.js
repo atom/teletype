@@ -33,6 +33,7 @@ suite('GuestPortalBinding', () => {
       setDelegate (delegate) {
         this.delegate = delegate
       },
+      activateEditorProxy () {},
       getSiteIdentity (siteId) {
         return {login: 'site-' + siteId}
       }

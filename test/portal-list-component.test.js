@@ -259,6 +259,10 @@ class FakeWorkspace {
     return new Disposable(() => {})
   }
 
+  onDidChangeActivePaneItem () {
+    return new Disposable(() => {})
+  }
+
   paneForItem () {}
 }
 

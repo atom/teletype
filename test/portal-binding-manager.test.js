@@ -118,6 +118,9 @@ function buildPortalBindingManager () {
     observeActivePaneItem () {
       return new Disposable(() => {})
     },
+    onDidChangeActivePaneItem () {
+      return new Disposable(() => {})
+    },
     onDidDestroyPaneItem () {
       return new Disposable(() => {})
     }

@@ -181,7 +181,7 @@ suite('TeletypePackage', function () {
 
     // Start out as a guest in another user's portal (Portal 1)
     const portal1Id = (await hostOnlyPackage.sharePortal()).id
-    guestAndHostPackage.joinPortal(portal1Id)
+    const guestAndHostPortal1 = await guestAndHostPackage.joinPortal(portal1Id)
     hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-1'))
     const guestAndHostRemotePaneItem1 = await getNextRemotePaneItemPromise(guestAndHostEnv)
     assert.deepEqual(getPaneItems(guestAndHostEnv), [guestAndHostRemotePaneItem1])
@@ -194,6 +194,7 @@ suite('TeletypePackage', function () {
     const guestOnlyRemotePaneItem1 = await getNextRemotePaneItemPromise(guestOnlyEnv)
     assert(guestOnlyRemotePaneItem1 instanceof TextEditor)
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
+    guestAndHostPortal1.follow(1) // reconnect tether after disconnecting it due to opening a local editor.
 
     // Portal 2 host continues to exist as a guest in Portal 1
     hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-2'))
@@ -205,6 +206,7 @@ suite('TeletypePackage', function () {
     guestAndHostEnv.workspace.getActivePane().activateItemAtIndex(0)
     assert.equal(guestAndHostEnv.workspace.getActivePaneItem(), guestAndHostRemotePaneItem1)
     assert.deepEqual(getPaneItems(guestOnlyEnv), [guestOnlyRemotePaneItem1])
+    guestAndHostPortal1.follow(1) // reconnect tether after disconnecting it due to switching to a different editor.
 
     // As Portal 2 host observes changes in Portal 1, Portal 2 guests continue to only see contents of Portal 2
     await hostOnlyEnv.workspace.open(path.join(temp.path(), 'host-only-buffer-3'))
@@ -738,7 +740,7 @@ suite('TeletypePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor), getCursorDecoratedRanges(guestEditor)))
   })
 
-  test('tethering to other collaborators', async () => {
+  test.only('tethering to other collaborators', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
     const guestEnv = buildAtomEnvironment()
@@ -752,10 +754,10 @@ suite('TeletypePackage', function () {
     hostEditor1.setText(('x'.repeat(30) + '\n').repeat(30))
     hostEditor1.setCursorBufferPosition([2, 2])
 
-    const portal = await hostPackage.sharePortal()
-    guestPackage.joinPortal(portal.id)
+    const hostPortal = await hostPackage.sharePortal()
+    const guestPortal = await guestPackage.joinPortal(hostPortal.id)
 
-    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    const guestEditor1 = guestEnv.workspace.getActiveTextEditor()
 
     // Jump to host cursor when joining
     await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
@@ -801,31 +803,37 @@ suite('TeletypePackage', function () {
     await condition(() => guestEditor1.lineTextForBufferRow(1).includes('y'))
     assert(guestEditor1.getCursorBufferPosition().isEqual([20, 29]))
 
-    // TODO Update tests below to reflect new behavior
+    // Retract guest's tether and ensure following across tabs still works.
+    const hostEditor2 = await hostEnv.workspace.open()
+    hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
+    hostEditor2.setCursorBufferPosition([2, 2])
 
-    // Reconnect and retract the tether when the host switches editors
-    // const hostEditor2 = await hostEnv.workspace.open()
-    // hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
-    // hostEditor2.setCursorBufferPosition([2, 2])
-    // const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
-    // await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
-    // hostEditor2.setCursorBufferPosition([4, 4])
-    // await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+    guestPortal.follow(1)
+
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+    hostEditor2.setCursorBufferPosition([4, 4])
+    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
 
     // Disconnect tether if guest scrolls the tether position out of view
-    // guestEditor2.setCursorBufferPosition([20, 0])
-    // await timeout(guestPackage.tetherDisconnectWindow)
-    // hostEditor2.setCursorBufferPosition([4, 5])
-    // hostEditor2.insertText('z')
-    // await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
-    // assert(guestEditor2.getCursorBufferPosition().isEqual([20, 0]))
+    guestEditor2.setCursorBufferPosition([20, 0])
+    await timeout(guestPackage.tetherDisconnectWindow)
+    hostEditor2.setCursorBufferPosition([4, 5])
+    hostEditor2.insertText('z')
+    await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
+    assert(guestEditor2.getCursorBufferPosition().isEqual([20, 0]))
 
-    // When host switches back to an existing editor, reconnect the tether
-    // hostEnv.workspace.getActivePane().activateItem(hostEditor1)
-    // await getNextActiveTextEditorPromise(guestEnv)
-    // await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
-    // hostEditor1.setCursorBufferPosition([1, 20])
-    // await condition(() => deepEqual(guestEditor1.getCursorBufferPosition(), hostEditor1.getCursorBufferPosition()))
+    // Retract guest's tether and ensure it gets disconnected after switching to a different tab.
+    guestPortal.follow(1)
+    await condition(() => deepEqual(guestEditor2.getCursorBufferPosition(), hostEditor2.getCursorBufferPosition()))
+    guestEnv.workspace.getActivePane().activateItem(guestEditor1)
+    await timeout(guestPackage.tetherDisconnectWindow)
+    hostEditor2.setCursorBufferPosition([8, 2])
+    hostEditor2.insertText('x')
+    await condition(() => guestEditor2.lineTextForBufferRow(4).includes('z'))
+    assert(!guestEditor2.getCursorBufferPosition().isEqual(hostEditor2.getCursorBufferPosition()))
+
+    // TODO: ensure host can follow guest.
   })
 
   test('adding and removing workspace element classes when sharing a portal', async () => {
