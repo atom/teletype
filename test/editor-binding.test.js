@@ -5,6 +5,12 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {
+  setEditorHeightInLines,
+  setEditorWidthInChars,
+  setEditorScrollTopInLines,
+  setEditorScrollLeftInChars
+} = require('./helpers/editor-helpers')
 const {FollowState} = require('@atom/teletype-client')
 
 suite('EditorBinding', function () {
@@ -347,76 +353,6 @@ suite('EditorBinding', function () {
     assert.deepEqual(getCursorClasses(editor), [])
   })
 
-  test.skip('showing the active position of other collaborators', async () => {
-    // TODO: move this test into portal binding tests.
-    const editor = new TextEditor({autoHeight: false})
-    editor.setText(SAMPLE_TEXT)
-
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
-    const editorProxy = new FakeEditorProxy(binding)
-    binding.setEditorProxy(editorProxy)
-
-    const {
-      aboveViewportSitePositionsComponent,
-      insideViewportSitePositionsComponent,
-      outsideViewportSitePositionsComponent
-    } = binding
-    assert(editor.element.contains(aboveViewportSitePositionsComponent.element))
-    assert(editor.element.contains(insideViewportSitePositionsComponent.element))
-    assert(editor.element.contains(outsideViewportSitePositionsComponent.element))
-
-    attachToDOM(editor.element)
-
-    await setEditorHeightInLines(editor, 3)
-    await setEditorWidthInChars(editor, 5)
-    await setEditorScrollTopInLines(editor, 5)
-    await setEditorScrollLeftInChars(editor, 5)
-
-    binding.updateActivePositions({
-      1: {row: 2, column: 5}, // collaborator above visible area
-      2: {row: 9, column: 5}, // collaborator below visible area
-      3: {row: 6, column: 1}, // collaborator to the left of visible area
-      4: {row: 6, column: 15}, // collaborator to the right of visible area
-      5: {row: 6, column: 6} // collaborator inside of visible area
-    })
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 3, 4])
-
-    await setEditorScrollLeftInChars(editor, 0)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 5])
-
-    await setEditorScrollTopInLines(editor, 2)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
-
-    await setEditorHeightInLines(editor, 7)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
-
-    await setEditorWidthInChars(editor, 10)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4])
-
-    // Selecting a site will follow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert.equal(editorProxy.getFollowedSiteId(), 2)
-
-    // Selecting the same site again will unfollow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert.equal(editorProxy.getFollowedSiteId(), null)
-  })
-
   test('isScrollNeededToViewPosition(position)', async () => {
     const editor = new TextEditor({autoHeight: false})
     const binding = new EditorBinding({editor, portal: new FakePortal()})
@@ -508,29 +444,6 @@ suite('EditorBinding', function () {
   function attachToDOM (element) {
     attachedElements.push(element)
     document.body.insertBefore(element, document.body.firstChild)
-  }
-
-  async function setEditorHeightInLines (editor, lines) {
-    editor.element.style.height = editor.getLineHeightInPixels() * lines + 'px'
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorWidthInChars (editor, chars) {
-    editor.element.style.width =
-      editor.component.getGutterContainerWidth() +
-      chars * editor.getDefaultCharWidth() +
-      'px'
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorScrollTopInLines (editor, lines) {
-    editor.element.setScrollTop(editor.getLineHeightInPixels() * lines)
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorScrollLeftInChars (editor, chars) {
-    editor.element.setScrollLeft(editor.getDefaultCharWidth() * chars)
-    return editor.component.getNextUpdatePromise()
   }
 })
 
