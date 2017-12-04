@@ -83,7 +83,25 @@ suite('GuestPortalBinding', () => {
     disposable.dispose()
   })
 
-  test('toggling site position components visibility when switching tabs')
+  test('toggling site position components visibility when switching tabs', async () => {
+    const stubPubSubGateway = {}
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
+    const portal = new FakePortal()
+    client.joinPortal = () => portal
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+    await portalBinding.initialize()
+
+    await portalBinding.updateTether(FollowState.RETRACTED, new FakeEditorProxy('some-uri'))
+    const portalPaneItem = atomEnv.workspace.getActivePaneItem()
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    await atomEnv.workspace.open()
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+
+    await atomEnv.workspace.open(portalPaneItem)
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+  })
 
   function buildGuestPortalBinding (client, atomEnv, portalId) {
     return new GuestPortalBinding({
