@@ -117,8 +117,8 @@ suite('GuestPortalBinding', () => {
     const editorProxy2 = new FakeEditorProxy('editor-2')
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy1)
 
-    const editor = workspace.getActiveTextEditor()
-    editor.buffer.setTextInRange([[0, 0], [0, 0]], SAMPLE_TEXT, {undo: 'skip'})
+    const editor1 = workspace.getActiveTextEditor()
+    editor1.buffer.setTextInRange([[0, 0], [0, 0]], SAMPLE_TEXT, {undo: 'skip'})
 
     const {
       aboveViewportSitePositionsComponent,
@@ -129,10 +129,10 @@ suite('GuestPortalBinding', () => {
     assert(workspace.element.contains(insideViewportSitePositionsComponent.element))
     assert(workspace.element.contains(outsideViewportSitePositionsComponent.element))
 
-    await setEditorHeightInLines(editor, 3)
-    await setEditorWidthInChars(editor, 5)
-    await setEditorScrollTopInLines(editor, 5)
-    await setEditorScrollLeftInChars(editor, 5)
+    await setEditorHeightInLines(editor1, 3)
+    await setEditorWidthInChars(editor1, 5)
+    await setEditorScrollTopInLines(editor1, 5)
+    await setEditorScrollLeftInChars(editor1, 5)
 
     const activePositionsBySiteId = {
       1: {editorProxy: editorProxy1, position: {row: 2, column: 5}}, // collaborator above visible area
@@ -148,25 +148,25 @@ suite('GuestPortalBinding', () => {
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [5])
     assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 3, 4, 6])
 
-    await setEditorScrollLeftInChars(editor, 0)
+    await setEditorScrollLeftInChars(editor1, 0)
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
     assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 5, 6])
 
-    await setEditorScrollTopInLines(editor, 2)
+    await setEditorScrollTopInLines(editor1, 2)
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5, 6])
 
-    await setEditorHeightInLines(editor, 7)
+    await setEditorHeightInLines(editor1, 7)
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
     assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 4, 5, 6])
 
-    await setEditorWidthInChars(editor, 10)
+    await setEditorWidthInChars(editor1, 10)
 
     assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
     assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
@@ -189,15 +189,22 @@ suite('GuestPortalBinding', () => {
 
     // Focusing a pane item that does not belong to the portal will hide site positions.
     await workspace.open()
+
     assert(!workspace.element.contains(aboveViewportSitePositionsComponent.element))
     assert(!workspace.element.contains(insideViewportSitePositionsComponent.element))
     assert(!workspace.element.contains(outsideViewportSitePositionsComponent.element))
 
-    // Re-focusing a pane item that belongs to the portal will show site positions again.
-    await workspace.open(editor)
+    // Focusing a pane item that belongs to the portal will show site positions again.
+    await workspace.open(editor1)
+    portalBinding.updateActivePositions(activePositionsBySiteId)
+
     assert(workspace.element.contains(aboveViewportSitePositionsComponent.element))
     assert(workspace.element.contains(insideViewportSitePositionsComponent.element))
     assert(workspace.element.contains(outsideViewportSitePositionsComponent.element))
+
+    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
+    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
+    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 6])
   })
 
   function buildGuestPortalBinding (client, atomEnv, portalId) {
