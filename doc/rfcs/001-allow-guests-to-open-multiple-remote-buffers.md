@@ -2,7 +2,9 @@
 
 ## Status
 
-This is a proposal and is not yet implemented.
+This is a proposal and is not yet fully implemented.
+
+[#262](https://github.com/atom/teletype/pull/262) implements the majority of this proposal, and the remaining functionality is planned for future pull requests. See [#262](https://github.com/atom/teletype/pull/262) for details.
 
 ## Summary
 
