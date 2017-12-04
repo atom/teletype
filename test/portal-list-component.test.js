@@ -247,6 +247,16 @@ suite('PortalListComponent', function () {
 class FakeWorkspace {
   async open () {}
 
+  getCenter () {
+    return {
+      paneContainer: {
+        getElement () {
+          return document.createElement('div')
+        }
+      }
+    }
+  }
+
   getElement () {
     return document.createElement('div')
   }

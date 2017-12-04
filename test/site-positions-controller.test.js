@@ -35,15 +35,17 @@ suite('SitePositionsController', () => {
       editorBindingForEditorProxy: () => {}
     })
 
+    const workspaceCenterElement = workspace.getCenter().paneContainer.getElement()
+
     controller.show()
-    assert(workspace.element.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(workspace.element.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(workspace.element.contains(controller.outsideViewportSitePositionsComponent.element))
+    assert(workspaceCenterElement.contains(controller.aboveViewportSitePositionsComponent.element))
+    assert(workspaceCenterElement.contains(controller.insideViewportSitePositionsComponent.element))
+    assert(workspaceCenterElement.contains(controller.outsideViewportSitePositionsComponent.element))
 
     controller.hide()
-    assert(!workspace.element.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(!workspace.element.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(!workspace.element.contains(controller.outsideViewportSitePositionsComponent.element))
+    assert(!workspaceCenterElement.contains(controller.aboveViewportSitePositionsComponent.element))
+    assert(!workspaceCenterElement.contains(controller.insideViewportSitePositionsComponent.element))
+    assert(!workspaceCenterElement.contains(controller.outsideViewportSitePositionsComponent.element))
   })
 
   test('updateActivePositions(positionsBySiteId)', async () => {
