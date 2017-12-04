@@ -3,6 +3,7 @@ const {Errors} = require('@atom/teletype-client')
 const {TextBuffer, TextEditor} = require('atom')
 
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
@@ -830,6 +831,7 @@ suite('TeletypePackage', function () {
 
     async function verifyTetheringRules ({leaderEnv, leaderPortal, followerEnv, followerPortal}) {
       // Setup DOM for follower's workspace.
+      loadPackageStyleSheets(followerEnv)
       const followerWorkspaceElement = followerEnv.views.getView(followerEnv.workspace)
       followerWorkspaceElement.style.height = '100px'
       followerWorkspaceElement.style.width = '250px'
