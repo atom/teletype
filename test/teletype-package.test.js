@@ -769,7 +769,7 @@ suite('TeletypePackage', function () {
       })
     })
 
-    test.skip('host following guest', async () => {
+    test('host following guest', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
       const guestEnv = buildAtomEnvironment()
