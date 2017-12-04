@@ -464,24 +464,6 @@ class FakeEditorProxy {
       }
     }
   }
-
-  follow (siteId) {
-    this.followedSiteId = siteId
-    this.followState = FollowState.RETRACTED
-  }
-
-  unfollow () {
-    this.followedSiteId = null
-    this.followState = FollowState.DISCONNECTED
-  }
-
-  getFollowedSiteId () {
-    if (this.followState === FollowState.DISCONNECTED) {
-      return null
-    } else {
-      return this.followedSiteId
-    }
-  }
 }
 
 class FakePortal {
