@@ -57,6 +57,9 @@ suite('HostPortalBinding', () => {
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
   })
 
+  // TODO
+  test('toggling site position components visibility when switching between shared and non-shared pane items')
+
   function buildHostPortalBinding (client, atomEnv) {
     return new HostPortalBinding({
       client,
