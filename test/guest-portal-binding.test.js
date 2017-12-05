@@ -83,6 +83,31 @@ suite('GuestPortalBinding', () => {
     disposable.dispose()
   })
 
+  test('switching the active editor to a remote editor that had been moved into a non-active pane', async () => {
+    const stubPubSubGateway = {}
+    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
+    client.joinPortal = () => new FakePortal()
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+    await portalBinding.initialize()
+
+    const editorProxy1 = new FakeEditorProxy('editor-1')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy1)
+
+    const editorProxy2 = new FakeEditorProxy('editor-2')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy2)
+
+    const leftPane = atomEnv.workspace.getActivePane()
+    const rightPane = leftPane.splitRight({moveActiveItem: true})
+    assert.equal(leftPane.getItems().length, 1)
+    assert.equal(rightPane.getItems().length, 1)
+
+    leftPane.activate()
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy2)
+    assert.equal(leftPane.getItems().length, 1)
+    assert.equal(rightPane.getItems().length, 1)
+  })
+
   test('toggling site position components visibility when switching tabs', async () => {
     const stubPubSubGateway = {}
     const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
