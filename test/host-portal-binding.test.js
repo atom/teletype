@@ -5,7 +5,6 @@ const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakePortal = require('./helpers/fake-portal')
-const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 
 suite('HostPortalBinding', () => {
   teardown(async () => {
@@ -58,10 +57,8 @@ suite('HostPortalBinding', () => {
     const portalBinding = buildHostPortalBinding(client, atomEnv)
     await portalBinding.initialize()
 
-    const editor1 = await atomEnv.workspace.open()
-    const editorProxy1 = portal.getActiveEditorProxy()
-
-    const editor2 = await atomEnv.workspace.open()
+    await atomEnv.workspace.open()
+    await atomEnv.workspace.open()
     const editorProxy2 = portal.getActiveEditorProxy()
 
     const leftPane = atomEnv.workspace.getActivePane()
