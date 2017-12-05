@@ -1,5 +1,20 @@
 module.exports =
 class FakePortal {
+  createBufferProxy () {
+    return {
+      dispose () {},
+      setDelegate () {}
+    }
+  }
+
+  createEditorProxy () {
+    return {
+      dispose () {},
+      setDelegate () {},
+      updateSelections () {}
+    }
+  }
+
   follow (siteId) {
     this.followedSiteId = siteId
   }
@@ -13,6 +28,8 @@ class FakePortal {
   }
 
   activateEditorProxy () {}
+
+  removeEditorProxy () {}
 
   setDelegate (delegate) {
     this.delegate = delegate

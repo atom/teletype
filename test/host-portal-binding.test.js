@@ -1,4 +1,5 @@
 const assert = require('assert')
+const {Emitter, TextEditor} = require('atom')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const {TeletypeClient} = require('@atom/teletype-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
@@ -48,8 +49,37 @@ suite('HostPortalBinding', () => {
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
   })
 
-  // TODO
-  test('toggling site position components visibility when switching between shared and non-shared pane items')
+  test('toggling site position components visibility when switching between shared and non-shared pane items', async () => {
+    const client = new TeletypeClient({pubSubGateway: {}})
+    const portal = new FakePortal()
+    client.createPortal = () => portal
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildHostPortalBinding(client, atomEnv)
+
+    const localEditor1 = await atomEnv.workspace.open()
+    await portalBinding.initialize()
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    const localNonEditor = await atomEnv.workspace.open(new FakePaneItem())
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+
+    const localEditor2 = await atomEnv.workspace.open()
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    const remoteEditor = new TextEditor()
+    remoteEditor.isRemote = true
+    await atomEnv.workspace.open(remoteEditor)
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+
+    await atomEnv.workspace.open(localEditor2)
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    remoteEditor.destroy()
+    localEditor1.destroy()
+    localEditor2.destroy()
+    localNonEditor.destroy()
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+  })
 
   function buildHostPortalBinding (client, atomEnv) {
     return new HostPortalBinding({
@@ -60,3 +90,18 @@ suite('HostPortalBinding', () => {
     })
   }
 })
+
+class FakePaneItem {
+  constructor () {
+    this.element = document.createElement('div')
+    this.emitter = new Emitter()
+  }
+
+  destroy () {
+    this.emitter.emit('did-destroy')
+  }
+
+  onDidDestroy (callback) {
+    return this.emitter.on('did-destroy', callback)
+  }
+}
