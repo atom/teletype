@@ -3,6 +3,7 @@ const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-
 const {TeletypeClient} = require('@atom/teletype-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
 const FakeClipboard = require('./helpers/fake-clipboard')
+const FakePortal = require('./helpers/fake-portal')
 
 suite('HostPortalBinding', () => {
   teardown(async () => {
@@ -10,8 +11,7 @@ suite('HostPortalBinding', () => {
   })
 
   test('handling an unexpected error when joining a portal', async () => {
-    const stubPubSubGateway = {}
-    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
+    const client = new TeletypeClient({pubSubGateway: {}})
     client.createPortal = function () {
       throw new Error('It broke!')
     }
@@ -28,17 +28,8 @@ suite('HostPortalBinding', () => {
   })
 
   test('showing notifications when sites join or leave', async () => {
-    const stubPubSubGateway = {}
-    const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
-    const portal = {
-      setDelegate (delegate) {
-        this.delegate = delegate
-      },
-      getSiteIdentity (siteId) {
-        return {login: 'site-' + siteId}
-      },
-      setActiveEditorProxy () {}
-    }
+    const portal = new FakePortal()
+    const client = new TeletypeClient({pubSubGateway: {}})
     client.createPortal = function () {
       return portal
     }
