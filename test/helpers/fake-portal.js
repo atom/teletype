@@ -27,9 +27,15 @@ class FakePortal {
     return this.followedSiteId
   }
 
-  activateEditorProxy () {}
+  activateEditorProxy (editorProxy) {
+    this.activeEditorProxy = editorProxy
+  }
 
   removeEditorProxy () {}
+
+  getActiveEditorProxy () {
+    return this.activeEditorProxy
+  }
 
   setDelegate (delegate) {
     this.delegate = delegate

@@ -2,6 +2,7 @@ const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const FakePortal = require('./helpers/fake-portal')
+const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
 
 suite('GuestPortalBinding', () => {
@@ -101,11 +102,13 @@ suite('GuestPortalBinding', () => {
     const rightPane = leftPane.splitRight({moveActiveItem: true})
     assert.equal(leftPane.getItems().length, 1)
     assert.equal(rightPane.getItems().length, 1)
+    assert.equal(atomEnv.workspace.getActivePane(), rightPane)
 
     leftPane.activate()
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy2)
     assert.equal(leftPane.getItems().length, 1)
     assert.equal(rightPane.getItems().length, 1)
+    assert.equal(atomEnv.workspace.getActivePane(), rightPane)
   })
 
   test('toggling site position components visibility when switching tabs', async () => {
@@ -135,26 +138,5 @@ suite('GuestPortalBinding', () => {
       notificationManager: atomEnv.notifications,
       workspace: atomEnv.workspace
     })
-  }
-
-  class FakeEditorProxy {
-    constructor (uri) {
-      this.bufferProxy = {
-        uri,
-        dispose () {},
-        setDelegate () {},
-        createCheckpoint () {},
-        groupChangesSinceCheckpoint () {},
-        applyGroupingInterval () {}
-      }
-    }
-
-    follow () {}
-
-    didScroll () {}
-
-    setDelegate () {}
-
-    updateSelections () {}
   }
 })

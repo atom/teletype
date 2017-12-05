@@ -1,10 +1,11 @@
 const assert = require('assert')
 const {Emitter, TextEditor} = require('atom')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
-const {TeletypeClient} = require('@atom/teletype-client')
+const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const HostPortalBinding = require('../lib/host-portal-binding')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakePortal = require('./helpers/fake-portal')
+const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 
 suite('HostPortalBinding', () => {
   teardown(async () => {
@@ -47,6 +48,33 @@ suite('HostPortalBinding', () => {
     portal.delegate.siteDidLeave(3)
     assert.equal(atomEnv.notifications.getNotifications().length, 1)
     assert(atomEnv.notifications.getNotifications()[0].message.includes('@site-3'))
+  })
+
+  test('switching the active editor to a remote editor that had been moved into a non-active pane', async () => {
+    const client = new TeletypeClient({pubSubGateway: {}})
+    const portal = new FakePortal()
+    client.createPortal = () => portal
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildHostPortalBinding(client, atomEnv)
+    await portalBinding.initialize()
+
+    const editor1 = await atomEnv.workspace.open()
+    const editorProxy1 = portal.getActiveEditorProxy()
+
+    const editor2 = await atomEnv.workspace.open()
+    const editorProxy2 = portal.getActiveEditorProxy()
+
+    const leftPane = atomEnv.workspace.getActivePane()
+    const rightPane = leftPane.splitRight({moveActiveItem: true})
+    assert.equal(leftPane.getItems().length, 1)
+    assert.equal(rightPane.getItems().length, 1)
+    assert.equal(atomEnv.workspace.getActivePane(), rightPane)
+
+    leftPane.activate()
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy2)
+    assert.equal(leftPane.getItems().length, 1)
+    assert.equal(rightPane.getItems().length, 1)
+    assert.equal(atomEnv.workspace.getActivePane(), rightPane)
   })
 
   test('toggling site position components visibility when switching between shared and non-shared pane items', async () => {
