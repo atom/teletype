@@ -111,6 +111,45 @@ suite('GuestPortalBinding', () => {
     assert.equal(atomEnv.workspace.getActivePane(), rightPane)
   })
 
+  test('relaying active editor changes', async () => {
+    const portal = new FakePortal()
+    const client = {joinPortal: () => portal}
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
+    await portalBinding.initialize()
+
+    // Manually switching to another editor relays active editor changes to the client.
+    await atomEnv.workspace.open()
+    assert.equal(portal.activeEditorProxyChangeCount, 1)
+
+    portal.setFollowState(FollowState.RETRACTED)
+
+    // Updating tether and removing editor proxies while retracted doesn't relay
+    // active editor changes to the client.
+    const editorProxy1 = new FakeEditorProxy('editor-1')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy1)
+    assert.equal(portal.activeEditorProxyChangeCount, 1)
+
+    const editorProxy2 = new FakeEditorProxy('editor-2')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy2)
+    assert.equal(portal.activeEditorProxyChangeCount, 1)
+
+    const editorProxy3 = new FakeEditorProxy('editor-3')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy3)
+    assert.equal(portal.activeEditorProxyChangeCount, 1)
+
+    await portalBinding.removeEditorProxy(editorProxy3)
+    assert.equal(portal.activeEditorProxyChangeCount, 1)
+    assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-2'))
+
+    portal.setFollowState(FollowState.DISCONNECTED)
+
+    // Removing editor proxies while not retracted relays active editor changes to the client.
+    await portalBinding.removeEditorProxy(editorProxy2)
+    assert.equal(portal.activeEditorProxyChangeCount, 2)
+    assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-1'))
+  })
+
   test('toggling site position components visibility when switching tabs', async () => {
     const stubPubSubGateway = {}
     const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})

@@ -1,5 +1,11 @@
+const {FollowState} = require('@atom/teletype-client')
+
 module.exports =
 class FakePortal {
+  constructor () {
+    this.activeEditorProxyChangeCount = 0
+  }
+
   createBufferProxy () {
     return {
       dispose () {},
@@ -17,10 +23,20 @@ class FakePortal {
 
   follow (siteId) {
     this.followedSiteId = siteId
+    this.setFollowState(FollowState.RETRACTED)
   }
 
   unfollow () {
     this.followedSiteId = null
+    this.setFollowState(FollowState.DISCONNECTED)
+  }
+
+  setFollowState (followState) {
+    this.followState = followState
+  }
+
+  resolveFollowState () {
+    return this.followState
   }
 
   getFollowedSiteId () {
@@ -29,6 +45,7 @@ class FakePortal {
 
   activateEditorProxy (editorProxy) {
     this.activeEditorProxy = editorProxy
+    this.activeEditorProxyChangeCount++
   }
 
   removeEditorProxy () {}
