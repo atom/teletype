@@ -9,14 +9,21 @@ class FakePortal {
   createBufferProxy () {
     return {
       dispose () {},
-      setDelegate () {}
+      setDelegate () {},
+      createCheckpoint () {},
+      groupChangesSinceCheckpoint () {},
+      applyGroupingInterval () {}
     }
   }
 
   createEditorProxy () {
     return {
-      dispose () {},
-      setDelegate () {},
+      dispose () {
+        this.delegate.dispose()
+      },
+      setDelegate (delegate) {
+        this.delegate = delegate
+      },
       updateSelections () {}
     }
   }

@@ -74,6 +74,25 @@ suite('HostPortalBinding', () => {
     assert.equal(atomEnv.workspace.getActivePane(), rightPane)
   })
 
+  test('gracefully handles attempt to update tether for destroyed editors', async () => {
+    const client = new TeletypeClient({pubSubGateway: {}})
+    const portal = new FakePortal()
+    client.createPortal = () => portal
+    const atomEnv = buildAtomEnvironment()
+    const portalBinding = buildHostPortalBinding(client, atomEnv)
+    await portalBinding.initialize()
+
+    const editor = await atomEnv.workspace.open()
+    editor.getBuffer().setTextInRange('Lorem ipsum dolor', [[0, 0], [0, 0]], {undo: 'skip'})
+    const editorProxy = portal.getActiveEditorProxy()
+
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy, {row: 0, column: 3})
+    assert.deepEqual(editor.getCursorBufferPosition(), {row: 0, column: 3})
+
+    editor.destroy()
+    await portalBinding.updateTether(FollowState.DISCONNECTED, editorProxy, {row: 0, column: 5})
+  })
+
   test('toggling site position components visibility when switching between shared and non-shared pane items', async () => {
     const client = new TeletypeClient({pubSubGateway: {}})
     const portal = new FakePortal()
