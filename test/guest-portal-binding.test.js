@@ -167,7 +167,6 @@ suite('GuestPortalBinding', () => {
 
     const editorProxy = new FakeEditorProxy('some-uri')
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy)
-    const portalPaneItem = atomEnv.workspace.getActivePaneItem()
     assert.equal(portalBinding.sitePositionsController.visible, true)
 
     await atomEnv.workspace.open(localPaneItem1)
