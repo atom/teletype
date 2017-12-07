@@ -4,6 +4,7 @@ const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const FakePortal = require('./helpers/fake-portal')
 const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
+const EmptyPortalPaneItem = require('../lib/empty-portal-pane-item')
 
 suite('GuestPortalBinding', () => {
   teardown(async () => {
@@ -157,16 +158,30 @@ suite('GuestPortalBinding', () => {
     client.joinPortal = () => portal
     const atomEnv = buildAtomEnvironment()
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
-    await portalBinding.initialize()
 
-    await portalBinding.updateTether(FollowState.RETRACTED, new FakeEditorProxy('some-uri'))
+    await portalBinding.initialize()
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    const localPaneItem1 = await atomEnv.workspace.open()
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+
+    const editorProxy = new FakeEditorProxy('some-uri')
+    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy)
     const portalPaneItem = atomEnv.workspace.getActivePaneItem()
     assert.equal(portalBinding.sitePositionsController.visible, true)
 
-    await atomEnv.workspace.open()
+    await atomEnv.workspace.open(localPaneItem1)
     assert.equal(portalBinding.sitePositionsController.visible, false)
 
-    await atomEnv.workspace.open(portalPaneItem)
+    localPaneItem1.destroy()
+    assert.equal(portalBinding.sitePositionsController.visible, true)
+
+    const localPaneItem2 = await atomEnv.workspace.open()
+    assert.equal(portalBinding.sitePositionsController.visible, false)
+
+    await portalBinding.removeEditorProxy(editorProxy)
+    localPaneItem2.destroy()
+    assert(atomEnv.workspace.getActivePaneItem() instanceof EmptyPortalPaneItem)
     assert.equal(portalBinding.sitePositionsController.visible, true)
   })
 
