@@ -1,4 +1,5 @@
 const {FollowState} = require('@atom/teletype-client')
+const FakeEditorProxy = require('./fake-editor-proxy')
 
 module.exports =
 class FakePortal {
@@ -17,15 +18,7 @@ class FakePortal {
   }
 
   createEditorProxy () {
-    return {
-      dispose () {
-        this.delegate.dispose()
-      },
-      setDelegate (delegate) {
-        this.delegate = delegate
-      },
-      updateSelections () {}
-    }
+    return new FakeEditorProxy()
   }
 
   follow (siteId) {

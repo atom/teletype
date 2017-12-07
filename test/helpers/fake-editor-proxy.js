@@ -11,11 +11,17 @@ class FakeEditorProxy {
     }
   }
 
+  dispose () {
+    if (this.delegate) this.delegate.dispose()
+  }
+
   follow () {}
 
   didScroll () {}
 
-  setDelegate () {}
+  setDelegate (delegate) {
+    this.delegate = delegate
+  }
 
   updateSelections () {}
 }
