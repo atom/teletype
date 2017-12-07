@@ -720,6 +720,45 @@ suite('TeletypePackage', function () {
     await editorsEqual(guestEditor1, hostEditor1)
   })
 
+  test('remotifying and deremotifying guest editors and buffers when host splits an editor', async () => {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = await buildPackage(hostEnv)
+    const portal = await hostPackage.sharePortal()
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = await buildPackage(guestEnv)
+    guestPackage.joinPortal(portal.id)
+
+    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'a.txt'))
+    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+
+    hostEnv.workspace.paneForItem(hostEditor1).splitRight({copyActiveItem: true})
+    const hostEditor2 = hostEnv.workspace.getActiveTextEditor()
+    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
+
+    assert.deepEqual(getPaneItems(guestEnv), [guestEditor1, guestEditor2])
+    assert(guestEditor1.isRemote)
+    assert(guestEditor1.getTitle().endsWith('a.txt'))
+    assert(guestEditor1.getBuffer().getPath().endsWith('a.txt'))
+    assert(guestEditor2.isRemote)
+    assert(guestEditor2.getTitle().endsWith('a.txt'))
+    assert(guestEditor2.getBuffer().getPath().endsWith('a.txt'))
+
+    hostEditor2.destroy()
+    await condition(() => deepEqual(getPaneItems(guestEnv), [guestEditor1]))
+
+    assert(guestEditor1.isRemote)
+    assert(guestEditor1.getTitle().endsWith('a.txt'))
+    assert(guestEditor1.getBuffer().getPath().endsWith('a.txt'))
+
+    hostPackage.closeHostPortal()
+
+    await condition(() =>
+      !guestEditor1.isRemote &&
+      guestEditor1.getTitle() === 'untitled' &&
+      guestEditor1.getBuffer().getPath() === undefined
+    )
+  })
+
   test('propagating nested marker layer updates that depend on text updates in a nested transaction', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
