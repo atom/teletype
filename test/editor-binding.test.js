@@ -301,6 +301,29 @@ suite('EditorBinding', function () {
     })
   })
 
+  suite('destroying the editor', () => {
+    test('on the host, disposes the underlying editor proxy', () => {
+      const editor = new TextEditor()
+      const binding = new EditorBinding({editor, isHost: true, portal: new FakePortal()})
+      const editorProxy = new FakeEditorProxy(binding)
+      binding.setEditorProxy(editorProxy)
+
+      editor.destroy()
+      assert(editorProxy.disposed)
+    })
+
+    test('on guests, disposes the editor binding', () => {
+      const editor = new TextEditor()
+      const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
+      const editorProxy = new FakeEditorProxy(binding)
+      binding.setEditorProxy(editorProxy)
+
+      editor.destroy()
+      assert(binding.disposed)
+      assert(!editorProxy.disposed)
+    })
+  })
+
   suite('guest editor binding', () => {
     test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
@@ -450,6 +473,11 @@ class FakeEditorProxy {
     this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
     this.selections = {}
     this.siteId = (siteId == null) ? 1 : siteId
+    this.disposed = false
+  }
+
+  dispose () {
+    this.disposed = true
   }
 
   didScroll () {}
