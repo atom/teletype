@@ -391,21 +391,54 @@ suite('TeletypePackage', function () {
     assert(errorNotification, 'Expected notifications to include "Portal not found" error')
   })
 
-  test('guest leaving portal', async () => {
-    const hostEnv = buildAtomEnvironment()
-    const hostPackage = await buildPackage(hostEnv)
-    const guestEnv = buildAtomEnvironment()
-    const guestPackage = await buildPackage(guestEnv)
-    const portal = await hostPackage.sharePortal()
-    await guestPackage.joinPortal(portal.id)
+  suite('guest leaving portal', () => {
+    test('via explicit leave action', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const portal = await hostPackage.sharePortal()
+      await guestPackage.joinPortal(portal.id)
 
-    await hostEnv.workspace.open()
-    await hostEnv.workspace.open()
-    await hostEnv.workspace.open()
-    await condition(() => getPaneItems(guestEnv).length === 3)
+      await hostEnv.workspace.open()
+      await hostEnv.workspace.open()
+      await hostEnv.workspace.open()
+      await condition(() => getPaneItems(guestEnv).length === 3)
 
-    await guestPackage.leavePortal()
-    await condition(() => getPaneItems(guestEnv).length === 0)
+      await guestPackage.leavePortal()
+      await condition(() => getPaneItems(guestEnv).length === 0)
+    })
+
+    test('via closing last remote editor', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const hostPortal = await hostPackage.sharePortal()
+      await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
+
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
+
+      await condition(() => getRemotePaneItems(guestEnv).length === 1)
+      const guestEditor = guestEnv.workspace.getActivePaneItem()
+      assert(guestEditor instanceof TextEditor)
+      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      assert(guestPortal.disposed)
+    })
+
+    test('via closing empty portal pane item', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const hostPortal = await hostPackage.sharePortal()
+      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
+
+      const guestEditor = getRemotePaneItems(guestEnv)[0]
+      assert(guestEditor instanceof EmptyPortalPaneItem)
+      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      assert(guestPortal.disposed)
+    })
   })
 
   test('host closing portal', async function () {

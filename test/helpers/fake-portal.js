@@ -7,6 +7,8 @@ class FakePortal {
     this.activeEditorProxyChangeCount = 0
   }
 
+  dispose () {}
+
   createBufferProxy () {
     return {
       dispose () {},

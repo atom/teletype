@@ -173,6 +173,7 @@ suite('GuestPortalBinding', () => {
     await portalBinding.removeEditorProxy(editorProxy1)
     assert.equal(portal.getFollowedSiteId(), 1)
     assert.equal(portal.resolveFollowState(), FollowState.RETRACTED)
+    assert(!portal.disposed)
   })
 
   test('toggling site position components visibility when switching tabs', async () => {
