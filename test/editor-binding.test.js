@@ -5,6 +5,13 @@ const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'
 const {TextEditor, TextBuffer, Range} = require('atom')
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
+const {
+  setEditorHeightInLines,
+  setEditorWidthInChars,
+  setEditorScrollTopInLines,
+  setEditorScrollLeftInChars
+} = require('./helpers/editor-helpers')
 const {FollowState} = require('@atom/teletype-client')
 
 suite('EditorBinding', function () {
@@ -15,11 +22,7 @@ suite('EditorBinding', function () {
   setup(() => {
     // Load the editor default styles by instantiating a new AtomEnvironment.
     const environment = buildAtomEnvironment()
-    // Load also package style sheets, so that additional UI elements are styled
-    // correctly.
-    const packageStyleSheetPath = path.join(__dirname, '..', 'styles', 'teletype.less')
-    const compiledStyleSheet = environment.themes.loadStylesheet(packageStyleSheetPath)
-    environment.styles.addStyleSheet(compiledStyleSheet)
+    loadPackageStyleSheets(environment)
     // Position editor absolutely to prevent its size from being affected by the
     // window size of the test runner. We also give it an initial width and
     // height so that the editor component can perform initial measurements.
@@ -298,6 +301,29 @@ suite('EditorBinding', function () {
     })
   })
 
+  suite('destroying the editor', () => {
+    test('on the host, disposes the underlying editor proxy', () => {
+      const editor = new TextEditor()
+      const binding = new EditorBinding({editor, isHost: true, portal: new FakePortal()})
+      const editorProxy = new FakeEditorProxy(binding)
+      binding.setEditorProxy(editorProxy)
+
+      editor.destroy()
+      assert(editorProxy.disposed)
+    })
+
+    test('on guests, disposes the editor binding', () => {
+      const editor = new TextEditor()
+      const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
+      const editorProxy = new FakeEditorProxy(binding)
+      binding.setEditorProxy(editorProxy)
+
+      editor.destroy()
+      assert(binding.disposed)
+      assert(!editorProxy.disposed)
+    })
+  })
+
   suite('guest editor binding', () => {
     test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
@@ -347,80 +373,15 @@ suite('EditorBinding', function () {
     assert.deepEqual(getCursorClasses(editor), [])
   })
 
-  test('showing the active position of other collaborators', async () => {
-    const editor = new TextEditor({autoHeight: false})
-    editor.setText(SAMPLE_TEXT)
-
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
-    const editorProxy = new FakeEditorProxy(binding)
-    binding.setEditorProxy(editorProxy)
-
-    const {
-      aboveViewportSitePositionsComponent,
-      insideViewportSitePositionsComponent,
-      outsideViewportSitePositionsComponent
-    } = binding
-    assert(editor.element.contains(aboveViewportSitePositionsComponent.element))
-    assert(editor.element.contains(insideViewportSitePositionsComponent.element))
-    assert(editor.element.contains(outsideViewportSitePositionsComponent.element))
-
-    attachToDOM(editor.element)
-
-    await setEditorHeightInLines(editor, 3)
-    await setEditorWidthInChars(editor, 5)
-    await setEditorScrollTopInLines(editor, 5)
-    await setEditorScrollLeftInChars(editor, 5)
-
-    binding.updateActivePositions({
-      1: {row: 2, column: 5}, // collaborator above visible area
-      2: {row: 9, column: 5}, // collaborator below visible area
-      3: {row: 6, column: 1}, // collaborator to the left of visible area
-      4: {row: 6, column: 15}, // collaborator to the right of visible area
-      5: {row: 6, column: 6} // collaborator inside of visible area
-    })
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 3, 4])
-
-    await setEditorScrollLeftInChars(editor, 0)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 5])
-
-    await setEditorScrollTopInLines(editor, 2)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
-
-    await setEditorHeightInLines(editor, 7)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 4, 5])
-
-    await setEditorWidthInChars(editor, 10)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4])
-
-    // Selecting a site will follow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert.equal(editorProxy.getFollowedSiteId(), 2)
-
-    // Selecting the same site again will unfollow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(2)
-    assert.equal(editorProxy.getFollowedSiteId(), null)
-  })
-
-  test('isPositionVisible(position)', async () => {
+  test('isScrollNeededToViewPosition(position)', async () => {
     const editor = new TextEditor({autoHeight: false})
     const binding = new EditorBinding({editor, portal: new FakePortal()})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
+
+    // If the editor is not yet attached to the DOM, scrolling isn't gonna help.
+    assert(!binding.isScrollNeededToViewPosition({row: 1, column: 0}))
+    assert(!binding.isScrollNeededToViewPosition({row: 0, column: 9}))
 
     attachToDOM(editor.element)
     await setEditorHeightInLines(editor, 4)
@@ -428,9 +389,9 @@ suite('EditorBinding', function () {
 
     editor.setText('a pretty long line\n'.repeat(100))
 
-    assert(binding.isPositionVisible({row: 1, column: 0}))
-    assert(!binding.isPositionVisible({row: 0, column: 9}))
-    assert(!binding.isPositionVisible({row: 6, column: 0}))
+    assert(!binding.isScrollNeededToViewPosition({row: 1, column: 0}))
+    assert(binding.isScrollNeededToViewPosition({row: 0, column: 9}))
+    assert(binding.isScrollNeededToViewPosition({row: 6, column: 0}))
 
     // Ensure text is rendered, so that we can scroll down/right.
     await editor.component.getNextUpdatePromise()
@@ -438,9 +399,9 @@ suite('EditorBinding', function () {
     setEditorScrollTopInLines(editor, 5)
     setEditorScrollLeftInChars(editor, 5)
 
-    assert(binding.isPositionVisible({row: 6, column: 7}))
-    assert(!binding.isPositionVisible({row: 6, column: 0}))
-    assert(!binding.isPositionVisible({row: 3, column: 7}))
+    assert(!binding.isScrollNeededToViewPosition({row: 6, column: 7}))
+    assert(binding.isScrollNeededToViewPosition({row: 6, column: 0}))
+    assert(binding.isScrollNeededToViewPosition({row: 3, column: 7}))
   })
 
   test('destroys folds intersecting the position of the leader', async () => {
@@ -504,29 +465,6 @@ suite('EditorBinding', function () {
     attachedElements.push(element)
     document.body.insertBefore(element, document.body.firstChild)
   }
-
-  async function setEditorHeightInLines (editor, lines) {
-    editor.element.style.height = editor.getLineHeightInPixels() * lines + 'px'
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorWidthInChars (editor, chars) {
-    editor.element.style.width =
-      editor.component.getGutterContainerWidth() +
-      chars * editor.getDefaultCharWidth() +
-      'px'
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorScrollTopInLines (editor, lines) {
-    editor.element.setScrollTop(editor.getLineHeightInPixels() * lines)
-    return editor.component.getNextUpdatePromise()
-  }
-
-  async function setEditorScrollLeftInChars (editor, chars) {
-    editor.element.setScrollLeft(editor.getDefaultCharWidth() * chars)
-    return editor.component.getNextUpdatePromise()
-  }
 })
 
 class FakeEditorProxy {
@@ -535,6 +473,11 @@ class FakeEditorProxy {
     this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
     this.selections = {}
     this.siteId = (siteId == null) ? 1 : siteId
+    this.disposed = false
+  }
+
+  dispose () {
+    this.disposed = true
   }
 
   didScroll () {}
@@ -547,24 +490,6 @@ class FakeEditorProxy {
       } else {
         delete this.selections[id]
       }
-    }
-  }
-
-  follow (siteId) {
-    this.followedSiteId = siteId
-    this.followState = FollowState.RETRACTED
-  }
-
-  unfollow () {
-    this.followedSiteId = null
-    this.followState = FollowState.DISCONNECTED
-  }
-
-  getFollowedSiteId () {
-    if (this.followState === FollowState.DISCONNECTED) {
-      return null
-    } else {
-      return this.followedSiteId
     }
   }
 }
