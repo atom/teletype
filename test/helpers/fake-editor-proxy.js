@@ -7,7 +7,10 @@ class FakeEditorProxy {
       setDelegate () {},
       createCheckpoint () {},
       groupChangesSinceCheckpoint () {},
-      applyGroupingInterval () {}
+      applyGroupingInterval () {},
+      getHistory () {
+        return {undoStack: [], redoStack: [], nextCheckpointId: 1}
+      }
     }
   }
 
