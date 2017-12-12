@@ -14,24 +14,21 @@ suite('SignInComponent', function () {
 
   test('disables button when empty token specified', () => {
     {
+      // It should be disabled by default
       const component = buildComponent()
-
-      // it should be disabled by default
       assert(component.refs.loginButton.disabled)
     }
 
     {
+      // Whitespace should also leave the button disabled
       const component = buildComponent()
-
-      // whitespace should also leave the button disabled
       component.refs.editor.setText('    ')
       assert(component.refs.loginButton.disabled)
     }
 
     {
+      // It should be disabled when set to an empty string
       const component = buildComponent()
-
-      // it should be disabled when set to empty
       component.refs.editor.setText('')
       assert(component.refs.loginButton.disabled)
     }
@@ -39,10 +36,7 @@ suite('SignInComponent', function () {
 
   test('enables button when non-empty token specified', () => {
     const component = buildComponent()
-
     component.refs.editor.setText('some-token')
-
-    // it should be enabled when not empty
     assert(!component.refs.loginButton.disabled)
   })
 
@@ -59,7 +53,7 @@ suite('SignInComponent', function () {
       component.refs.editor.setText('some-token')
       await component.signIn()
 
-      // it should prompt an error message when the login attempt fails
+      // It should display an error message when the login attempt fails
       assert.equal(notifications.errorCount, 1)
     }
 
@@ -68,7 +62,7 @@ suite('SignInComponent', function () {
 
       await component.signIn()
 
-      // it should show an error message about an invalid token
+      // It should show an error message about an invalid token
       assert(component.refs.errorMessage)
       assert.equal(component.refs.errorMessage.innerHTML, 'That token does not appear to be valid.')
     }
