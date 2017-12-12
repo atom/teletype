@@ -340,6 +340,10 @@ suite('EditorBinding', function () {
       assert(editor.element.classList.contains('teletype-RemotePaneItem'))
       assert(!editor.getBuffer().isModified())
 
+      editor.save()
+      editor.save()
+      assert.equal(editorProxy.bufferProxy.saveRequestCount, 2)
+
       binding.dispose()
       assert.equal(editor.getTitle(), 'untitled')
       assert.equal(editor.getURI(), null)
@@ -470,7 +474,13 @@ suite('EditorBinding', function () {
 class FakeEditorProxy {
   constructor (delegate, {siteId} = {}) {
     this.delegate = delegate
-    this.bufferProxy = {uri: 'fake-buffer-proxy-uri'}
+    this.bufferProxy = {
+      uri: 'fake-buffer-proxy-uri',
+      saveRequestCount: 0,
+      requestSave () {
+        this.saveRequestCount++
+      }
+    }
     this.selections = {}
     this.siteId = (siteId == null) ? 1 : siteId
     this.disposed = false
