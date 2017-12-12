@@ -1,11 +1,13 @@
 const assert = require('assert')
 const condition = require('./helpers/condition')
-const {Disposable} = require('atom')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const {TeletypeClient} = require('@atom/teletype-client')
 const {startTestServer} = require('@atom/teletype-server')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 const PortalListComponent = require('../lib/portal-list-component')
+const FakeNotificationManager = require('./helpers/fake-notification-manager')
+const FakeWorkspace = require('./helpers/fake-workspace')
+const FakeCommandRegistry = require('./helpers/fake-command-registry')
 
 suite('PortalListComponent', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -243,53 +245,3 @@ suite('PortalListComponent', function () {
     return portalBindingManager
   }
 })
-
-class FakeWorkspace {
-  async open () {}
-
-  getCenter () {
-    return {
-      paneContainer: {
-        getElement () {
-          return document.createElement('div')
-        }
-      }
-    }
-  }
-
-  getElement () {
-    return document.createElement('div')
-  }
-
-  observeActiveTextEditor () {
-    return new Disposable(() => {})
-  }
-
-  onDidDestroyPaneItem () {
-    return new Disposable(() => {})
-  }
-
-  onDidChangeActivePaneItem () {
-    return new Disposable(() => {})
-  }
-
-  paneForItem () {}
-}
-
-class FakeNotificationManager {
-  constructor () {
-    this.errorCount = 0
-  }
-
-  addInfo () {}
-
-  addSuccess () {}
-
-  addError () {
-    this.errorCount++
-  }
-}
-
-class FakeCommandRegistry {
-  add () { return new Set() }
-}

@@ -267,7 +267,8 @@ suite('TeletypePackage', function () {
     popoverComponent.refs.signInComponent.signIn()
     await condition(() => (
       popoverComponent.refs.signInComponent.props.invalidToken &&
-      popoverComponent.refs.signInComponent.refs.editor
+      popoverComponent.refs.signInComponent.refs.editor.getText() === '' &&
+      popoverComponent.refs.signInComponent.refs.loginButton.disabled
     ))
     assert.equal(await pack.credentialCache.get('oauth-token'), null)
     assert(!env.workspace.element.classList.contains('teletype-Authenticated'))
@@ -1094,6 +1095,21 @@ suite('TeletypePackage', function () {
     }
   })
 
+  test('client connection errors', async () => {
+    const env = buildAtomEnvironment()
+    const pack = await buildPackage(env)
+    await pack.sharePortal()
+    env.notifications.clear()
+
+    pack.client.emitter.emit('connection-error', new ErrorEvent('error', {message: 'connection-error'}))
+    assert.equal(env.notifications.getNotifications().length, 1)
+    const {type, message, options} = env.notifications.getNotifications()[0]
+    const {description} = options
+    assert.equal(type, 'error')
+    assert.equal(message, 'Connection Error')
+    assert(description.includes('connection-error'))
+  })
+
   test('reports errors attempting to sign in', async () => {
     const env = buildAtomEnvironment()
     const pack = await buildPackage(env, {signIn: false})
@@ -1112,21 +1128,6 @@ suite('TeletypePackage', function () {
     assert.equal(type, 'error')
     assert.equal(message, 'Failed to authenticate to teletype')
     assert(description.includes('some error'))
-  })
-
-  test('client connection errors', async () => {
-    const env = buildAtomEnvironment()
-    const pack = await buildPackage(env)
-    await pack.sharePortal()
-    env.notifications.clear()
-
-    pack.client.emitter.emit('connection-error', new ErrorEvent('error', {message: 'connection-error'}))
-    assert.equal(env.notifications.getNotifications().length, 1)
-    const {type, message, options} = env.notifications.getNotifications()[0]
-    const {description} = options
-    assert.equal(type, 'error')
-    assert.equal(message, 'Connection Error')
-    assert(description.includes('connection-error'))
   })
 
   let nextTokenId = 0
