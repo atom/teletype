@@ -89,7 +89,6 @@ suite('BufferBinding', function () {
     })
   })
 
-
   suite('destroying the buffer', () => {
     test('on the host, disposes the underlying buffer proxy', () => {
       const buffer = new TextBuffer('')

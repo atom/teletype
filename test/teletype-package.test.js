@@ -490,8 +490,8 @@ suite('TeletypePackage', function () {
 
     let guestEditor1LastTitleChangeEvent
     let guestEditor2LastTitleChangeEvent
-    guestEditor1.onDidChangeTitle((title) => guestEditor1LastTitleChangeEvent = title)
-    guestEditor2.onDidChangeTitle((title) => guestEditor2LastTitleChangeEvent = title)
+    guestEditor1.onDidChangeTitle((title) => { guestEditor1LastTitleChangeEvent = title })
+    guestEditor2.onDidChangeTitle((title) => { guestEditor2LastTitleChangeEvent = title })
 
     hostPackage.closeHostPortal()
     await condition(() => guestEditor1.getTitle() === 'untitled' && guestEditor2.getTitle() === 'untitled')
