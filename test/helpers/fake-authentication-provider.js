@@ -18,11 +18,7 @@ class FakeAuthenticationProvider {
     return false
   }
 
-  async signOut () {
+  async signOut () {}
 
-  }
-
-  dispose () {
-
-  }
+  dispose () {}
 }
