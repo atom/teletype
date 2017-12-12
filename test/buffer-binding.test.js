@@ -45,26 +45,28 @@ suite('BufferBinding', function () {
     assert.equal(bufferProxy.text, 'hello\nworld')
   })
 
-  test('flushes changes to disk when receiving a save request', async () => {
-    const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
-    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
-    binding.setBufferProxy(bufferProxy)
+  suite('host buffer binding', async () => {
+    test('flushes changes to disk when receiving a save request', async () => {
+      const buffer = new TextBuffer('hello\nworld')
+      const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
+      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+      binding.setBufferProxy(bufferProxy)
 
-    // Calling binding.save with an in-memory buffer is ignored.
-    try {
+      // Calling binding.save with an in-memory buffer is ignored.
+      try {
+        await binding.save()
+      } catch (error) {
+        assert.ifError(error)
+      }
+
+      // Calling binding.save with an on-disk buffer flushes changes to disk.
+      const filePath = temp.path()
+      await buffer.saveAs(filePath)
+
+      buffer.setText('changed')
       await binding.save()
-    } catch (error) {
-      assert.ifError(error)
-    }
-
-    // Calling binding.save with an on-disk buffer flushes changes to disk.
-    const filePath = temp.path()
-    await buffer.saveAs(filePath)
-
-    buffer.setText('changed')
-    await binding.save()
-    assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
+      assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
+    })
   })
 
   suite('guest buffer binding', () => {
@@ -76,6 +78,10 @@ suite('BufferBinding', function () {
       binding.setBufferProxy(bufferProxy)
       assert(!buffer.isModified())
       assert.equal(buffer.getPath(), '@site-1:some-uri')
+
+      buffer.save()
+      buffer.save()
+      assert.equal(bufferProxy.saveRequestCount, 2)
 
       binding.dispose()
       assert(buffer.isModified())
@@ -113,6 +119,7 @@ suite('BufferBinding', function () {
       this.text = text
       this.disposed = false
       this.uri = 'some-uri'
+      this.saveRequestCount = 0
     }
 
     dispose () {
@@ -150,6 +157,10 @@ suite('BufferBinding', function () {
 
     applyGroupingInterval () {
 
+    }
+
+    requestSave () {
+      this.saveRequestCount++
     }
   }
 
