@@ -59,13 +59,13 @@ suite('SitePositionsController', () => {
 
     const editorProxy1 = new FakeEditorProxy()
     const editor1 = new TextEditor({autoHeight: false, buffer: new TextBuffer(SAMPLE_TEXT)})
-    const editorBinding1 = new EditorBinding({portal, editor: editor1})
+    const editorBinding1 = new EditorBinding({editor: editor1})
     editorBinding1.setEditorProxy(editorProxy1)
     controller.addEditorBinding(editorBinding1)
 
     const editorProxy2 = new FakeEditorProxy()
     const editor2 = new TextEditor({autoHeight: false, buffer: new TextBuffer(SAMPLE_TEXT)})
-    const editorBinding2 = new EditorBinding({portal, editor: editor2})
+    const editorBinding2 = new EditorBinding({editor: editor2})
     editorBinding2.setEditorProxy(editorProxy2)
     controller.addEditorBinding(editorBinding2)
 

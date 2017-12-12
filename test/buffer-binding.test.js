@@ -2,7 +2,6 @@ const assert = require('assert')
 const fs = require('fs')
 const temp = require('temp')
 const {TextBuffer, Point} = require('atom')
-const FakePortal = require('./helpers/fake-portal')
 const BufferBinding = require('../lib/buffer-binding')
 
 suite('BufferBinding', function () {
@@ -10,7 +9,7 @@ suite('BufferBinding', function () {
 
   test('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding({buffer, portal: new FakePortal()})
+    const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -36,7 +35,7 @@ suite('BufferBinding', function () {
 
   test('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding({buffer, portal: new FakePortal()})
+    const binding = new BufferBinding({buffer})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -48,7 +47,7 @@ suite('BufferBinding', function () {
   suite('host buffer binding', async () => {
     test('flushes changes to disk when receiving a save request', async () => {
       const buffer = new TextBuffer('hello\nworld')
-      const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
+      const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
 
@@ -72,7 +71,7 @@ suite('BufferBinding', function () {
   suite('guest buffer binding', () => {
     test('overrides the buffer methods when setting the proxy, and restores them on dispose', () => {
       const buffer = new TextBuffer('abc')
-      const binding = new BufferBinding({buffer, isHost: false, portal: new FakePortal()})
+      const binding = new BufferBinding({buffer, isHost: false, remotePathPrefix: '@site-1'})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
 
       binding.setBufferProxy(bufferProxy)
@@ -92,7 +91,7 @@ suite('BufferBinding', function () {
   suite('destroying the buffer', () => {
     test('on the host, disposes the underlying buffer proxy', () => {
       const buffer = new TextBuffer('')
-      const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
+      const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
 
@@ -102,7 +101,7 @@ suite('BufferBinding', function () {
 
     test('on guests, disposes the buffer binding', () => {
       const buffer = new TextBuffer('')
-      const binding = new BufferBinding({buffer, isHost: false, portal: new FakePortal()})
+      const binding = new BufferBinding({buffer, isHost: false})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
 

@@ -53,7 +53,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     assert.deepEqual(
@@ -122,7 +122,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -157,7 +157,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -197,7 +197,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setSelectedBufferRange([[0, 0], [0, 3]])
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
     binding.updateSelectionsForSiteId(2, {
@@ -237,7 +237,7 @@ suite('EditorBinding', function () {
     editor.setText(SAMPLE_TEXT)
     editor.setCursorBufferPosition([0, 0])
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -279,7 +279,7 @@ suite('EditorBinding', function () {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
 
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -304,7 +304,7 @@ suite('EditorBinding', function () {
   suite('destroying the editor', () => {
     test('on the host, disposes the underlying editor proxy', () => {
       const editor = new TextEditor()
-      const binding = new EditorBinding({editor, isHost: true, portal: new FakePortal()})
+      const binding = new EditorBinding({editor, isHost: true})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
 
@@ -314,7 +314,7 @@ suite('EditorBinding', function () {
 
     test('on guests, disposes the editor binding', () => {
       const editor = new TextEditor()
-      const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
+      const binding = new EditorBinding({editor, isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
 
@@ -329,7 +329,7 @@ suite('EditorBinding', function () {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
 
-      const binding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
+      const binding = new EditorBinding({editor, remoteTitlePrefix: '@site-1', isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
       assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
@@ -350,7 +350,7 @@ suite('EditorBinding', function () {
   test('decorates each cursor with a site-specific class name', () => {
     const editor = new TextEditor()
     editor.setText(SAMPLE_TEXT)
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding, {siteId: 2})
 
     binding.setEditorProxy(editorProxy)
@@ -371,7 +371,7 @@ suite('EditorBinding', function () {
 
   test('isScrollNeededToViewPosition(position)', async () => {
     const editor = new TextEditor({autoHeight: false})
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -403,7 +403,7 @@ suite('EditorBinding', function () {
   test('destroys folds intersecting the position of the leader', async () => {
     const buffer = new TextBuffer({text: SAMPLE_TEXT})
     const editor = new TextEditor({buffer})
-    const binding = new EditorBinding({editor, portal: new FakePortal()})
+    const binding = new EditorBinding({editor})
     const editorProxy = new FakeEditorProxy(binding)
     binding.setEditorProxy(editorProxy)
 
@@ -487,11 +487,5 @@ class FakeEditorProxy {
         delete this.selections[id]
       }
     }
-  }
-}
-
-class FakePortal {
-  getSiteIdentity (siteId) {
-    return {login: 'site-' + siteId}
   }
 }
