@@ -267,7 +267,8 @@ suite('TeletypePackage', function () {
     popoverComponent.refs.signInComponent.signIn()
     await condition(() => (
       popoverComponent.refs.signInComponent.props.invalidToken &&
-      popoverComponent.refs.signInComponent.refs.editor
+      popoverComponent.refs.signInComponent.refs.editor.getText() === '' &&
+      popoverComponent.refs.signInComponent.refs.loginButton.disabled
     ))
     assert.equal(await pack.credentialCache.get('oauth-token'), null)
     assert(!env.workspace.element.classList.contains('teletype-Authenticated'))
@@ -1109,24 +1110,6 @@ suite('TeletypePackage', function () {
     assert(description.includes('connection-error'))
   })
 
-  test('prompting for a token when signing in', async () => {
-    const env = buildAtomEnvironment()
-    const pack = await buildPackage(env, {signIn: false})
-    await pack.consumeStatusBar(new FakeStatusBar())
-
-    assert(!pack.portalStatusBarIndicator.isPopoverVisible())
-    await pack.joinPortal()
-    assert(pack.portalStatusBarIndicator.isPopoverVisible())
-
-    const {popoverComponent} = pack.portalStatusBarIndicator
-    const {signInComponent} = popoverComponent.refs
-    const {editor, loginButton, errorMessage} = signInComponent.refs
-
-    assert(editor)
-    assert(loginButton)
-    assert(!errorMessage)
-  })
-
   test('reports errors attempting to sign in', async () => {
     const env = buildAtomEnvironment()
     const pack = await buildPackage(env, {signIn: false})
@@ -1145,26 +1128,6 @@ suite('TeletypePackage', function () {
     assert.equal(type, 'error')
     assert.equal(message, 'Failed to authenticate to teletype')
     assert(description.includes('some error'))
-  })
-
-  test('resets editor and button after failed sign-in attempt', async () => {
-    const env = buildAtomEnvironment()
-    const pack = await buildPackage(env, {signIn: false})
-    await pack.consumeStatusBar(new FakeStatusBar())
-    pack.client.signIn = async function () {
-      throw new Error('some error')
-    }
-
-    const {popoverComponent} = pack.portalStatusBarIndicator
-    const {signInComponent} = popoverComponent.refs
-
-    signInComponent.refs.editor.setText('some-token')
-
-    await signInComponent.signIn()
-
-    assert(signInComponent.refs.loginButton.disabled)
-    assert(!signInComponent.refs.editor.getText())
-    assert(signInComponent.refs.errorMessage)
   })
 
   let nextTokenId = 0
