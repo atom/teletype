@@ -1162,9 +1162,6 @@ suite('TeletypePackage', function () {
 
     await signInComponent.signIn()
 
-    // TODO: Find out why these refs are not updating.
-    // by now, the button should be disabled,
-    // and the text should be reset
     assert(signInComponent.refs.loginButton.disabled)
     assert(!signInComponent.refs.editor.getText())
     assert(signInComponent.refs.errorMessage)
