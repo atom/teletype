@@ -42,10 +42,42 @@ suite('BufferBinding', function () {
     assert.equal(bufferProxy.text, 'hello\nworld')
   })
 
+  suite('destroying the buffer', () => {
+    test('on the host, disposes the underlying buffer proxy', () => {
+      const buffer = new TextBuffer('')
+      const binding = new BufferBinding({buffer, isHost: true})
+      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+      binding.setBufferProxy(bufferProxy)
+
+      buffer.destroy()
+      assert(bufferProxy.disposed)
+    })
+
+    test('on guests, disposes the buffer binding', () => {
+      const buffer = new TextBuffer('')
+      const binding = new BufferBinding({buffer, isHost: false})
+      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+      binding.setBufferProxy(bufferProxy)
+
+      buffer.destroy()
+      assert(binding.disposed)
+      assert(!bufferProxy.disposed)
+    })
+  })
+
   class FakeBufferProxy {
     constructor (delegate, text) {
       this.delegate = delegate
       this.text = text
+      this.disposed = false
+    }
+
+    dispose () {
+      this.disposed = true
+    }
+
+    getHistory () {
+      return {undoStack: [], redoStack: [], nextCheckpointId: 1}
     }
 
     setTextInRange (oldStart, oldEnd, newText) {

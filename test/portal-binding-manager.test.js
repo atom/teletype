@@ -1,8 +1,12 @@
 const assert = require('assert')
-const {Disposable} = require('atom')
+const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const PortalBindingManager = require('../lib/portal-binding-manager')
 
 suite('PortalBindingManager', () => {
+  teardown(async () => {
+    await destroyAtomEnvironments()
+  })
+
   suite('host portal binding', () => {
     test('idempotently creating the host portal binding', async () => {
       const manager = buildPortalBindingManager()
@@ -85,6 +89,7 @@ suite('PortalBindingManager', () => {
 })
 
 function buildPortalBindingManager () {
+  const {workspace, notifications: notificationManager} = buildAtomEnvironment()
   const client = {
     resolveLastCreatePortalPromise: null,
     resolveLastJoinPortalPromise: null,
@@ -95,33 +100,16 @@ function buildPortalBindingManager () {
       return new Promise((resolve) => { this.resolveLastJoinPortalPromise = resolve })
     }
   }
-
-  const notificationManager = {
-    addInfo () {},
-    addSuccess () {},
-    addError (error, options) {
-      throw new Error(error + '\n' + options.description)
-    }
-  }
-
-  const workspace = {
-    element: document.createElement('div'),
-    getElement () {
-      return this.element
-    },
-    observeActiveTextEditor () {
-      return new Disposable(() => {})
-    },
-    observeActivePaneItem () {
-      return new Disposable(() => {})
-    }
-  }
-
   return new PortalBindingManager({client, workspace, notificationManager})
 }
 
+let nextIdentityId = 1
 function buildPortal () {
   return {
+    activateEditorProxy () {},
+    getSiteIdentity () {
+      return {login: 'identity-' + nextIdentityId++}
+    },
     dispose () {
       this.delegate.dispose()
     },

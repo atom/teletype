@@ -1,6 +1,6 @@
 {
   "name": "teletype",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Share your workspace with team members and collaborate on code in real time",
   "keywords": [
     "collaboration",
@@ -25,7 +25,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.28.2",
+    "@atom/teletype-client": "^0.29.0",
     "etch": "^0.12.6"
   },
   "consumedServices": {
@@ -69,6 +69,8 @@
       "atom",
       "ErrorEvent"
     ],
-    "ignore": ["test/fixtures"]
+    "ignore": [
+      "test/fixtures"
+    ]
   }
 }
