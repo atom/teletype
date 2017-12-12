@@ -1034,7 +1034,7 @@ suite('TeletypePackage', function () {
     const openedURIs = []
     env.workspace.open = (uri) => openedURIs.push(uri)
     packageOutdatedComponent.refs.viewPackageSettingsButton.click()
-    assert.deepEqual(openedURIs, ['atom://config/packages/teletype'])
+    assert.deepEqual(openedURIs, ['atom://config/updates'])
   })
 
   test('reports errors attempting to initialize the client', async () => {
