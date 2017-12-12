@@ -488,22 +488,22 @@ suite('TeletypePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
     guestEditor2.setCursorBufferPosition([0, 5])
 
-    const guestEditor1TitleChangeEvents = []
-    const guestEditor2TitleChangeEvents = []
-    guestEditor1.onDidChangeTitle((title) => guestEditor1TitleChangeEvents.push(title))
-    guestEditor2.onDidChangeTitle((title) => guestEditor2TitleChangeEvents.push(title))
+    let guestEditor1LastTitleChangeEvent
+    let guestEditor2LastTitleChangeEvent
+    guestEditor1.onDidChangeTitle((title) => guestEditor1LastTitleChangeEvent = title)
+    guestEditor2.onDidChangeTitle((title) => guestEditor2LastTitleChangeEvent = title)
 
     hostPackage.closeHostPortal()
     await condition(() => guestEditor1.getTitle() === 'untitled' && guestEditor2.getTitle() === 'untitled')
 
-    assert.deepEqual(guestEditor1TitleChangeEvents, ['untitled'])
+    assert.equal(guestEditor1LastTitleChangeEvent, 'untitled')
     assert.equal(guestEditor1.getText(), 'const hello = "world"')
     assert(guestEditor1.isModified())
     assert.deepEqual(getCursorDecoratedRanges(guestEditor1), [
       {start: {row: 0, column: 4}, end: {row: 0, column: 4}}
     ])
 
-    assert.deepEqual(guestEditor2TitleChangeEvents, ['untitled'])
+    assert.equal(guestEditor2LastTitleChangeEvent, 'untitled')
     assert.equal(guestEditor2.getText(), 'const goodnight = "moon"')
     assert(guestEditor2.isModified())
     assert.deepEqual(getCursorDecoratedRanges(guestEditor2), [

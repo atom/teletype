@@ -336,18 +336,14 @@ suite('EditorBinding', function () {
       assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
-      assert.equal(buffer.getPath(), '@site-1:fake-buffer-proxy-uri')
       assert(editor.element.classList.contains('teletype-RemotePaneItem'))
-      assert(!editor.getBuffer().isModified())
 
       binding.dispose()
       assert.equal(editor.getTitle(), 'untitled')
       assert.equal(editor.getURI(), null)
       assert.notEqual(editor.copy(), null)
       assert.notEqual(editor.serialize(), null)
-      assert.equal(buffer.getPath(), null)
       assert(!editor.element.classList.contains('teletype-RemotePaneItem'))
-      assert(editor.getBuffer().isModified())
     })
   })
 

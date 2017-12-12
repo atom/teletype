@@ -2,6 +2,7 @@ const assert = require('assert')
 const fs = require('fs')
 const temp = require('temp')
 const {TextBuffer, Point} = require('atom')
+const FakePortal = require('./helpers/fake-portal')
 const BufferBinding = require('../lib/buffer-binding')
 
 suite('BufferBinding', function () {
@@ -9,7 +10,7 @@ suite('BufferBinding', function () {
 
   test('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding({buffer})
+    const binding = new BufferBinding({buffer, portal: new FakePortal()})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -35,7 +36,7 @@ suite('BufferBinding', function () {
 
   test('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
-    const binding = new BufferBinding({buffer})
+    const binding = new BufferBinding({buffer, portal: new FakePortal()})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -46,10 +47,7 @@ suite('BufferBinding', function () {
 
   test('flushes changes to disk when receiving a save request', async () => {
     const buffer = new TextBuffer('hello\nworld')
-    // This line ensures saving works correctly even if the save function has been monkey-patched.
-    buffer.save = () => {}
-
-    const binding = new BufferBinding({buffer})
+    const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
@@ -69,10 +67,27 @@ suite('BufferBinding', function () {
     assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
   })
 
+  suite('guest buffer binding', () => {
+    test('overrides the buffer methods when setting the proxy, and restores them on dispose', () => {
+      const buffer = new TextBuffer('abc')
+      const binding = new BufferBinding({buffer, isHost: false, portal: new FakePortal()})
+      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+
+      binding.setBufferProxy(bufferProxy)
+      assert(!buffer.isModified())
+      assert.equal(buffer.getPath(), '@site-1:some-uri')
+
+      binding.dispose()
+      assert(buffer.isModified())
+      assert(!buffer.getPath())
+    })
+  })
+
+
   suite('destroying the buffer', () => {
     test('on the host, disposes the underlying buffer proxy', () => {
       const buffer = new TextBuffer('')
-      const binding = new BufferBinding({buffer, isHost: true})
+      const binding = new BufferBinding({buffer, isHost: true, portal: new FakePortal()})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
 
@@ -82,7 +97,7 @@ suite('BufferBinding', function () {
 
     test('on guests, disposes the buffer binding', () => {
       const buffer = new TextBuffer('')
-      const binding = new BufferBinding({buffer, isHost: false})
+      const binding = new BufferBinding({buffer, isHost: false, portal: new FakePortal()})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
 
@@ -97,6 +112,7 @@ suite('BufferBinding', function () {
       this.delegate = delegate
       this.text = text
       this.disposed = false
+      this.uri = 'some-uri'
     }
 
     dispose () {
