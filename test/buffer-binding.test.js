@@ -1,4 +1,6 @@
 const assert = require('assert')
+const fs = require('fs')
+const temp = require('temp')
 const {TextBuffer, Point} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 
@@ -40,6 +42,31 @@ suite('BufferBinding', function () {
     buffer.setTextInRange([[0, 0], [0, 0]], '')
     assert.equal(buffer.getText(), 'hello\nworld')
     assert.equal(bufferProxy.text, 'hello\nworld')
+  })
+
+  test('flushes changes to disk when receiving a save request', async () => {
+    const buffer = new TextBuffer('hello\nworld')
+    // This line ensures saving works correctly even if the save function has been monkey-patched.
+    buffer.save = () => {}
+
+    const binding = new BufferBinding({buffer})
+    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    binding.setBufferProxy(bufferProxy)
+
+    // Calling binding.save with an in-memory buffer is ignored.
+    try {
+      await binding.save()
+    } catch (error) {
+      assert.ifError(error)
+    }
+
+    // Calling binding.save with an on-disk buffer flushes changes to disk.
+    const filePath = temp.path()
+    await buffer.saveAs(filePath)
+
+    buffer.setText('changed')
+    await binding.save()
+    assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
   })
 
   suite('destroying the buffer', () => {
