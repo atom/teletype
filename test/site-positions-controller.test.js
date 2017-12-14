@@ -35,17 +35,22 @@ suite('SitePositionsController', () => {
       editorBindingForEditorProxy: () => {}
     })
 
-    const workspaceCenterElement = workspace.getCenter().paneContainer.getElement()
+    const element1 = document.createElement('div')
+    controller.show(element1)
+    assert(element1.contains(controller.aboveViewportSitePositionsComponent.element))
+    assert(element1.contains(controller.insideViewportSitePositionsComponent.element))
+    assert(element1.contains(controller.outsideViewportSitePositionsComponent.element))
 
-    controller.show()
-    assert(workspaceCenterElement.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(workspaceCenterElement.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(workspaceCenterElement.contains(controller.outsideViewportSitePositionsComponent.element))
+    const element2 = document.createElement('div')
+    controller.show(element2)
+    assert(element2.contains(controller.aboveViewportSitePositionsComponent.element))
+    assert(element2.contains(controller.insideViewportSitePositionsComponent.element))
+    assert(element2.contains(controller.outsideViewportSitePositionsComponent.element))
 
     controller.hide()
-    assert(!workspaceCenterElement.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(!workspaceCenterElement.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(!workspaceCenterElement.contains(controller.outsideViewportSitePositionsComponent.element))
+    assert(!controller.aboveViewportSitePositionsComponent.element.parentElement)
+    assert(!controller.insideViewportSitePositionsComponent.element.parentElement)
+    assert(!controller.outsideViewportSitePositionsComponent.element.parentElement)
   })
 
   test('updateActivePositions(positionsBySiteId)', async () => {
