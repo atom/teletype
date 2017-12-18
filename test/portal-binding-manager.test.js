@@ -1,6 +1,7 @@
 const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const PortalBindingManager = require('../lib/portal-binding-manager')
+const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 
 suite('PortalBindingManager', () => {
   teardown(async () => {
@@ -67,6 +68,34 @@ suite('PortalBindingManager', () => {
     })
   })
 
+  test('getRemoteBuffers()', async () => {
+    const manager = buildPortalBindingManager()
+
+    const guest1PortalBindingPromise = manager.createGuestPortalBinding('1')
+    manager.client.resolveLastJoinPortalPromise(buildPortal({login: 'user-1'}))
+    const guest1PortalBinding = await guest1PortalBindingPromise
+
+    const guest2PortalBindingPromise = manager.createGuestPortalBinding('2')
+    manager.client.resolveLastJoinPortalPromise(buildPortal({login: 'user-2'}))
+    const guest2PortalBinding = await guest2PortalBindingPromise
+
+    const editorProxy1 = new FakeEditorProxy('uri-1')
+    guest1PortalBinding.addEditorProxy(editorProxy1)
+    guest1PortalBinding.addEditorProxy(new FakeEditorProxy('uri-2'))
+    guest1PortalBinding.removeEditorProxy(editorProxy1)
+    guest1PortalBinding.addEditorProxy(new FakeEditorProxy('uri-3'))
+
+    guest2PortalBinding.addEditorProxy(new FakeEditorProxy('uri-4'))
+    guest2PortalBinding.addEditorProxy(new FakeEditorProxy('uri-5'))
+
+    assert.deepEqual(await manager.getRemoteBuffers(), [
+      {label: '@user-1: uri-2', uri: 'uri-2'},
+      {label: '@user-1: uri-3', uri: 'uri-3'},
+      {label: '@user-2: uri-4', uri: 'uri-4'},
+      {label: '@user-2: uri-5', uri: 'uri-5'}
+    ])
+  })
+
   test('adding and removing classes from the workspace element', async () => {
     const manager = buildPortalBindingManager()
 
@@ -104,11 +133,11 @@ function buildPortalBindingManager () {
 }
 
 let nextIdentityId = 1
-function buildPortal () {
+function buildPortal ({login} = {}) {
   return {
     activateEditorProxy () {},
     getSiteIdentity () {
-      return {login: 'identity-' + nextIdentityId++}
+      return {login: login || 'identity-' + nextIdentityId++}
     },
     dispose () {
       this.delegate.dispose()
