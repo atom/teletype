@@ -28,6 +28,14 @@
     "@atom/teletype-client": "^0.30.0",
     "etch": "^0.12.6"
   },
+  "providedServices": {
+    "teletype": {
+      "description": "A set of APIs for packages to integrate with Teletype",
+      "versions": {
+        "0.0.1": "provideTeletype"
+      }
+    }
+  },
   "consumedServices": {
     "status-bar": {
       "versions": {
