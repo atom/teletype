@@ -2,6 +2,7 @@ const TeletypePackage = require('./lib/teletype-package')
 module.exports = new TeletypePackage({
   workspace: atom.workspace,
   notificationManager: atom.notifications,
+  packageManager: atom.packages,
   commandRegistry: atom.commands,
   tooltipManager: atom.tooltips,
   clipboard: atom.clipboard,
