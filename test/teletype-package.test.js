@@ -148,8 +148,7 @@ suite('TeletypePackage', function () {
       const portal = await hostPackage.sharePortal()
       const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'a.md'))
       const hostEditorProxy = portal.activeEditorProxyForSiteId(1)
-      const hostBufferProxy = hostEditorProxy.bufferProxy
-      const hostEditorURI = `teletype://${portal.id}/buffer/${hostBufferProxy.id}/editor/${hostEditorProxy.id}`
+      const hostEditorURI = `teletype://${portal.id}/editor/${hostEditorProxy.id}`
       hostEditor.setText('some text')
 
       await hostEnv.workspace.open(path.join(temp.path(), 'b.txt'))
