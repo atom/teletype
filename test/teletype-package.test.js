@@ -138,6 +138,33 @@ suite('TeletypePackage', function () {
       guestEditor.insertText('abc')
       await condition(() => hostEditor.getText() === guestEditor.getText())
     })
+
+    test('remote editors that the guest has not yet seen', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'a.md'))
+      const hostEditorProxy = portal.activeEditorProxyForSiteId(1)
+      const hostBufferProxy = hostEditorProxy.bufferProxy
+      const hostEditorURI = `teletype://${portal.id}/buffer/${hostBufferProxy.id}/editor/${hostEditorProxy.id}`
+      hostEditor.setText('some text')
+
+      await hostEnv.workspace.open(path.join(temp.path(), 'b.txt'))
+
+      guestPackage.joinPortal(portal.id)
+      await condition(() => getRemotePaneItems(guestEnv).length === 1)
+
+      const guestEditor = await guestEnv.workspace.open(hostEditorURI)
+      assert(guestEditor.getTitle().endsWith('a.md'))
+      assert.equal(guestEditor.getURI(), hostEditorURI)
+      assert.equal(guestEditor.getText(), 'some text')
+
+      guestEditor.insertText('abc')
+      await condition(() => hostEditor.getText() === guestEditor.getText())
+    })
   })
 
   test('opening and closing multiple editors on the host', async function () {
