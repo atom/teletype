@@ -108,6 +108,37 @@ suite('TeletypePackage', function () {
     assert.equal(observedGuestItems.size, 2)
   })
 
+  // TODO: Verify URI for buffer that doesn't exist in portal.
+  // TODO: Verify malformed URI?
+  // TODO: Verify that we behave sanely if you try to open a URL when you're not signed in.
+  test('opening remote editors from a guest portal', async function () {
+    const hostEnv = buildAtomEnvironment()
+    const hostPackage = await buildPackage(hostEnv)
+    const guestEnv = buildAtomEnvironment()
+    const guestPackage = await buildPackage(guestEnv)
+
+    // Opening a remote buffer belonging to a portal that has already been joined.
+    const portal = await hostPackage.sharePortal()
+    await guestPackage.joinPortal(portal.id)
+
+    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'a.md'))
+    hostEditor1.setText('some text')
+    await hostEnv.workspace.open(path.join(temp.path(), 'b.txt'))
+    await condition(() => getRemotePaneItems(guestEnv).length === 2)
+
+    let guestEditor1 = guestEnv.workspace.getPaneItems()[0]
+    const editor1URI = guestEditor1.getURI()
+    guestEditor1.destroy()
+
+    guestEditor1 = await guestEnv.workspace.open(editor1URI)
+    assert(guestEditor1.getTitle().endsWith('a.md'))
+    assert.equal(guestEditor1.getURI(), editor1URI)
+    assert.equal(guestEditor1.getText(), 'some text')
+
+    guestEditor1.insertText('abc')
+    await condition(() => hostEditor1.getText() === guestEditor1.getText())
+  })
+
   test('opening and closing multiple editors on the host', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
@@ -1144,6 +1175,7 @@ suite('TeletypePackage', function () {
       tetherDisconnectWindow: 300,
       credentialCache
     })
+    pack.registerRemoteEditorOpener()
 
     if (options.signIn == null || options.signIn) {
       await credentialCache.set('oauth-token', 'token-' + nextTokenId++)

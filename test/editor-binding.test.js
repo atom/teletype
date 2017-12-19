@@ -333,7 +333,6 @@ suite('EditorBinding', function () {
       const editorProxy = new FakeEditorProxy(binding)
       binding.setEditorProxy(editorProxy)
       assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
-      assert.equal(editor.getURI(), '')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
       assert.equal(buffer.getPath(), '@site-1:fake-buffer-proxy-uri')
@@ -346,7 +345,6 @@ suite('EditorBinding', function () {
 
       binding.dispose()
       assert.equal(editor.getTitle(), 'untitled')
-      assert.equal(editor.getURI(), null)
       assert.notEqual(editor.copy(), null)
       assert.notEqual(editor.serialize(), null)
       assert.equal(buffer.getPath(), null)
