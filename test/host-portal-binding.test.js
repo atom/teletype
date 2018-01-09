@@ -83,7 +83,7 @@ suite('HostPortalBinding', () => {
     await portalBinding.initialize()
 
     const editor = await atomEnv.workspace.open()
-    editor.getBuffer().setTextInRange('Lorem ipsum dolor', [[0, 0], [0, 0]], {undo: 'skip'})
+    editor.getBuffer().setTextInRange('Lorem ipsum dolor', [[0, 0], [0, 0]])
     const editorProxy = portal.getActiveEditorProxy()
 
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy, {row: 0, column: 3})

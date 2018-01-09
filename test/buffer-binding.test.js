@@ -132,6 +132,10 @@ suite('BufferBinding', function () {
       return []
     }
 
+    groupLastChanges () {
+      return true
+    }
+
     applyGroupingInterval () {
 
     }
