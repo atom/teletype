@@ -8,6 +8,7 @@ env:
   matrix:
   - ATOM_CHANNEL=stable
   - ATOM_CHANNEL=beta
+  - ATOM_CHANNEL=dev
 
 notifications:
   email:
@@ -30,8 +31,8 @@ addons:
 before_script:
   - createdb teletype-test
 
-# TODO: Once https://github.com/atom/ci/pull/79 is merged, update URL below to use build-package.sh on master branch
-script: 'curl -s https://raw.githubusercontent.com/atom/ci/a5ca10c32676334605be6492369327056e6692b0/build-package.sh | sh'
+# TODO: Once https://github.com/atom/ci/pull/80 is merged, update URL below to use build-package.sh on master branch
+script: 'curl -s https://raw.githubusercontent.com/atom/ci/0155aa53b45d00c5b9be9adb33f4a4da1a96ffdb/build-package.sh | sh'
 
 git:
   depth: 10
