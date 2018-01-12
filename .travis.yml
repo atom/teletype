@@ -31,8 +31,7 @@ addons:
 before_script:
   - createdb teletype-test
 
-# TODO: Once https://github.com/atom/ci/pull/80 is merged, update URL below to use build-package.sh on master branch
-script: 'curl -s https://raw.githubusercontent.com/atom/ci/0155aa53b45d00c5b9be9adb33f4a4da1a96ffdb/build-package.sh | sh'
+script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
 git:
   depth: 10
