@@ -1048,12 +1048,10 @@ suite('TeletypePackage', function () {
 
       await pack.sharePortal()
 
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
+      const {popoverComponent} = pack.portalStatusBarIndicator
+      assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
+      assert(pack.portalStatusBarIndicator.element.classList.contains('an error'))
+      assert(popoverComponent.refs.packageInitializationErrorComponent)
     }
 
     {
@@ -1065,12 +1063,10 @@ suite('TeletypePackage', function () {
 
       await pack.joinPortal()
 
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
+      const {popoverComponent} = pack.portalStatusBarIndicator
+      assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
+      assert(pack.portalStatusBarIndicator.element.classList.contains('an error'))
+      assert(popoverComponent.refs.packageInitializationErrorComponent)
     }
 
     {
@@ -1082,15 +1078,9 @@ suite('TeletypePackage', function () {
 
       await pack.consumeStatusBar(new FakeStatusBar())
 
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
-
       const {popoverComponent} = pack.portalStatusBarIndicator
       assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
+      assert(pack.portalStatusBarIndicator.element.classList.contains('an error'))
       assert(popoverComponent.refs.packageInitializationErrorComponent)
     }
   })
