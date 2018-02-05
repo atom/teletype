@@ -15,7 +15,9 @@ class FakePortal {
       setDelegate () {},
       createCheckpoint () {},
       groupChangesSinceCheckpoint () {},
-      applyGroupingInterval () {}
+      applyGroupingInterval () {},
+      revertToCheckpoint () {},
+      setTextInRange () {}
     }
   }
 

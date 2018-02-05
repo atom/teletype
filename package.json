@@ -1,6 +1,6 @@
 {
   "name": "teletype",
-  "version": "0.4.0",
+  "version": "0.7.0",
   "description": "Share your workspace with team members and collaborate on code in real time",
   "keywords": [
     "collaboration",
@@ -18,14 +18,14 @@
   "license": "MIT",
   "atomTestRunner": "./test/setup",
   "devDependencies": {
-    "@atom/teletype-server": "^0.17.0",
+    "@atom/teletype-server": "^0.18.0",
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^1.0.1",
     "standard": "^10.0.3",
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.30.0",
+    "@atom/teletype-client": "^0.33.0",
     "etch": "^0.12.6"
   },
   "providedServices": {

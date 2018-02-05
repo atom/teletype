@@ -1104,52 +1104,12 @@ suite('TeletypePackage', function () {
         throw new Error('an error')
       }
 
-      await pack.sharePortal()
-
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
-    }
-
-    {
-      const env = buildAtomEnvironment()
-      const pack = await buildPackage(env, {signIn: false})
-      pack.client.initialize = async function () {
-        throw new Error('an error')
-      }
-
-      await pack.joinPortal()
-
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
-    }
-
-    {
-      const env = buildAtomEnvironment()
-      const pack = await buildPackage(env, {signIn: false})
-      pack.client.initialize = async function () {
-        throw new Error('an error')
-      }
-
       await pack.consumeStatusBar(new FakeStatusBar())
-
-      assert.equal(env.notifications.getNotifications().length, 1)
-      const {type, message, options} = env.notifications.getNotifications()[0]
-      const {description} = options
-      assert.equal(type, 'error')
-      assert.equal(message, 'Failed to initialize the teletype package')
-      assert(description.includes('an error'))
 
       const {popoverComponent} = pack.portalStatusBarIndicator
       assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
       assert(popoverComponent.refs.packageInitializationErrorComponent)
+      assert(popoverComponent.refs.packageInitializationErrorComponent.props.initializationError.message.includes('an error'))
     }
   })
 
@@ -1199,6 +1159,7 @@ suite('TeletypePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
+      getAtomVersion: function () { return 'x.y.z' },
       tetherDisconnectWindow: 300,
       credentialCache
     })
