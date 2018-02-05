@@ -11,5 +11,6 @@ module.exports = new TeletypePackage({
     cluster: atom.config.get('teletype.pusherCluster'),
     disableStats: true
   },
-  baseURL: atom.config.get('teletype.baseURL')
+  baseURL: atom.config.get('teletype.baseURL'),
+  getAtomVersion: atom.getVersion.bind(atom)
 })

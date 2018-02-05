@@ -1101,6 +1101,7 @@ suite('TeletypePackage', function () {
       commandRegistry: env.commands,
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
+      getAtomVersion: function () { return 'x.y.z' },
       tetherDisconnectWindow: 300,
       credentialCache
     })
