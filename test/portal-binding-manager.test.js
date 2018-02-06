@@ -68,31 +68,39 @@ suite('PortalBindingManager', () => {
     })
   })
 
-  test('getRemoteBuffers()', async () => {
+  test('getRemoteEditors()', async () => {
     const manager = buildPortalBindingManager()
 
     const guest1PortalBindingPromise = manager.createGuestPortalBinding('1')
-    manager.client.resolveLastJoinPortalPromise(buildPortal({login: 'user-1'}))
+    manager.client.resolveLastJoinPortalPromise(buildPortal({id: '1', login: 'user-1'}))
     const guest1PortalBinding = await guest1PortalBindingPromise
 
     const guest2PortalBindingPromise = manager.createGuestPortalBinding('2')
-    manager.client.resolveLastJoinPortalPromise(buildPortal({login: 'user-2'}))
+    manager.client.resolveLastJoinPortalPromise(buildPortal({id: '2', login: 'user-2'}))
     const guest2PortalBinding = await guest2PortalBindingPromise
 
     const editorProxy1 = new FakeEditorProxy('uri-1')
     guest1PortalBinding.addEditorProxy(editorProxy1)
-    guest1PortalBinding.addEditorProxy(new FakeEditorProxy('uri-2'))
+
+    const editorProxy2 = new FakeEditorProxy('uri-2')
+    guest1PortalBinding.addEditorProxy(editorProxy2)
+
     guest1PortalBinding.removeEditorProxy(editorProxy1)
-    guest1PortalBinding.addEditorProxy(new FakeEditorProxy('uri-3'))
 
-    guest2PortalBinding.addEditorProxy(new FakeEditorProxy('uri-4'))
-    guest2PortalBinding.addEditorProxy(new FakeEditorProxy('uri-5'))
+    const editorProxy3 = new FakeEditorProxy('uri-3')
+    guest1PortalBinding.addEditorProxy(editorProxy3)
 
-    assert.deepEqual(await manager.getRemoteBuffers(), [
-      {label: '@user-1: uri-2', uri: 'uri-2'},
-      {label: '@user-1: uri-3', uri: 'uri-3'},
-      {label: '@user-2: uri-4', uri: 'uri-4'},
-      {label: '@user-2: uri-5', uri: 'uri-5'}
+    const editorProxy4 = new FakeEditorProxy('uri-4')
+    guest2PortalBinding.addEditorProxy(editorProxy4)
+
+    const editorProxy5 = new FakeEditorProxy('uri-5')
+    guest2PortalBinding.addEditorProxy(editorProxy5)
+
+    assert.deepEqual(await manager.getRemoteEditors(), [
+      {label: '@user-1: uri-2', path: 'uri-2', uri: 'teletype://1/editor/' + editorProxy2.id},
+      {label: '@user-1: uri-3', path: 'uri-3', uri: 'teletype://1/editor/' + editorProxy3.id},
+      {label: '@user-2: uri-4', path: 'uri-4', uri: 'teletype://2/editor/' + editorProxy4.id},
+      {label: '@user-2: uri-5', path: 'uri-5', uri: 'teletype://2/editor/' + editorProxy5.id}
     ])
   })
 
@@ -132,9 +140,11 @@ function buildPortalBindingManager () {
   return new PortalBindingManager({client, workspace, notificationManager})
 }
 
+let nextPortalId = 1
 let nextIdentityId = 1
-function buildPortal ({login} = {}) {
+function buildPortal ({id, login} = {}) {
   return {
+    id: id ? id : (nextPortalId++).toString(),
     activateEditorProxy () {},
     getSiteIdentity () {
       return {login: login || 'identity-' + nextIdentityId++}
