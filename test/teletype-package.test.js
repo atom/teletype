@@ -476,48 +476,14 @@ suite('TeletypePackage', function () {
     const hostPortal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(hostPortal.id)
 
-    const hostEditor1 = await hostEnv.workspace.open(path.join(temp.path(), 'file-1'))
-    hostEditor1.setText('const hello = "world"')
-    hostEditor1.setCursorBufferPosition([0, 4])
-    const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
+    const hostEditor1 = await hostEnv.workspace.open()
+    await getNextActiveTextEditorPromise(guestEnv)
 
-    const hostEditor2 = await hostEnv.workspace.open(path.join(temp.path(), 'file-2'))
-    hostEditor2.setText('const goodnight = "moon"')
-    hostEditor2.setCursorBufferPosition([0, 2])
-    const guestEditor2 = await getNextActiveTextEditorPromise(guestEnv)
-
-    await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor2), getCursorDecoratedRanges(guestEditor2)))
-    guestEditor2.setCursorBufferPosition([0, 5])
-
-    const guestEditor1TitleChangeEvents = []
-    const guestEditor2TitleChangeEvents = []
-    guestEditor1.onDidChangeTitle((title) => guestEditor1TitleChangeEvents.push(title))
-    guestEditor2.onDidChangeTitle((title) => guestEditor2TitleChangeEvents.push(title))
+    const hostEditor2 = await hostEnv.workspace.open()
+    await getNextActiveTextEditorPromise(guestEnv)
 
     hostPackage.closeHostPortal()
-    await condition(() => guestEditor1.getTitle() === 'untitled' && guestEditor2.getTitle() === 'untitled')
-
-    assert.deepEqual(guestEditor1TitleChangeEvents, ['untitled'])
-    assert.equal(guestEditor1.getText(), 'const hello = "world"')
-    assert(guestEditor1.isModified())
-    assert.deepEqual(getCursorDecoratedRanges(guestEditor1), [
-      {start: {row: 0, column: 4}, end: {row: 0, column: 4}}
-    ])
-
-    assert.deepEqual(guestEditor2TitleChangeEvents, ['untitled'])
-    assert.equal(guestEditor2.getText(), 'const goodnight = "moon"')
-    assert(guestEditor2.isModified())
-    assert.deepEqual(getCursorDecoratedRanges(guestEditor2), [
-      {start: {row: 0, column: 5}, end: {row: 0, column: 5}}
-    ])
-
-    // Ensure that the guest can still edit the buffer or modify selections.
-    guestEditor2.getBuffer().setTextInRange([[0, 0], [0, 5]], 'let')
-    guestEditor2.setCursorBufferPosition([0, 7])
-    assert.equal(guestEditor2.getText(), 'let goodnight = "moon"')
-    assert.deepEqual(getCursorDecoratedRanges(guestEditor2), [
-      {start: {row: 0, column: 7}, end: {row: 0, column: 7}}
-    ])
+    await condition(() => getRemotePaneItems(guestEnv).length === 0)
   })
 
   test('peers undoing their own edits', async () => {
