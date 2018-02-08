@@ -150,31 +150,6 @@ suite('GuestPortalBinding', () => {
     assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-1'))
   })
 
-  test('host closing last remote editor on guest workspace', async () => {
-    const portal = new FakePortal()
-    const client = {joinPortal: () => portal}
-    const atomEnv = buildAtomEnvironment()
-    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
-
-    await portalBinding.initialize()
-    portal.setFollowState(FollowState.RETRACTED)
-
-    const editorProxy1 = new FakeEditorProxy('editor-1')
-    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy1)
-
-    const editorProxy2 = new FakeEditorProxy('editor-2')
-    portal.setFollowState(FollowState.DISCONNECTED)
-    await portalBinding.updateTether(FollowState.DISCONNECTED)
-
-    await portalBinding.removeEditorProxy(editorProxy2)
-    assert.equal(portal.resolveFollowState(), FollowState.DISCONNECTED)
-
-    await portalBinding.removeEditorProxy(editorProxy1)
-    assert.equal(portal.getFollowedSiteId(), 1)
-    assert.equal(portal.resolveFollowState(), FollowState.RETRACTED)
-    assert(!portal.disposed)
-  })
-
   test('toggling site position components visibility when switching tabs', async () => {
     const stubPubSubGateway = {}
     const client = new TeletypeClient({pubSubGateway: stubPubSubGateway})
