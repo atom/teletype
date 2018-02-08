@@ -476,10 +476,10 @@ suite('TeletypePackage', function () {
     const hostPortal = await hostPackage.sharePortal()
     await guestPackage.joinPortal(hostPortal.id)
 
-    const hostEditor1 = await hostEnv.workspace.open()
+    await hostEnv.workspace.open()
     await getNextActiveTextEditorPromise(guestEnv)
 
-    const hostEditor2 = await hostEnv.workspace.open()
+    await hostEnv.workspace.open()
     await getNextActiveTextEditorPromise(guestEnv)
 
     hostPackage.closeHostPortal()
