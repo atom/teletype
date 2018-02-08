@@ -7,7 +7,6 @@ const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
-const EmptyPortalPaneItem = require('../lib/empty-portal-pane-item')
 const FakeCredentialCache = require('./helpers/fake-credential-cache')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
@@ -174,8 +173,6 @@ suite('TeletypePackage', function () {
     const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
-    const emptyPortalPaneItem = await getNextRemotePaneItemPromise(guestEnv)
-    assert(emptyPortalPaneItem instanceof EmptyPortalPaneItem)
 
     const hostEditor1 = await hostEnv.workspace.open()
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
@@ -193,8 +190,7 @@ suite('TeletypePackage', function () {
     await condition(() => getPaneItems(guestEnv).length === 1)
 
     hostEditor2.destroy()
-    assert.equal(await getNextRemotePaneItemPromise(guestEnv), emptyPortalPaneItem)
-    assert.equal(getPaneItems(guestEnv).length, 1)
+    await condition(() => getPaneItems(guestEnv).length === 0)
 
     await hostEnv.workspace.open()
     const guestEditor3 = await getNextRemotePaneItemPromise(guestEnv)
@@ -413,11 +409,13 @@ suite('TeletypePackage', function () {
     assert(!isTransmitting(host1StatusBar))
 
     const host1Portal = await host1Package.sharePortal()
+    await host1Env.workspace.open()
     await condition(() => isTransmitting(host1StatusBar))
 
     const host2Env = buildAtomEnvironment()
     const host2Package = await buildPackage(host2Env)
     const host2Portal = await host2Package.sharePortal()
+    await host2Env.workspace.open()
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
@@ -430,9 +428,9 @@ suite('TeletypePackage', function () {
     await guestPackage.joinPortal(host2Portal.id)
     assert(isTransmitting(guestStatusBar))
 
-    assert.equal(guestEnv.workspace.getPaneItems().length, 2)
     await guestPackage.leavePortal()
     assert(isTransmitting(guestStatusBar))
+
     await guestPackage.leavePortal()
     await condition(() => !isTransmitting(guestStatusBar))
 
@@ -475,7 +473,9 @@ suite('TeletypePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
+
     guestPackage.joinPortal(hostPortal.id)
+    await hostEnv.workspace.open()
     await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPackage.closeHostPortal()
@@ -488,7 +488,9 @@ suite('TeletypePackage', function () {
     const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
+
     guestPackage.joinPortal(hostPortal.id)
+    await hostEnv.workspace.open()
     await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPortal.peerPool.disconnect()
