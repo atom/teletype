@@ -324,8 +324,18 @@ suite('EditorBinding', function () {
     })
   })
 
+  test('destroys the editor when disposing the binding on guests', () => {
+    const editor = new TextEditor()
+    const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
+    const editorProxy = new FakeEditorProxy(binding)
+    binding.setEditorProxy(editorProxy)
+
+    binding.dispose()
+    assert(editor.isDestroyed())
+  })
+
   suite('guest editor binding', () => {
-    test('overrides the editor methods when setting the proxy, and restores them on dispose', () => {
+    test('overrides the editor methods when setting the proxy', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
 
@@ -343,15 +353,6 @@ suite('EditorBinding', function () {
       editor.save()
       editor.save()
       assert.equal(editorProxy.bufferProxy.saveRequestCount, 2)
-
-      binding.dispose()
-      assert.equal(editor.getTitle(), 'untitled')
-      assert.equal(editor.getURI(), null)
-      assert.notEqual(editor.copy(), null)
-      assert.notEqual(editor.serialize(), null)
-      assert.equal(buffer.getPath(), null)
-      assert(!editor.element.classList.contains('teletype-RemotePaneItem'))
-      assert(editor.getBuffer().isModified())
     })
   })
 
