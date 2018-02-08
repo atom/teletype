@@ -1,7 +1,6 @@
 const assert = require('assert')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const PortalBindingManager = require('../lib/portal-binding-manager')
-const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 
 suite('PortalBindingManager', () => {
   teardown(async () => {
@@ -68,42 +67,6 @@ suite('PortalBindingManager', () => {
     })
   })
 
-  test('getRemoteEditors()', async () => {
-    const manager = buildPortalBindingManager()
-
-    const guest1PortalBindingPromise = manager.createGuestPortalBinding('1')
-    manager.client.resolveLastJoinPortalPromise(buildPortal({id: '1', login: 'user-1'}))
-    const guest1PortalBinding = await guest1PortalBindingPromise
-
-    const guest2PortalBindingPromise = manager.createGuestPortalBinding('2')
-    manager.client.resolveLastJoinPortalPromise(buildPortal({id: '2', login: 'user-2'}))
-    const guest2PortalBinding = await guest2PortalBindingPromise
-
-    const editorProxy1 = new FakeEditorProxy('uri-1')
-    guest1PortalBinding.addEditorProxy(editorProxy1)
-
-    const editorProxy2 = new FakeEditorProxy('uri-2')
-    guest1PortalBinding.addEditorProxy(editorProxy2)
-
-    guest1PortalBinding.removeEditorProxy(editorProxy1)
-
-    const editorProxy3 = new FakeEditorProxy('uri-3')
-    guest1PortalBinding.addEditorProxy(editorProxy3)
-
-    const editorProxy4 = new FakeEditorProxy('uri-4')
-    guest2PortalBinding.addEditorProxy(editorProxy4)
-
-    const editorProxy5 = new FakeEditorProxy('uri-5')
-    guest2PortalBinding.addEditorProxy(editorProxy5)
-
-    assert.deepEqual(await manager.getRemoteEditors(), [
-      {label: '@user-1: uri-2', path: 'uri-2', uri: 'teletype://1/editor/' + editorProxy2.id},
-      {label: '@user-1: uri-3', path: 'uri-3', uri: 'teletype://1/editor/' + editorProxy3.id},
-      {label: '@user-2: uri-4', path: 'uri-4', uri: 'teletype://2/editor/' + editorProxy4.id},
-      {label: '@user-2: uri-5', path: 'uri-5', uri: 'teletype://2/editor/' + editorProxy5.id}
-    ])
-  })
-
   test('adding and removing classes from the workspace element', async () => {
     const manager = buildPortalBindingManager()
 
@@ -144,7 +107,7 @@ let nextPortalId = 1
 let nextIdentityId = 1
 function buildPortal ({id, login} = {}) {
   return {
-    id: id ? id : (nextPortalId++).toString(),
+    id: id != null ? id : (nextPortalId++).toString(),
     activateEditorProxy () {},
     getSiteIdentity () {
       return {login: login || 'identity-' + nextIdentityId++}

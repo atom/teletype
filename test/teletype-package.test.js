@@ -1000,6 +1000,62 @@ suite('TeletypePackage', function () {
     }
   })
 
+  suite('services', () => {
+    test('getRemoteEditors()', async () => {
+      testServer.identityProvider.setIdentitiesByToken({
+        'token-1': {login: 'user-1'},
+        'token-2': {login: 'user-2'}
+      })
+
+      const host1Env = buildAtomEnvironment()
+      const host1Package = await buildPackage(host1Env, {signIn: false})
+      await host1Package.credentialCache.set('oauth-token', 'token-1')
+      await host1Package.signInUsingSavedToken()
+
+      const host1EditorA = await host1Env.workspace.open(path.join(temp.path(), 'a')) // eslint-disable-line no-unused-vars
+      const host1Portal = await host1Package.sharePortal()
+      const host1EditorB = await host1Env.workspace.open(path.join(temp.path(), 'b'))
+
+      const host2Env = buildAtomEnvironment()
+      const host2Package = await buildPackage(host2Env, {signIn: false})
+      await host2Package.credentialCache.set('oauth-token', 'token-2')
+      await host2Package.signInUsingSavedToken()
+
+      const host2EditorC = await host2Env.workspace.open(path.join(temp.path(), 'c')) // eslint-disable-line no-unused-vars
+      host2EditorC.setText('some text')
+      const host2Portal = await host2Package.sharePortal()
+      const host2EditorD = await host2Env.workspace.open(path.join(temp.path(), 'd')) // eslint-disable-line no-unused-vars
+
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const guestService = guestPackage.provideTeletype()
+      await guestPackage.joinPortal(host1Portal.id)
+      await guestPackage.joinPortal(host2Portal.id)
+
+      host1EditorB.destroy()
+      await condition(async () => (await guestService.getRemoteEditors()).length === 3)
+      const remoteEditors = await guestService.getRemoteEditors()
+
+      assert.equal(remoteEditors[0].label, '@user-1: a')
+      assert.equal(remoteEditors[0].path, host1EditorA.getPath())
+
+      assert.equal(remoteEditors[1].label, '@user-2: c')
+      assert.equal(remoteEditors[1].path, host2EditorC.getPath())
+
+      assert.equal(remoteEditors[2].label, '@user-2: d')
+      assert.equal(remoteEditors[2].path, host2EditorD.getPath())
+
+      const guestEditorC = await guestEnv.workspace.open(remoteEditors[1].uri)
+      assert(guestEditorC.isRemote)
+      assert.equal(guestEditorC.getTitle(), '@user-2: c')
+      assert.equal(guestEditorC.getURI(), remoteEditors[1].uri)
+      assert.equal(guestEditorC.getText(), 'some text')
+
+      guestEditorC.setText('modified text')
+      await condition(() => host2EditorC.getText() === 'modified text')
+    })
+  })
+
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
