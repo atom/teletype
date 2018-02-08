@@ -467,37 +467,6 @@ suite('TeletypePackage', function () {
       await guestPackage.leavePortal()
       await condition(() => getPaneItems(guestEnv).length === 0)
     })
-
-    test('via closing last remote editor', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const hostPortal = await hostPackage.sharePortal()
-      await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      await condition(() => getRemotePaneItems(guestEnv).length === 1)
-      const guestEditor = guestEnv.workspace.getActivePaneItem()
-      assert(guestEditor instanceof TextEditor)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
-
-    test('via closing empty portal pane item', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const hostPortal = await hostPackage.sharePortal()
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      const guestEditor = getRemotePaneItems(guestEnv)[0]
-      assert(guestEditor instanceof EmptyPortalPaneItem)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
   })
 
   test('host closing portal', async function () {
