@@ -750,7 +750,7 @@ suite('TeletypePackage', function () {
       await editorsEqual(guestEditor1, hostEditor1)
     })
 
-    test('remotifying and deremotifying guest editors and buffers', async () => {
+    test('remotifying guest editors and buffers', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
       const portal = await hostPackage.sharePortal()
@@ -780,14 +780,6 @@ suite('TeletypePackage', function () {
       assert(guestEditor1.isRemote)
       assert(guestEditor1.getTitle().endsWith('a.txt'))
       assert(guestEditor1.getBuffer().getPath().endsWith('a.txt'))
-
-      hostPackage.closeHostPortal()
-
-      await condition(() =>
-        !guestEditor1.isRemote &&
-        guestEditor1.getTitle() === 'untitled' &&
-        guestEditor1.getBuffer().getPath() === undefined
-      )
     })
   })
 
