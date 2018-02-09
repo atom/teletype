@@ -1026,7 +1026,7 @@ suite('TeletypePackage', function () {
       const host2Portal = await host2Package.sharePortal()
       const host2EditorD = await host2Env.workspace.open(path.join(temp.path(), 'd')) // eslint-disable-line no-unused-vars
       // Create multiple editors for a single buffer (e.g. split panes), ensuring only one of them is returned.
-      const host2EditorDCopy = await host2Env.workspace.open(host2EditorD.copy())
+      const host2EditorDCopy = await host2Env.workspace.open(host2EditorD.copy()) // eslint-disable-line no-unused-vars
 
       const guestEnv = buildAtomEnvironment()
       const guestPackage = await buildPackage(guestEnv)
