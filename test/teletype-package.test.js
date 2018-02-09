@@ -1037,15 +1037,12 @@ suite('TeletypePackage', function () {
       const remoteEditors = await guestService.getRemoteEditors()
 
       assert.equal(remoteEditors[0].hostGitHubUsername, 'user-1')
-      assert.equal(remoteEditors[0].label, '@user-1: a')
       assert.equal(remoteEditors[0].path, host1EditorA.getPath())
 
       assert.equal(remoteEditors[1].hostGitHubUsername, 'user-2')
-      assert.equal(remoteEditors[1].label, '@user-2: c')
       assert.equal(remoteEditors[1].path, host2EditorC.getPath())
 
       assert.equal(remoteEditors[2].hostGitHubUsername, 'user-2')
-      assert.equal(remoteEditors[2].label, '@user-2: d')
       assert.equal(remoteEditors[2].path, host2EditorD.getPath())
 
       const guestEditorC = await guestEnv.workspace.open(remoteEditors[1].uri)
