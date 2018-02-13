@@ -301,39 +301,6 @@ suite('EditorBinding', function () {
     })
   })
 
-  suite('destroying the editor', () => {
-    test('on the host, disposes the underlying editor proxy', () => {
-      const editor = new TextEditor()
-      const binding = new EditorBinding({editor, isHost: true, portal: new FakePortal()})
-      const editorProxy = new FakeEditorProxy(binding)
-      binding.setEditorProxy(editorProxy)
-
-      editor.destroy()
-      assert(editorProxy.disposed)
-    })
-
-    test('on guests, disposes the editor binding', () => {
-      const editor = new TextEditor()
-      const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
-      const editorProxy = new FakeEditorProxy(binding)
-      binding.setEditorProxy(editorProxy)
-
-      editor.destroy()
-      assert(binding.disposed)
-      assert(!editorProxy.disposed)
-    })
-  })
-
-  test('destroys the editor when disposing the binding on guests', () => {
-    const editor = new TextEditor()
-    const binding = new EditorBinding({editor, isHost: false, portal: new FakePortal()})
-    const editorProxy = new FakeEditorProxy(binding)
-    binding.setEditorProxy(editorProxy)
-
-    binding.dispose()
-    assert(editor.isDestroyed())
-  })
-
   suite('guest editor binding', () => {
     test('overrides the editor methods when setting the proxy', () => {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})

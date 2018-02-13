@@ -138,14 +138,14 @@ suite('GuestPortalBinding', () => {
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy3)
     assert.equal(portal.activeEditorProxyChangeCount, 1)
 
-    await portalBinding.removeEditorProxy(editorProxy3)
+    editorProxy3.dispose()
     assert.equal(portal.activeEditorProxyChangeCount, 1)
     assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-2'))
 
     portal.setFollowState(FollowState.DISCONNECTED)
 
-    // Removing editor proxies while not retracted relays active editor changes to the client.
-    await portalBinding.removeEditorProxy(editorProxy2)
+    // Destroying editor proxies while not retracted relays active editor changes to the client.
+    editorProxy2.dispose()
     assert.equal(portal.activeEditorProxyChangeCount, 2)
     assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-1'))
   })
@@ -174,7 +174,7 @@ suite('GuestPortalBinding', () => {
     const localPaneItem2 = await atomEnv.workspace.open()
     assert.equal(portalBinding.sitePositionsController.visible, false)
 
-    await portalBinding.removeEditorProxy(editorProxy)
+    editorProxy.dispose()
     localPaneItem2.destroy()
     assert.equal(atomEnv.workspace.getActivePaneItem(), null)
     assert.equal(portalBinding.sitePositionsController.visible, false)
