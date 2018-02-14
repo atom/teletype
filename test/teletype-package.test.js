@@ -250,6 +250,7 @@ suite('TeletypePackage', function () {
     // Show popover when running the "Share Portal" command, but prevent sharing unless user is authenticated.
     assert(!pack.portalStatusBarIndicator.isPopoverVisible())
     assert(!await pack.sharePortal())
+    await pack.portalStatusBarIndicator.initialOpenPromise
     assert(pack.portalStatusBarIndicator.isPopoverVisible())
 
     // Show popover when running the "Join Portal" command, but prevent sharing unless user is authenticated.
@@ -981,6 +982,7 @@ suite('TeletypePackage', function () {
 
     await pack.consumeStatusBar(new FakeStatusBar())
     const {portalStatusBarIndicator} = pack
+    await portalStatusBarIndicator.handleInitialClick() // Initialize popover component
     const {popoverComponent} = portalStatusBarIndicator
     const {packageOutdatedComponent} = popoverComponent.refs
 
@@ -1005,6 +1007,7 @@ suite('TeletypePackage', function () {
       }
 
       await pack.consumeStatusBar(new FakeStatusBar())
+      await pack.portalStatusBarIndicator.handleInitialClick() // Initialize popover component
 
       const {popoverComponent} = pack.portalStatusBarIndicator
       assert(pack.portalStatusBarIndicator.element.classList.contains('initialization-error'))
@@ -1036,6 +1039,7 @@ suite('TeletypePackage', function () {
       throw new Error('some error')
     }
 
+    await pack.portalStatusBarIndicator.handleInitialClick() // Initialize popover component
     const {popoverComponent} = pack.portalStatusBarIndicator
     popoverComponent.refs.signInComponent.refs.editor.setText('some-token')
     await popoverComponent.refs.signInComponent.signIn()
@@ -1067,6 +1071,9 @@ suite('TeletypePackage', function () {
     if (options.signIn == null || options.signIn) {
       await credentialCache.set('oauth-token', 'token-' + nextTokenId++)
       await pack.signInUsingSavedToken()
+    } else {
+      // We still need to activate the client for some tests
+      await pack.getClient()
     }
     packages.push(pack)
     return pack
