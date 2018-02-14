@@ -107,7 +107,6 @@ suite('TeletypePackage', function () {
     assert.equal(observedGuestItems.size, 2)
   })
 
-  // TODO: Verify that we behave sanely if you try to open a URL when you're not signed in.
   suite('remote editor URIs', () => {
     test('opening URIs for editors that the guest has already seen', async () => {
       const hostEnv = buildAtomEnvironment()
@@ -173,6 +172,19 @@ suite('TeletypePackage', function () {
 
       const nonexistentEditorURI = `atom://teletype/portal/${portal.id}/editor/999`
       assert.equal(await guestEnv.workspace.open(nonexistentEditorURI), null)
+    })
+
+    test('opening URIs when not signed in', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv, {signIn: false})
+
+      const portal = await hostPackage.sharePortal()
+      await hostEnv.workspace.open()
+      const hostEditorProxy = portal.activeEditorProxyForSiteId(1)
+      const hostEditorURI = `atom://teletype/portal/${portal.id}/editor/${hostEditorProxy.id}`
+      assert.equal(await guestEnv.workspace.open(hostEditorURI), null)
     })
 
     test('opening malformed URIs', async () => {
