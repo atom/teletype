@@ -108,7 +108,6 @@ suite('TeletypePackage', function () {
   })
 
   // TODO: Verify URI for buffer that doesn't exist in portal.
-  // TODO: Verify malformed URI?
   // TODO: Verify that we behave sanely if you try to open a URL when you're not signed in.
   suite('remote editor URIs', () => {
     test('opening URIs for editors that the guest has already seen', async () => {
@@ -162,6 +161,26 @@ suite('TeletypePackage', function () {
 
       guestEditor.insertText('abc')
       await condition(() => hostEditor.getText() === guestEditor.getText())
+    })
+
+    test('opening malformed URIs', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      await guestPackage.joinPortal(portal.id)
+
+      assert.equal(await guestEnv.workspace.open('atom://teletype/'), null)
+      assert.equal(await guestEnv.workspace.open('atom://teletype///'), null)
+
+      await hostEnv.workspace.open()
+      const editorProxy = portal.activeEditorProxyForSiteId(1)
+      assert.equal(
+        await guestEnv.workspace.open(`atom://teletype/x/${portal.id}/y/${editorProxy.id}`),
+        null
+      )
     })
   })
 
