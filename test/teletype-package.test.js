@@ -178,7 +178,7 @@ suite('TeletypePackage', function () {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
       const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv, {signIn: false})
+      const guestPackage = await buildPackage(guestEnv, {signIn: false}) // eslint-disable-line no-unused-vars
 
       const portal = await hostPackage.sharePortal()
       await hostEnv.workspace.open()
