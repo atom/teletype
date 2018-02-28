@@ -18,6 +18,10 @@ class FakeWorkspace {
     return document.createElement('div')
   }
 
+  observeTextEditors () {
+    return new Disposable(() => {})
+  }
+
   observeActiveTextEditor () {
     return new Disposable(() => {})
   }

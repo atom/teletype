@@ -4,7 +4,6 @@ const {FollowState, TeletypeClient} = require('@atom/teletype-client')
 const FakePortal = require('./helpers/fake-portal')
 const FakeEditorProxy = require('./helpers/fake-editor-proxy')
 const GuestPortalBinding = require('../lib/guest-portal-binding')
-const EmptyPortalPaneItem = require('../lib/empty-portal-pane-item')
 
 suite('GuestPortalBinding', () => {
   teardown(async () => {
@@ -139,41 +138,16 @@ suite('GuestPortalBinding', () => {
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy3)
     assert.equal(portal.activeEditorProxyChangeCount, 1)
 
-    await portalBinding.removeEditorProxy(editorProxy3)
+    editorProxy3.dispose()
     assert.equal(portal.activeEditorProxyChangeCount, 1)
     assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-2'))
 
     portal.setFollowState(FollowState.DISCONNECTED)
 
-    // Removing editor proxies while not retracted relays active editor changes to the client.
-    await portalBinding.removeEditorProxy(editorProxy2)
+    // Destroying editor proxies while not retracted relays active editor changes to the client.
+    editorProxy2.dispose()
     assert.equal(portal.activeEditorProxyChangeCount, 2)
     assert(atomEnv.workspace.getActivePaneItem().getTitle().includes('editor-1'))
-  })
-
-  test('host closing last remote editor on guest workspace', async () => {
-    const portal = new FakePortal()
-    const client = {joinPortal: () => portal}
-    const atomEnv = buildAtomEnvironment()
-    const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
-
-    await portalBinding.initialize()
-    portal.setFollowState(FollowState.RETRACTED)
-
-    const editorProxy1 = new FakeEditorProxy('editor-1')
-    await portalBinding.updateTether(FollowState.RETRACTED, editorProxy1)
-
-    const editorProxy2 = new FakeEditorProxy('editor-2')
-    portal.setFollowState(FollowState.DISCONNECTED)
-    await portalBinding.updateTether(FollowState.DISCONNECTED)
-
-    await portalBinding.removeEditorProxy(editorProxy2)
-    assert.equal(portal.resolveFollowState(), FollowState.DISCONNECTED)
-
-    await portalBinding.removeEditorProxy(editorProxy1)
-    assert.equal(portal.getFollowedSiteId(), 1)
-    assert.equal(portal.resolveFollowState(), FollowState.RETRACTED)
-    assert(!portal.disposed)
   })
 
   test('toggling site position components visibility when switching tabs', async () => {
@@ -185,16 +159,13 @@ suite('GuestPortalBinding', () => {
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
 
     await portalBinding.initialize()
-    assert.equal(portalBinding.sitePositionsController.visible, true)
-
-    const localPaneItem1 = await atomEnv.workspace.open()
     assert.equal(portalBinding.sitePositionsController.visible, false)
 
     const editorProxy = new FakeEditorProxy('some-uri')
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy)
     assert.equal(portalBinding.sitePositionsController.visible, true)
 
-    await atomEnv.workspace.open(localPaneItem1)
+    const localPaneItem1 = await atomEnv.workspace.open()
     assert.equal(portalBinding.sitePositionsController.visible, false)
 
     localPaneItem1.destroy()
@@ -203,10 +174,10 @@ suite('GuestPortalBinding', () => {
     const localPaneItem2 = await atomEnv.workspace.open()
     assert.equal(portalBinding.sitePositionsController.visible, false)
 
-    await portalBinding.removeEditorProxy(editorProxy)
+    editorProxy.dispose()
     localPaneItem2.destroy()
-    assert(atomEnv.workspace.getActivePaneItem() instanceof EmptyPortalPaneItem)
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert.equal(atomEnv.workspace.getActivePaneItem(), null)
+    assert.equal(portalBinding.sitePositionsController.visible, false)
   })
 
   function buildGuestPortalBinding (client, atomEnv, portalId) {

@@ -7,7 +7,6 @@ const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const assert = require('assert')
 const condition = require('./helpers/condition')
 const deepEqual = require('deep-equal')
-const EmptyPortalPaneItem = require('../lib/empty-portal-pane-item')
 const FakeCredentialCache = require('./helpers/fake-credential-cache')
 const FakeClipboard = require('./helpers/fake-clipboard')
 const FakeStatusBar = require('./helpers/fake-status-bar')
@@ -108,6 +107,107 @@ suite('TeletypePackage', function () {
     assert.equal(observedGuestItems.size, 2)
   })
 
+  suite('remote editor URIs', () => {
+    test('opening URIs for editors that the guest has already seen', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      await guestPackage.joinPortal(portal.id)
+
+      const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'a.md'))
+      hostEditor.setText('some text')
+      await hostEnv.workspace.open(path.join(temp.path(), 'b.txt'))
+      await condition(() => getRemotePaneItems(guestEnv).length === 2)
+
+      let guestEditor = guestEnv.workspace.getPaneItems()[0]
+      const editorURI = guestEditor.getURI()
+      guestEditor.destroy()
+
+      guestEditor = await guestEnv.workspace.open(editorURI)
+      assert(guestEditor.getTitle().endsWith('a.md'))
+      assert.equal(guestEditor.getURI(), editorURI)
+      assert.equal(guestEditor.getText(), 'some text')
+
+      guestEditor.insertText('abc')
+      await condition(() => hostEditor.getText() === guestEditor.getText())
+    })
+
+    test('opening URIs for editors that the guest has not yet seen', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      const hostEditor = await hostEnv.workspace.open(path.join(temp.path(), 'a.md'))
+      const hostEditorProxy = portal.activeEditorProxyForSiteId(1)
+      const hostEditorURI = `atom://teletype/portal/${portal.id}/editor/${hostEditorProxy.id}`
+      hostEditor.setText('some text')
+
+      await hostEnv.workspace.open(path.join(temp.path(), 'b.txt'))
+
+      guestPackage.joinPortal(portal.id)
+      await condition(() => getRemotePaneItems(guestEnv).length === 1)
+
+      const guestEditor = await guestEnv.workspace.open(hostEditorURI)
+      assert(guestEditor.getTitle().endsWith('a.md'))
+      assert.equal(guestEditor.getURI(), hostEditorURI)
+      assert.equal(guestEditor.getText(), 'some text')
+
+      guestEditor.insertText('abc')
+      await condition(() => hostEditor.getText() === guestEditor.getText())
+    })
+
+    test('opening URIs for editors that do not exist in the portal', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      await guestPackage.joinPortal(portal.id)
+
+      const nonexistentEditorURI = `atom://teletype/portal/${portal.id}/editor/999`
+      assert.equal(await guestEnv.workspace.open(nonexistentEditorURI), null)
+    })
+
+    test('opening URIs when not signed in', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv, {signIn: false}) // eslint-disable-line no-unused-vars
+
+      const portal = await hostPackage.sharePortal()
+      await hostEnv.workspace.open()
+      const hostEditorProxy = portal.activeEditorProxyForSiteId(1)
+      const hostEditorURI = `atom://teletype/portal/${portal.id}/editor/${hostEditorProxy.id}`
+      assert.equal(await guestEnv.workspace.open(hostEditorURI), null)
+    })
+
+    test('opening malformed URIs', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      await guestPackage.joinPortal(portal.id)
+
+      assert.equal(await guestEnv.workspace.open('atom://teletype/'), null)
+      assert.equal(await guestEnv.workspace.open('atom://teletype///'), null)
+
+      await hostEnv.workspace.open()
+      const editorProxy = portal.activeEditorProxyForSiteId(1)
+      assert.equal(
+        await guestEnv.workspace.open(`atom://teletype/x/${portal.id}/y/${editorProxy.id}`),
+        null
+      )
+    })
+  })
+
   test('opening and closing multiple editors on the host', async function () {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
@@ -116,8 +216,6 @@ suite('TeletypePackage', function () {
     const portalId = (await hostPackage.sharePortal()).id
 
     guestPackage.joinPortal(portalId)
-    const emptyPortalPaneItem = await getNextRemotePaneItemPromise(guestEnv)
-    assert(emptyPortalPaneItem instanceof EmptyPortalPaneItem)
 
     const hostEditor1 = await hostEnv.workspace.open()
     const guestEditor1 = await getNextActiveTextEditorPromise(guestEnv)
@@ -135,8 +233,7 @@ suite('TeletypePackage', function () {
     await condition(() => getPaneItems(guestEnv).length === 1)
 
     hostEditor2.destroy()
-    assert.equal(await getNextRemotePaneItemPromise(guestEnv), emptyPortalPaneItem)
-    assert.equal(getPaneItems(guestEnv).length, 1)
+    await condition(() => getPaneItems(guestEnv).length === 0)
 
     await hostEnv.workspace.open()
     const guestEditor3 = await getNextRemotePaneItemPromise(guestEnv)
@@ -355,11 +452,13 @@ suite('TeletypePackage', function () {
     assert(!isTransmitting(host1StatusBar))
 
     const host1Portal = await host1Package.sharePortal()
+    await host1Env.workspace.open()
     await condition(() => isTransmitting(host1StatusBar))
 
     const host2Env = buildAtomEnvironment()
     const host2Package = await buildPackage(host2Env)
     const host2Portal = await host2Package.sharePortal()
+    await host2Env.workspace.open()
 
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
@@ -372,9 +471,9 @@ suite('TeletypePackage', function () {
     await guestPackage.joinPortal(host2Portal.id)
     assert(isTransmitting(guestStatusBar))
 
-    assert.equal(guestEnv.workspace.getPaneItems().length, 2)
     await guestPackage.leavePortal()
     assert(isTransmitting(guestStatusBar))
+
     await guestPackage.leavePortal()
     await condition(() => !isTransmitting(guestStatusBar))
 
@@ -409,37 +508,6 @@ suite('TeletypePackage', function () {
       await guestPackage.leavePortal()
       await condition(() => getPaneItems(guestEnv).length === 0)
     })
-
-    test('via closing last remote editor', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const hostPortal = await hostPackage.sharePortal()
-      await hostEnv.workspace.open(path.join(temp.path(), 'some-file'))
-
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      await condition(() => getRemotePaneItems(guestEnv).length === 1)
-      const guestEditor = guestEnv.workspace.getActivePaneItem()
-      assert(guestEditor instanceof TextEditor)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
-
-    test('via closing empty portal pane item', async () => {
-      const hostEnv = buildAtomEnvironment()
-      const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
-      const hostPortal = await hostPackage.sharePortal()
-      const guestPortal = await guestPackage.joinPortal(hostPortal.id)
-
-      const guestEditor = getRemotePaneItems(guestEnv)[0]
-      assert(guestEditor instanceof EmptyPortalPaneItem)
-      guestEnv.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
-      assert(guestPortal.disposed)
-    })
   })
 
   test('host closing portal', async function () {
@@ -448,7 +516,9 @@ suite('TeletypePackage', function () {
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
     const hostPortal = await hostPackage.sharePortal()
+
     guestPackage.joinPortal(hostPortal.id)
+    await hostEnv.workspace.open()
     await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPackage.closeHostPortal()
@@ -461,7 +531,9 @@ suite('TeletypePackage', function () {
     const hostPortal = await hostPackage.sharePortal()
     const guestEnv = buildAtomEnvironment()
     const guestPackage = await buildPackage(guestEnv)
+
     guestPackage.joinPortal(hostPortal.id)
+    await hostEnv.workspace.open()
     await condition(() => getRemotePaneItems(guestEnv).length === 1)
 
     hostPortal.peerPool.disconnect()
@@ -963,6 +1035,64 @@ suite('TeletypePackage', function () {
     }
   })
 
+  suite('services', () => {
+    test('getRemoteEditors()', async () => {
+      testServer.identityProvider.setIdentitiesByToken({
+        'token-1': {login: 'user-1'},
+        'token-2': {login: 'user-2'}
+      })
+
+      const host1Env = buildAtomEnvironment()
+      const host1Package = await buildPackage(host1Env, {signIn: false})
+      await host1Package.credentialCache.set('oauth-token', 'token-1')
+      await host1Package.signInUsingSavedToken()
+
+      const host1EditorA = await host1Env.workspace.open(path.join(temp.path(), 'a')) // eslint-disable-line no-unused-vars
+      const host1Portal = await host1Package.sharePortal()
+      const host1EditorB = await host1Env.workspace.open(path.join(temp.path(), 'b'))
+
+      const host2Env = buildAtomEnvironment()
+      const host2Package = await buildPackage(host2Env, {signIn: false})
+      await host2Package.credentialCache.set('oauth-token', 'token-2')
+      await host2Package.signInUsingSavedToken()
+
+      const host2EditorC = await host2Env.workspace.open(path.join(temp.path(), 'c')) // eslint-disable-line no-unused-vars
+      host2EditorC.setText('some text')
+      const host2Portal = await host2Package.sharePortal()
+      const host2EditorD = await host2Env.workspace.open(path.join(temp.path(), 'd')) // eslint-disable-line no-unused-vars
+      // Create multiple editors for a single buffer (e.g. split panes), ensuring only one of them is returned.
+      const host2EditorDCopy = await host2Env.workspace.open(host2EditorD.copy()) // eslint-disable-line no-unused-vars
+
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const guestService = guestPackage.provideTeletype()
+      await guestPackage.joinPortal(host1Portal.id)
+      await guestPackage.joinPortal(host2Portal.id)
+
+      host1EditorB.destroy()
+      await condition(async () => (await guestService.getRemoteEditors()).length === 3)
+      const remoteEditors = await guestService.getRemoteEditors()
+
+      assert.equal(remoteEditors[0].hostGitHubUsername, 'user-1')
+      assert.equal(remoteEditors[0].path, host1EditorA.getPath())
+
+      assert.equal(remoteEditors[1].hostGitHubUsername, 'user-2')
+      assert.equal(remoteEditors[1].path, host2EditorC.getPath())
+
+      assert.equal(remoteEditors[2].hostGitHubUsername, 'user-2')
+      assert.equal(remoteEditors[2].path, host2EditorD.getPath())
+
+      const guestEditorC = await guestEnv.workspace.open(remoteEditors[1].uri)
+      assert(guestEditorC.isRemote)
+      assert.equal(guestEditorC.getTitle(), '@user-2: c')
+      assert.equal(guestEditorC.getURI(), remoteEditors[1].uri)
+      assert.equal(guestEditorC.getText(), 'some text')
+
+      guestEditorC.setText('modified text')
+      await condition(() => host2EditorC.getText() === 'modified text')
+    })
+  })
+
   test('adding and removing workspace element classes when sharing a portal', async () => {
     const hostEnv = buildAtomEnvironment()
     const hostPackage = await buildPackage(hostEnv)
@@ -1063,6 +1193,7 @@ suite('TeletypePackage', function () {
       tetherDisconnectWindow: 300,
       credentialCache
     })
+    pack.registerRemoteEditorOpener()
 
     if (options.signIn == null || options.signIn) {
       await credentialCache.set('oauth-token', 'token-' + nextTokenId++)

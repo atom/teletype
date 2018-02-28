@@ -52,8 +52,6 @@ class FakePortal {
     this.activeEditorProxyChangeCount++
   }
 
-  removeEditorProxy () {}
-
   getActiveEditorProxy () {
     return this.activeEditorProxy
   }
