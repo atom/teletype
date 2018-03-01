@@ -3,8 +3,13 @@ module.exports = function condition (fn) {
   Error.captureStackTrace(timeoutError, condition)
 
   return new Promise((resolve, reject) => {
-    const intervalId = global.setInterval(() => {
-      if (fn()) {
+    const intervalId = global.setInterval(async () => {
+      let result = fn()
+      if (result instanceof Promise) {
+        result = await result
+      }
+
+      if (result) {
         global.clearTimeout(timeout)
         global.clearInterval(intervalId)
         resolve()

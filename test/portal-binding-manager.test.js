@@ -103,12 +103,14 @@ function buildPortalBindingManager () {
   return new PortalBindingManager({client, workspace, notificationManager})
 }
 
+let nextPortalId = 1
 let nextIdentityId = 1
-function buildPortal () {
+function buildPortal ({id, login} = {}) {
   return {
+    id: id != null ? id : (nextPortalId++).toString(),
     activateEditorProxy () {},
     getSiteIdentity () {
-      return {login: 'identity-' + nextIdentityId++}
+      return {login: login || 'identity-' + nextIdentityId++}
     },
     dispose () {
       this.delegate.dispose()

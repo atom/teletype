@@ -1,6 +1,9 @@
+let nextEditorProxyId = 1
+
 module.exports =
 class FakeEditorProxy {
   constructor (uri) {
+    this.id = nextEditorProxyId++
     this.bufferProxy = {
       uri,
       dispose () {},
