@@ -367,11 +367,14 @@
   }
 
   .SitePositionsComponent-site {
-    display: flex;
     margin-left: @avatar-margin;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
+
+    // TODO Improve styling of link icon
+    .icon-link {
+      position: absolute;
+      padding-left: 28px;
+      padding-top: 28px;
+    }
   }
 }
 
