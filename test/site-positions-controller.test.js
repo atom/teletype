@@ -37,20 +37,14 @@ suite('SitePositionsController', () => {
 
     const element1 = document.createElement('div')
     controller.show(element1)
-    assert(element1.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(element1.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(element1.contains(controller.outsideViewportSitePositionsComponent.element))
+    assert(element1.contains(controller.sitePositionsComponent.element))
 
     const element2 = document.createElement('div')
     controller.show(element2)
-    assert(element2.contains(controller.aboveViewportSitePositionsComponent.element))
-    assert(element2.contains(controller.insideViewportSitePositionsComponent.element))
-    assert(element2.contains(controller.outsideViewportSitePositionsComponent.element))
+    assert(element2.contains(controller.sitePositionsComponent.element))
 
     controller.hide()
-    assert(!controller.aboveViewportSitePositionsComponent.element.parentElement)
-    assert(!controller.insideViewportSitePositionsComponent.element.parentElement)
-    assert(!controller.outsideViewportSitePositionsComponent.element.parentElement)
+    assert(!controller.sitePositionsComponent.element.parentElement)
   })
 
   test('updateActivePositions(positionsBySiteId)', async () => {
@@ -74,11 +68,7 @@ suite('SitePositionsController', () => {
     editorBinding2.setEditorProxy(editorProxy2)
     controller.addEditorBinding(editorBinding2)
 
-    const {
-      aboveViewportSitePositionsComponent,
-      insideViewportSitePositionsComponent,
-      outsideViewportSitePositionsComponent
-    } = controller
+    const {sitePositionsComponent} = controller
 
     await workspace.open(editor1)
     await setEditorHeightInLines(editor1, 3)
@@ -96,61 +86,33 @@ suite('SitePositionsController', () => {
     }
     controller.updateActivePositions(activePositionsBySiteId)
 
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 3, 4, 6])
-
-    await setEditorScrollLeftInChars(editor1, 0)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [1])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 5, 6])
-
-    await setEditorScrollTopInLines(editor1, 2)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5, 6])
-
-    await setEditorHeightInLines(editor1, 7)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [3])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 4, 5, 6])
-
-    await setEditorWidthInChars(editor1, 10)
-
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 6])
+    assert.deepEqual(sitePositionsComponent.props.insideEditorSiteIds, [1, 2, 3, 4, 5])
+    assert.deepEqual(sitePositionsComponent.props.outsideEditorSiteIds, [6])
 
     await workspace.open(editor2)
     controller.updateActivePositions(activePositionsBySiteId)
 
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [6])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5])
+    assert.deepEqual(sitePositionsComponent.props.insideEditorSiteIds, [6])
+    assert.deepEqual(sitePositionsComponent.props.outsideEditorSiteIds, [1, 2, 3, 4, 5])
 
     await workspace.open(new TextEditor())
     controller.updateActivePositions(activePositionsBySiteId)
 
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [1, 2, 3, 4, 5, 6])
+    assert.deepEqual(sitePositionsComponent.props.insideEditorSiteIds, [])
+    assert.deepEqual(sitePositionsComponent.props.outsideEditorSiteIds, [1, 2, 3, 4, 5, 6])
 
     await workspace.open(editor1)
     controller.updateActivePositions(activePositionsBySiteId)
 
-    assert.deepEqual(aboveViewportSitePositionsComponent.props.siteIds, [])
-    assert.deepEqual(insideViewportSitePositionsComponent.props.siteIds, [1, 3, 5])
-    assert.deepEqual(outsideViewportSitePositionsComponent.props.siteIds, [2, 4, 6])
+    assert.deepEqual(sitePositionsComponent.props.insideEditorSiteIds, [1, 2, 3, 4, 5])
+    assert.deepEqual(sitePositionsComponent.props.outsideEditorSiteIds, [6])
 
     // Selecting a site will follow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(42)
+    sitePositionsComponent.props.onSelectSiteId(42)
     assert.equal(controller.portal.getFollowedSiteId(), 42)
 
     // Selecting the same site again will unfollow them.
-    outsideViewportSitePositionsComponent.props.onSelectSiteId(42)
+    sitePositionsComponent.props.onSelectSiteId(42)
     assert.equal(controller.portal.getFollowedSiteId(), null)
   })
 
