@@ -3,7 +3,8 @@ const FakeEditorProxy = require('./fake-editor-proxy')
 
 module.exports =
 class FakePortal {
-  constructor () {
+  constructor ({siteId} = {}) {
+    this.siteId = siteId
     this.activeEditorProxyChangeCount = 0
   }
 
