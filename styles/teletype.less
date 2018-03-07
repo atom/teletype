@@ -369,11 +369,27 @@
   .SitePositionsComponent-site {
     margin-left: @avatar-margin;
 
-    // TODO Improve styling of link icon
     .icon-link {
       position: absolute;
-      padding-left: 28px;
-      padding-top: 28px;
+      margin-left: 28px;
+      margin-top: 28px;
+      color: @text-color-info;
+
+      &::before {
+        z-index: 1;
+      }
+
+      // background cover
+      &::after {
+        content: "";
+        position: absolute;
+        left: -3px;
+        top: 1px;
+        width: 18px;
+        height: 14px;
+        border-radius: 7px;
+        background-color: @syntax-background-color;
+      }
     }
   }
 }
