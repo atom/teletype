@@ -6,8 +6,6 @@ const {TextEditor, TextBuffer} = require('atom')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const FakePortal = require('./helpers/fake-portal')
 const FakeEditorProxy = require('./helpers/fake-editor-proxy')
-
-const EditorBinding = require('../lib/editor-binding')
 const SitePositionsComponent = require('../lib/site-positions-component')
 
 suite('SitePositionsComponent', () => {
@@ -42,15 +40,9 @@ suite('SitePositionsComponent', () => {
 
     const editorProxy1 = new FakeEditorProxy('editor-1')
     const editor1 = new TextEditor({buffer: new TextBuffer(SAMPLE_TEXT)})
-    const editorBinding1 = new EditorBinding({portal, editor: editor1})
-    editorBinding1.setEditorProxy(editorProxy1)
-    component.addEditorBinding(editorBinding1)
 
     const editorProxy2 = new FakeEditorProxy('editor-2')
-    const editor2 = new TextEditor({buffer: new TextBuffer(SAMPLE_TEXT)})
-    const editorBinding2 = new EditorBinding({portal, editor: editor2})
-    editorBinding2.setEditorProxy(editorProxy2)
-    component.addEditorBinding(editorBinding2)
+    const editor2 = new TextEditor({buffer: new TextBuffer(SAMPLE_TEXT)}) // eslint-disable-line no-unused-vars
 
     const element = component.element
 
