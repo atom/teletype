@@ -102,27 +102,27 @@ suite('HostPortalBinding', () => {
 
     const localEditor1 = await atomEnv.workspace.open()
     await portalBinding.initialize()
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert(portalBinding.sitePositionsComponent.element.parentElement)
 
     const localNonEditor = await atomEnv.workspace.open(new FakePaneItem())
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
 
     const localEditor2 = await atomEnv.workspace.open()
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert(portalBinding.sitePositionsComponent.element.parentElement)
 
     const remoteEditor = new TextEditor()
     remoteEditor.isRemote = true
     await atomEnv.workspace.open(remoteEditor)
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
 
     await atomEnv.workspace.open(localEditor2)
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert(portalBinding.sitePositionsComponent.element.parentElement)
 
     remoteEditor.destroy()
     localEditor1.destroy()
     localEditor2.destroy()
     localNonEditor.destroy()
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
   })
 
   function buildHostPortalBinding (client, atomEnv) {

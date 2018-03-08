@@ -2,7 +2,7 @@
 
 ## Status
 
-See [#268](https://github.com/atom/teletype/issues/268).
+Implemented. See [#268](https://github.com/atom/teletype/issues/268).
 
 ## Summary
 
@@ -32,12 +32,7 @@ When a host closes a buffer, it will be removed from all guest portals.
 
 You can follow any other guest participating in the host's workspace in the exact same way. If they move between buffers, you will follow them. The host does not enjoy any special privilege with respect to the ability to be followed between different files.
 
-When viewing an editor associated with a portal, each participant sees the avatars for the other portal participants (just as they did prior to this RFC). As a host, when your active pane item is a local editor (i.e., an editor that you're sharing in your portal), the editor shows the avatars for the other portal participants. As a guest, when your active pane item is a remote editor (i.e., an editor that you're viewing from the host's portal), the editor shows the avatars for the other portal participants. The location of each avatar within the editor indicates the relative position of that participant:
-- Top-right: Participants in the same editor but in a row above your viewport
-- Middle-right: Participants in the same editor and inside your viewport
-- Bottom-right: Participants in the same editor but in a row below your viewport or a column outside of your viewport
-- Bottom-right with TBD icon 1: Participants in a different editor in the portal
-- Bottom-right with TBD icon 2: Participants in a different pane item not associated with the portal
+When viewing an editor associated with a portal, each participant sees the avatars for the other portal participants (just as they did prior to this RFC). As a host, when your active pane item is a local editor (i.e., an editor that you're sharing in your portal), the editor shows the avatars for the other portal participants. As a guest, when your active pane item is a remote editor (i.e., an editor that you're viewing from the host's portal), the editor shows the avatars for the other portal participants. All avatars appear in the bottom right of the editor. If the participant's active pane item is an editor associated with the portal, you can click on the participant's avatar to follow them. If the participant is working in a pane item not associated with the portal, you can't follow that participant to their current location.
 
 Editors for remote buffers are *only* automatically opened when you are following another collaborator. If you are not following someone, no editors are automatically opened. When you start following another collaborator again, an editor will be automatically opened based on their location. You can also open any buffer in the host's workspace directly by navigating to it...
 
