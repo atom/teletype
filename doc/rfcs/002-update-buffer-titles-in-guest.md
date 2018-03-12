@@ -10,7 +10,7 @@ We want to add the functionality to have title changes of text-buffers from the 
 
 ### Motivation
 
-This change is motivated in response to issue #147.
+This change is motivated in response to [#147](https://github.com/atom/teletype/issues/147).
 
 ### Explanation
 
