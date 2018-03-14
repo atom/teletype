@@ -14,13 +14,22 @@ As described in [#147](https://github.com/atom/teletype/issues/147), when the ho
 
 ### Explanation
 
+There is a new file in _Teletype_, called _buffer-file.js_:
+  This File acts as a filler for the `File` object. It implements:
+    1. `constructor({bufferProxy})`
+    2. `getPath()` returns the path using the `bufferProxy`'s uri.
+    3. `createWriteStream()` currently returns `null`, since there is no need to implement it (yet)
+    4. `pathChanged()` emits a `did-rename` message when called
+    5. `onDidRename(callback)` allows _atom/Text-Buffer_ to listen to then emit `path-did-change` messages.
+
 This will add an additional workflow to the _Teletype_ process:
 
-1. A subscription is added to _teletype/Buffer-Binding_ to capture when the _Text-Buffer_'s path changes. This will then get what the new URI of the host's _teletype-client/Buffer-Proxy_ should be, and call a function in _Buffer-Proxy_.
-2. The Host's _Buffer-Proxy_ will call router to notify all of the guests the new URI of the buffer. After this notification, it will update its URI.
-3. The Guest's _Buffer-Proxy_, will add a subscription (upon initialization) to listen for path change notifications from router.
-4. Upon router's notification and it will update its URI. It will then notify the _Text-Buffer_ to send an emitter that its path has changed.
-5. This emitter is called by an added helper function in _atom/Text-Buffer_.
+1. When the guest initializes their workspace, _teletype-client/Buffer-Proxy_'s `setDelegate` function calls a new function in _teletype/BufferBinding_ called `addFile`, which calls `buffer.setFile()` on a new _teletype/Buffer-File_ object.
+2. A subscription is added to _teletype/Buffer-Binding_ to capture when the _Text-Buffer_'s path changes. This will then get what the new URI of the host's _teletype-client/Buffer-Proxy_ should be, and call a function in _Buffer-Proxy_.
+3. The Host's _Buffer-Proxy_ will call router to notify all of the guests the new URI of the buffer. After this notification, it will update its URI.
+4. The Guest's _Buffer-Proxy_, will add a subscription (upon initialization) to listen for path change notifications from router.
+5. Upon router's notification and it will update its URI and call _Buffer-File_'s `pathChanged()` function.
+5. _Buffer-File_ emits a `did-rename` message, which causes _atom/Text-Buffer_ to send a `did-change-path` message.
 6. The Guest's _teletype/Editor-Binding_'s monkey bindings are updated such that the URI constant is removed, and is updated when `getTitle()` is invoked.
 
 ### Drawbacks
