@@ -54,4 +54,4 @@ Similarly, when the host renames a file (e.g., from `foo.txt` to `foo.md`), the 
 
 ### Unresolved questions
 
-At the step of calling the _Text-Buffer_'s helper function to emit a `path-did-change`, should this message be called from the _Buffer-Binding_ or the _Buffer-Proxy_. 
+Will the addition of `buffer-file.js` be able to assist in some way the efforts of saving a file locally?
