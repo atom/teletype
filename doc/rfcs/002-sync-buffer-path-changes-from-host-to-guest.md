@@ -1,4 +1,4 @@
-# Update Buffer Titles in Guest's Workspace
+# Sync buffer path changes from host to guest
 
 ### Status
 
