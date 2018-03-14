@@ -14,13 +14,13 @@ As described in [#147](https://github.com/atom/teletype/issues/147), when the ho
 
 ### Explanation
 
-There is a new file in _Teletype_, called _buffer-file.js_:
-  This File acts as a filler for the `File` object. It implements:
-    1. `constructor({bufferProxy})`
-    2. `getPath()` returns the path using the `bufferProxy`'s uri.
-    3. `createWriteStream()` currently returns `null`, since there is no need to implement it (yet)
-    4. `pathChanged()` emits a `did-rename` message when called
-    5. `onDidRename(callback)` allows _atom/Text-Buffer_ to listen to then emit `path-did-change` messages.
+There is a new file in _Teletype_, called _buffer-file.js_. This File acts as a filler for the `File` object. It implements:
+
+1. `constructor({bufferProxy})`
+2. `getPath()` returns the path using the `bufferProxy`'s uri.
+3. `createWriteStream()` currently returns `null`, since there is no need to implement it (yet)
+4. `pathChanged()` emits a `did-rename` message when called
+5. `onDidRename(callback)` allows _atom/Text-Buffer_ to listen to then emit `path-did-change` messages.
 
 This will add an additional workflow to the _Teletype_ process:
 
