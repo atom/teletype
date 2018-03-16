@@ -97,6 +97,7 @@ In the interest of getting the highest impact functionality in users' hands as q
     - Changing the sort order for your list of past collaborators (e.g., sort by how recently you've collaborated, sort or group by online/offline status)
     - Limiting the size of your list of past collaborators. (In the meantime, you can remove past collaborators to reduce the size of the list.)
     - Filtering your list of past collaborators
+    - Marking certain collaborators as "favorites"
 - *TODO*: What else?
 
 ## Drawbacks
