@@ -111,7 +111,8 @@ In the interest of getting the highest impact functionality in users' hands as q
 ## Drawbacks
 
 - Some people might feel uneasy knowing that past collaborators can see if they are "online" (i.e., if they have Atom open and they're signed into Teletype).
-- *TOOD*: What else? Why should we *not* do this?
+- Once Teletype provides a list of past collaborators, people may want to be able to chat with those collaborators from within Teletype. While we may eventually want to support chat, any chat-related functionality must exist in service of Teletype's primary vision of "making it as easy to code together as it is to code alone." We'll need to be diligent to avoid scope creep.
+- Depending on the technical solution we choose for implementing presence, we may incur increased server-side resource consumption and/or we may take on additional operational complexity.
 
 ## Rationale and alternatives
 
