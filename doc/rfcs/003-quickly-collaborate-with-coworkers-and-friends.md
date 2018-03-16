@@ -147,4 +147,3 @@ See [out of scope](#out-of-scope) section above.
 ## Even more TODOs 😇
 
 - What happens if I'm currently a guest and I click to invite someone to a portal?
-- Can the host remove someone from their list while collaborating is still ongoing? https://github.com/atom/teletype/pull/344#discussion_r175019764
