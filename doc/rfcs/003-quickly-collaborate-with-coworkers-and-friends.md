@@ -46,10 +46,6 @@ And perhaps we can reduce the host's set-up process even further:
 
 ## Explanation
 
-### Portal URLs
-
-*TODO* Define URL format
-
 ### Share a portal via URL
 
 Once a host creates a portal (e.g., by clicking the "share" toggle in Teletype's status bar popover), Teletype presents the host with the portal's URL. The host copies that URL to their clipboard (in the same way that they previously copied the portal ID).
@@ -59,6 +55,16 @@ Once a host creates a portal (e.g., by clicking the "share" toggle in Teletype's
 <img width="314" src="https://user-images.githubusercontent.com/2988/37489877-6d0b0cfe-286f-11e8-87a3-a04da42994a3.png">
 
 Also consider [Slack's approach](https://github.com/atom/teletype/issues/109#issuecomment-337223084) for potential inspiration.
+
+#### Portal URL format
+
+Prior Teletype releases established a URI structure for identifying editors in Atom's workspace: `atom://teletype/portal/<portal-id>/editor/<editor-id>`
+
+Portal URLs use that same pattern, but exclude the editor ID: `atom://teletype/portal/<portal-id>`
+
+The `<portal-id>` is the same ID used in prior releases for sharing and joining a portal.
+
+Example: `atom://teletype/portal/63b120f3-b646-4c46-8962-656518249186`
 
 ### Join a portal via URL
 
