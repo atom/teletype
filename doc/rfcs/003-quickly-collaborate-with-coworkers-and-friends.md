@@ -104,7 +104,9 @@ In the interest of getting the highest impact functionality in users' hands as q
     - Limiting the size of your list of past collaborators. (In the meantime, you can remove past collaborators to reduce the size of the list.)
     - Filtering your list of past collaborators
     - Marking certain collaborators as "favorites"
-- *TODO*: What else?
+- Offering to install Teletype if you click on a portal URL and don't yet have Teletype installed ([#220](https://github.com/atom/teletype/issues/220))
+- Selecting a past collaborator and asking to join their portal
+- Selecting multiple past collaborators and inviting them to your portal simultaneously. (In the meantime, you can select a collaborator and invite them, then select another collaborator and invite them, and so on.)
 
 ## Drawbacks
 
