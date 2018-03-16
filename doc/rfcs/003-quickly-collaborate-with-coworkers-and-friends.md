@@ -88,16 +88,23 @@ With the approach described above, we believe Teletype can provide a streamlined
 
 ## Out of scope
 
-- Changing the sort order for your list of past collaborators (e.g., sort by how recently you've collaborated, sort or group by online/offline status).
-- Limiting the size of your list of past collaborators. In the meantime, you can remove past collaborators to reduce the size of the list.
-- Filtering your list of past collaborators
+In the interest of getting the highest impact functionality in users' hands as quickly as possible and then iterating based on real-world feedback, the following functionality is out of scope for this RFC, but may be addressed in follow-up releases.
+
+- Changing your online/offline status
+    - Setting your status to offline. (In the meantime, you can sign out of Teletype or disable Teletype in Atom's package settings when you want to use Atom while not accepting invitations from your past collaborators.)
+    - Setting your status to "away" or "busy"
+- UX enhancements to the list of past collaborators
+    - Changing the sort order for your list of past collaborators (e.g., sort by how recently you've collaborated, sort or group by online/offline status)
+    - Limiting the size of your list of past collaborators. (In the meantime, you can remove past collaborators to reduce the size of the list.)
+    - Filtering your list of past collaborators
 - *TODO*: What else?
 
 ## Drawbacks
 
 Why should we *not* do this?
 
-*TODO*
+- Some people might feel uneasy knowing that past collaborators can see if they are "online" (i.e., if they have Atom open and they're signed into Teletype).
+- *TOOD*: What else?
 
 ## Rationale and alternatives
 
@@ -121,6 +128,5 @@ Why should we *not* do this?
 
 ## Even more TODOs 😇
 
-- Explicitly state that past collaborators have two possible states: online or offline. Setting your status to "away" or "busy" is out of scope for now. Making yourself invisible is out of scope for now. In the meantime, you sign out of Teletype or disable Teletype in Atom's package settings when you want to use Atom while not accepting invitations from your past collaborators.
 - What happens if I'm currently a guest and I click to invite someone to a portal?
 - Consider discussing implementation for determining presence.
