@@ -102,31 +102,39 @@ In the interest of getting the highest impact functionality in users' hands as q
 
 ## Drawbacks
 
-Why should we *not* do this?
-
 - Some people might feel uneasy knowing that past collaborators can see if they are "online" (i.e., if they have Atom open and they're signed into Teletype).
-- *TOOD*: What else?
+- *TOOD*: What else? Why should we *not* do this?
 
 ## Rationale and alternatives
 
-- Why is this approach the best in the space of possible approaches?
-    - *TODO*
-- What other approaches have been considered and what is the rationale for not choosing them?
-    - *TODO*
-- What is the impact of not doing this?
-    - *TODO*
+##### Why is this approach the best in the space of possible approaches?
+
+*TODO*
+
+##### What other approaches have been considered and what is the rationale for not choosing them?
+
+*TODO*
+
+##### What is the impact of not doing this?
+
+*TODO*
 
 ## Unresolved questions
 
-- What unresolved questions do you expect to resolve through the RFC process before this gets merged?
-    - If I invite a past collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
-    - If I invite a past collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
-    - *TODO*: What else?
-- What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
-    - What architecture/services/libraries will we use to implement presence?
-    - In order to provide the functionality described above, does teletype-server need to persist your list of past collaborators, or can we meet these needs while only storing this data locally?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
-    - See [out of scope](#out-of-scope) section above
+##### What unresolved questions do you expect to resolve through the RFC process before this gets merged?
+
+- If I invite a past collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
+- If I invite a past collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
+- *TODO*: What else?
+
+##### What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
+
+- What architecture/services/libraries will we use to implement presence?
+- In order to provide the functionality described above, does teletype-server need to persist your list of past collaborators, or can we meet these needs while only storing this data locally?
+
+##### What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
+
+See [out of scope](#out-of-scope) section above
 
 ## Even more TODOs 😇
 
