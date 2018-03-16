@@ -133,7 +133,7 @@ People will collaborate less often. Given the additional steps needed to start c
 
 - If I invite a past collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
 - If I invite a past collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
-- *TODO*: What else?
+- Where will the list of past collaborators appear in the UI? How do I show/hide this list?
 
 ##### What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
 
