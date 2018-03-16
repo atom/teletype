@@ -29,7 +29,7 @@ With the ability to join a portal via a URL, we can reduce the guest's set-up pr
 2. Host copies portal URL to their clipboard
 3. Host switches from Atom to third-party communication tool (e.g., Slack, IRC)
 4. Host pastes portal URL into third-party communication tool
-5. Guest clicks portal URL, and the operating systems hands control to Atom, and Atom joins the portal
+5. Guest clicks portal URL, and the operating system hands control to Atom, and Atom joins the portal
 
 With the ability to invite past collaborators to your portal from within Atom, we reduce the host's set-up process from 4 steps to 3 steps:
 
@@ -68,9 +68,9 @@ Example: `atom://teletype/portal/63b120f3-b646-4c46-8962-656518249186`
 
 ### Join a portal via URL
 
-When a guest follows the URL (e.g., by clicking on the URL in Slack, IRC, etc.), Atom opens, and Teletype asks the user if they want to join the portal. If the user chooses to join the portal, they become a guest in the portal (just as the previously did by entering the portal ID and clicking "Join"). If they choose not to join the portal, nothing happens.
+When a guest follows the URL (e.g., by clicking on the URL in Slack, IRC, etc.), Atom opens, and Teletype asks the user if they want to join the portal. If the user chooses to join the portal, they become a guest in the portal (just as they previously did by entering the portal ID and clicking "Join"). If they choose not to join the portal, nothing happens.
 
-To honor the [UX guidelines in for Atom URI handlers](https://flight-manual.atom.io/hacking-atom/sections/handling-uris/), Teletype avoids automatically joining the portal. When asking the user whether they want to join the portal, Teletype offers an option to automatically join future portals. This option is disabled by default. When the user enables this option, any time they follow a portal URLs, Teletype will automatically join the portal without the user having to perform an additional confirmation of their desire to join the portal. Users can disable this option at any time via the Teletype settings in Atom's Settings UI.
+To honor the [UX guidelines for Atom URI handlers](https://flight-manual.atom.io/hacking-atom/sections/handling-uris/), Teletype avoids automatically joining the portal. When asking the user whether they want to join the portal, Teletype offers an option to automatically join future portals. This option is disabled by default. When the user enables this option, any time they follow a portal URL, Teletype will automatically join the portal without the user having to perform an additional confirmation of their desire to join the portal. Users can disable this option at any time via the Teletype settings in Atom's Settings UI.
 
 ### Invite a past collaborator to your portal
 
@@ -78,7 +78,7 @@ Teletype provides a list of your past collaborators (i.e., a "buddy list" of sor
 
 Teletype presents your list of past collaborators sorted alphabetically by username.
 
-When your past collaborators have Atom open and they're signed into Teletype, they appear as "online" in your list of past collaborators. You can select a past collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace. (Note: We probably need to draft a proposal for implementing "presence." Maybe that belongs in this RFC, or maybe it belongs in a separate one.)
+When your past collaborators have Atom open and they're signed into Teletype, they appear as "online" in your list of past collaborators. You can select a past collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
 
 Inside the invitee's Atom instance, Teletype informs the invitee that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee chooses to join the portal, they see a notification confirming that they've joined the portal. If the invitee declines to join the portal, Teletype notifies the host that the guest declined the invitation.
 
@@ -118,8 +118,8 @@ With the approach described above, we believe Teletype can provide a streamlined
 
 ##### What other approaches have been considered and what is the rationale for not choosing them?
 
-- Teletype could allow you to enter a person's GitHub username (or their email address) to invite them to your portal. This would remove the need for sharing a URL via a third-party service in order to collaborate for the first time. However, it would make it possible for any GitHub user to cause invitations to appear inside your Atom instance. This introduces a vector for harassment, so we're avoiding this approach.
-- Teletype could allow you to invite other users that you're already associated with in some way (e.g., fellow collaborators on a GitHub repository, fellow members of a GitHub organization or team). This would remove the need for sharing a URL via a third-party service in order to collaborate for the first time, and it would reduce the harassment vector described in the previous bullet. However, it would introduce tradeoffs that we'd prefer to avoid:
+- Teletype could allow you to enter a person's GitHub username (or their email address) to invite them to your portal. This would remove the need for sharing a URL via a third-party service in order to collaborate, and it would reduce the need to provide a list of past collaborators (i.e., you could just enter a username each time you want to collaborate). However, it would make it possible for any GitHub user to cause invitations to appear inside your Atom instance. This introduces a vector for harassment, so we're avoiding this approach.
+- Teletype could allow you to invite other users that you're already associated with in some way (e.g., fellow collaborators on a GitHub repository, fellow members of a GitHub organization or team). This would remove the need for sharing a URL via a third-party service in order to collaborate, and it would reduce the need to provide a list of past collaborators, and it would reduce the harassment vector described in the previous bullet. However, it would introduce tradeoffs that we'd prefer to avoid:
     - Teletype would need additional permissions (i.e., [OAuth scopes](https://developer.github.com/apps/building-oauth-apps/scopes-for-oauth-apps/#available-scopes)) to fetch the list of users you're associated with. (Today, Teletype  uses a scopeless token and has no access to your private information.)
     - Some users belong to organizations with thousands of members. Just because you're a member of the same organization as someone else doesn't mean that you're comfortable seeing portal invitations from them.
 
@@ -139,6 +139,7 @@ People will collaborate less often. Given the additional steps needed to start c
 
 - What architecture/services/libraries will we use to implement presence?
 - In order to provide the functionality described above, does teletype-server need to persist your list of past collaborators, or can we meet these needs while only storing this data locally?
+- If the host invites a past collaborator to their portal and then closes the portal before the invitee joins the portal, what should an invitee see/experience to inform them that the portal no longer exists?
 
 ##### What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
 
