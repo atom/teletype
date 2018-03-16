@@ -125,7 +125,7 @@ Why should we *not* do this?
 - What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
     - *TODO*
 - What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
-    - *TODO*
+    - See [out of scope](#out-of-scope) section above
 
 ## Even more TODOs 😇
 
