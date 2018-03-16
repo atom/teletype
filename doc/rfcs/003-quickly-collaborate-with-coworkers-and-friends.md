@@ -88,10 +88,6 @@ You can remove anyone from your list of past collaborators. Once you've removed 
 
 If you later decide that you want to collaborate with them again, you can send them a URL (via Slack, IRC, etc.) to join your portal, or you can ask them to send you a URL (via Slack, IRC, etc.) so that you can join their portal. Once you collaborate in a portal together again, Teletype adds them back to your list of past collaborators, and they can once again see your online/offline status in their list of past collaborators.
 
-### Streamline collaboration while avoiding harassment
-
-With the approach described above, we believe Teletype can provide a streamlined set-up process while also preventing harassment. In order for Teletype to prompt you to join someone's portal, you must first have collaborated with that person in the past (by sending your portal URL to them via a third-party service or by joining their portal via a URL they sent you via a third-party service) *and* that person must still exist in your list of past collaborators (i.e., you haven't removed them from your list of past collaborators). In other words, people that you've never collaborated with cannot cause portal invitations to appear in your editor. And people that you've collaborated with in the past, but don't want to receive invitations from in the future, cannot cause portal invitations to appear in your editor either.
-
 ## Out of scope
 
 In the interest of getting the highest impact functionality in users' hands as quickly as possible and then iterating based on real-world feedback, the following functionality is out of scope for this RFC, but may be addressed in follow-up releases.
@@ -118,15 +114,18 @@ In the interest of getting the highest impact functionality in users' hands as q
 
 ##### Why is this approach the best in the space of possible approaches?
 
-*TODO*
+With the approach described above, we believe Teletype can provide a streamlined set-up process while also preventing harassment. In order for Teletype to prompt you to join someone's portal, you must first have collaborated with that person in the past (by sending your portal URL to them via a third-party service or by joining their portal via a URL they sent you via a third-party service) *and* that person must still exist in your list of past collaborators (i.e., you haven't removed them from your list of past collaborators). In other words, people that you've never collaborated with cannot cause portal invitations to appear in your editor. And people that you've collaborated with in the past, but don't want to receive invitations from in the future, cannot cause portal invitations to appear in your editor either.
 
 ##### What other approaches have been considered and what is the rationale for not choosing them?
 
-*TODO*
+- Teletype could allow you to enter a person's GitHub username (or their email address) to invite them to your portal. This would remove the need for sharing a URL via a third-party service in order to collaborate for the first time. However, it would make it possible for any GitHub user to cause invitations to appear inside your Atom instance. This introduces a vector for harassment, so we're avoiding this approach.
+- Teletype could allow you to invite other users that you're already associated with in some way (e.g., fellow collaborators on a GitHub repository, fellow members of a GitHub organization or team). This would remove the need for sharing a URL via a third-party service in order to collaborate for the first time, and it would reduce the harassment vector described in the previous bullet. However, it would introduce tradeoffs that we'd prefer to avoid:
+    - Teletype would need additional permissions (i.e., [OAuth scopes](https://developer.github.com/apps/building-oauth-apps/scopes-for-oauth-apps/#available-scopes)) to fetch the list of users you're associated with. (Today, Teletype  uses a scopeless token and has no access to your private information.)
+    - Some users belong to organizations with thousands of members. Just because you're a member of the same organization as someone else doesn't mean that you're comfortable seeing portal invitations from them.
 
 ##### What is the impact of not doing this?
 
-*TODO*
+People will collaborate less often. Given the additional steps needed to start collaborating, there will be more instances where people decide that it's not worth the effort (i.e., people will enjoy rich collaboration less often).
 
 ## Unresolved questions
 
