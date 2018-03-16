@@ -143,7 +143,3 @@ People will collaborate less often. Given the additional steps needed to start c
 ##### What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
 
 See [out of scope](#out-of-scope) section above.
-
-## Even more TODOs 😇
-
-- What happens if I'm currently a guest and I click to invite someone to a portal?
