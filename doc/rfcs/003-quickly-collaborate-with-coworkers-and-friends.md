@@ -66,7 +66,7 @@ When a guest follows the URL (e.g., by clicking on the URL in Slack, IRC, etc.),
 
 To honor the [UX guidelines in for Atom URI handlers](https://flight-manual.atom.io/hacking-atom/sections/handling-uris/), Teletype avoids automatically joining the portal. When asking the user whether they want to join the portal, Teletype offers an option to automatically join future portals. This option is disabled by default. When the user enables this option, any time they follow a portal URLs, Teletype will automatically join the portal without the user having to perform an additional confirmation of their desire to join the portal. Users can disable this option at any time via the Teletype settings in Atom's Settings UI.
 
-### Invite past collaborator to your portal
+### Invite a past collaborator to your portal
 
 Teletype provides a list of your past collaborators (i.e., a "buddy list" of sorts). Each time someone joins your portal, Teletype adds them to your list of past collaborators. Each time you join a portal, Teletype adds the host (and any other guests) to your list of past collaborators.
 
@@ -74,7 +74,7 @@ When your past collaborators have Atom open and they're signed into Teletype, th
 
 Inside the invitee's Atom instance, Teletype informs the invitee that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee chooses to join the portal, they see a notification confirming that they've joined the portal. If the invitee declines to join the portal, Teletype notifies the host that the guest declined the invitation.
 
-### Preventing invitations from past collaborators
+### Prevent invitations from a past collaborator
 
 You can remove anyone from your list of past collaborators. Once you've removed someone from your list of past collaborators, you will appear as "offline" in their list of past collaborators, and they can no longer invite you to their portal from directly within Atom.
 
