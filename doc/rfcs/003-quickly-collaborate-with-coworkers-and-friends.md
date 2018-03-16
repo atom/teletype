@@ -123,11 +123,11 @@ Why should we *not* do this?
     - If I invite a past collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
     - *TODO*: What else?
 - What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
-    - *TODO*
+    - What architecture/services/libraries will we use to implement presence?
+    - In order to provide the functionality described above, does teletype-server need to persist your list of past collaborators, or can we meet these needs while only storing this data locally?
 - What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
     - See [out of scope](#out-of-scope) section above
 
 ## Even more TODOs 😇
 
 - What happens if I'm currently a guest and I click to invite someone to a portal?
-- Consider discussing implementation for determining presence.
