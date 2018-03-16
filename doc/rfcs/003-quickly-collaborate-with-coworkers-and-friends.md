@@ -70,6 +70,8 @@ To honor the [UX guidelines in for Atom URI handlers](https://flight-manual.atom
 
 Teletype provides a list of your past collaborators (i.e., a "buddy list" of sorts). Each time someone joins your portal, Teletype adds them to your list of past collaborators. Each time you join a portal, Teletype adds the host (and any other guests) to your list of past collaborators.
 
+Teletype presents your list of past collaborators sorted alphabetically by username.
+
 When your past collaborators have Atom open and they're signed into Teletype, they appear as "online" in your list of past collaborators. You can select a past collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace. (Note: We probably need to draft a proposal for implementing "presence." Maybe that belongs in this RFC, or maybe it belongs in a separate one.)
 
 Inside the invitee's Atom instance, Teletype informs the invitee that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee chooses to join the portal, they see a notification confirming that they've joined the portal. If the invitee declines to join the portal, Teletype notifies the host that the guest declined the invitation.
@@ -83,6 +85,13 @@ If you later decide that you want to collaborate with them again, you can send t
 ### Streamline collaboration while avoiding harassment
 
 With the approach described above, we believe Teletype can provide a streamlined set-up process while also preventing harassment. In order for Teletype to prompt you to join someone's portal, you must first have collaborated with that person in the past (by sending your portal URL to them via a third-party service or by joining their portal via a URL they sent you via a third-party service) *and* that person must still exist in your list of past collaborators (i.e., you haven't removed them from your list of past collaborators). In other words, people that you've never collaborated with cannot cause portal invitations to appear in your editor. And people that you've collaborated with in the past, but don't want to receive invitations from in the future, cannot cause portal invitations to appear in your editor either.
+
+## Out of scope
+
+- Changing the sort order for your list of past collaborators (e.g., sort by how recently you've collaborated, sort or group by online/offline status).
+- Limiting the size of your list of past collaborators. In the meantime, you can remove past collaborators to reduce the size of the list.
+- Filtering your list of past collaborators
+- *TODO*: What else?
 
 ## Drawbacks
 
@@ -114,5 +123,4 @@ Why should we *not* do this?
 
 - Explicitly state that past collaborators have two possible states: online or offline. Setting your status to "away" or "busy" is out of scope for now. Making yourself invisible is out of scope for now. In the meantime, you sign out of Teletype or disable Teletype in Atom's package settings when you want to use Atom while not accepting invitations from your past collaborators.
 - What happens if I'm currently a guest and I click to invite someone to a portal?
-- How should we handle an extremely large list of past collaborators? How should we sort it? Should the user be able to change how it's sorted? Should they be able to filter the list somehow?
 - Consider discussing implementation for determining presence.
