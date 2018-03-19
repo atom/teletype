@@ -43,6 +43,10 @@
       }
     }
   },
+  "uriHandler": {
+    "method": "handleURI",
+    "deferActivation": false
+  },
   "engines": {
     "atom": ">=1.22.0"
   },
