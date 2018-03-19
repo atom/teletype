@@ -353,10 +353,15 @@
   @avatar-size: 40px;
 
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: absolute;
-  right: @corner-margin;
+  justify-content: flex-end;
+  font-size: 16px;
   text-align: right;
+  left: 0;
+  right: @corner-margin;
+  bottom: @corner-margin;
+  overflow: hidden;
 
   img {
     cursor: pointer;
@@ -365,48 +370,34 @@
   }
 
   .SitePositionsComponent-site {
-    display: flex;
-  }
+    margin-left: @avatar-margin;
 
-  &.upper-right {
-    top: @corner-margin * 3;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-
-    .SitePositionsComponent-site {
-      margin-left: @avatar-margin;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
+    &.viewing-non-portal-item {
+      opacity: 0.5;
     }
-  }
 
-  &.middle-right {
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    .icon-link {
+      position: absolute;
+      margin-left: 24px;
+      margin-top: 24px;
+      color: @text-color-info;
+      pointer-events: none;
 
-    .SitePositionsComponent-site {
-      margin-bottom: @avatar-margin;
-      flex-direction: row;
-      align-items: center;
-    }
-  }
+      &::before {
+        z-index: 1;
+      }
 
-  &.lower-right {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    bottom: @corner-margin;
-
-    .SitePositionsComponent-site {
-      margin-left: @avatar-margin;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
+      // background cover
+      &::after {
+        content: "";
+        position: absolute;
+        left: -2px;
+        top: 4px;
+        width: 15px;
+        height: 11px;
+        border-radius: 6px;
+        background-color: @syntax-background-color;
+      }
     }
   }
 }

@@ -159,25 +159,25 @@ suite('GuestPortalBinding', () => {
     const portalBinding = buildGuestPortalBinding(client, atomEnv, 'some-portal')
 
     await portalBinding.initialize()
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
 
     const editorProxy = new FakeEditorProxy('some-uri')
     await portalBinding.updateTether(FollowState.RETRACTED, editorProxy)
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert(portalBinding.sitePositionsComponent.element.parentElement)
 
     const localPaneItem1 = await atomEnv.workspace.open()
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
 
     localPaneItem1.destroy()
-    assert.equal(portalBinding.sitePositionsController.visible, true)
+    assert(portalBinding.sitePositionsComponent.element.parentElement)
 
     const localPaneItem2 = await atomEnv.workspace.open()
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
 
     editorProxy.dispose()
     localPaneItem2.destroy()
     assert.equal(atomEnv.workspace.getActivePaneItem(), null)
-    assert.equal(portalBinding.sitePositionsController.visible, false)
+    assert(!portalBinding.sitePositionsComponent.element.parentElement)
   })
 
   function buildGuestPortalBinding (client, atomEnv, portalId) {
