@@ -103,6 +103,7 @@ In the interest of getting the highest impact functionality in users' hands as q
 - Offering to install Teletype if you click on a portal URL and don't yet have Teletype installed ([#220](https://github.com/atom/teletype/issues/220))
 - Selecting a past collaborator and asking to join their portal
 - Selecting multiple past collaborators and inviting them to your portal simultaneously. (In the meantime, you can select a collaborator and invite them, then select another collaborator and invite them, and so on.)
+- Providing option to join portal in a new window [[discussion](https://github.com/atom/teletype/pull/344#discussion_r175569812)]
 
 ## Drawbacks
 
