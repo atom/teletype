@@ -128,21 +128,22 @@ suite('TeletypePackage', function () {
       assert.equal(getRemotePaneItems(guestEnv).length, 1)
     })
 
-    // TODO This feels like it's worth testing, but the 'Failed to join portal' notification doesn't happen until _after_ the test times out. :-/
-    test.skip('opening URI for closed portal', async () => {
+    test('opening URI for inaccessible portal', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
 
+      const TIMEOUT_IN_MILLISECONDS = 1
       const guestEnv = buildAtomEnvironment()
-      const guestPackage = await buildPackage(guestEnv)
+      const guestPackage = await buildPackage(guestEnv, {peerConnectionTimeout: TIMEOUT_IN_MILLISECONDS})
       const notifications = []
       guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
-      const portal = await hostPackage.sharePortal()
-      const uri = `atom://teletype/portal/${portal.id}`
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
       await hostPackage.closeHostPortal()
 
-      handleURI(guestPackage, uri)
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert(!guestPortal)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
     })
 
@@ -1267,6 +1268,7 @@ suite('TeletypePackage', function () {
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
       getAtomVersion: function () { return 'x.y.z' },
+      peerConnectionTimeout: options.peerConnectionTimeout,
       tetherDisconnectWindow: 300,
       credentialCache
     })
