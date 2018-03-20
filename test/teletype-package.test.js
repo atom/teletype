@@ -110,7 +110,7 @@ suite('TeletypePackage', function () {
 
   suite('portal URIs', () => {
     function handleURI (pack, uri) {
-      pack.handleURI(url.parse(uri), uri)
+      return pack.handleURI(url.parse(uri), uri)
     }
 
     test('opening URI for active portal', async () => {
@@ -119,12 +119,13 @@ suite('TeletypePackage', function () {
       const guestEnv = buildAtomEnvironment()
       const guestPackage = await buildPackage(guestEnv)
 
-      const portal = await hostPackage.sharePortal()
-      const uri = `atom://teletype/portal/${portal.id}`
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
       await hostEnv.workspace.open()
 
-      handleURI(guestPackage, uri)
-      await condition(() => getRemotePaneItems(guestEnv).length === 1)
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert.equal(guestPortal.id, hostPortal.id)
+      assert.equal(getRemotePaneItems(guestEnv).length, 1)
     })
 
     // TODO This feels like it's worth testing, but the 'Failed to join portal' notification doesn't happen until _after_ the test times out. :-/
@@ -167,8 +168,20 @@ suite('TeletypePackage', function () {
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
     })
 
-    // TODO Is this worth testing? Note that this is covered to some extent in the 'prompting for an auth token' tests
-    test('opening URI when not signed in')
+    test('opening URI when not signed in', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv, {signIn: false})
+
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
+      await hostEnv.workspace.open()
+
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert(!guestPortal)
+      assert.equal(getRemotePaneItems(guestEnv).length, 0)
+    })
   })
 
   suite('remote editor URIs', () => {
