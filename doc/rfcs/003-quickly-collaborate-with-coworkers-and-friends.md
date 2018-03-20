@@ -84,7 +84,11 @@ Inside the invitee's Atom instance, Teletype informs the invitee that you have i
 
 ### Prevent invitations from a past collaborator
 
-You can remove anyone from your list of past collaborators. Once you've removed someone from your list of past collaborators, you will appear as "offline" in their list of past collaborators, and they can no longer invite you to their portal from directly within Atom.
+You can remove anyone from your list of past collaborators. To do so, right-click on them and remove them:
+
+![](https://user-images.githubusercontent.com/378023/37639861-67778f8e-2c56-11e8-994f-428802fa9191.png)
+
+Once you've removed someone from your list of past collaborators, you will appear as "offline" in their list of past collaborators, and they can no longer invite you to their portal from directly within Atom.
 
 If you later decide that you want to collaborate with them again, you can send them a URL (via Slack, IRC, etc.) to join your portal, or you can ask them to send you a URL (via Slack, IRC, etc.) so that you can join their portal. Once you collaborate in a portal together again, Teletype adds them back to your list of past collaborators, and they can once again see your online/offline status in their list of past collaborators.
 
