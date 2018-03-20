@@ -128,6 +128,17 @@ suite('TeletypePackage', function () {
       assert.equal(getRemotePaneItems(guestEnv).length, 1)
     })
 
+    test('opening URI for nonexistent portal', async () => {
+      const pack = await buildPackage(buildAtomEnvironment())
+      const notifications = []
+      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
+      const portal = await handleURI(pack, uri)
+      assert(!portal)
+      await condition(() => notifications.find((n) => n.message === 'Portal not found'))
+    })
+
     test('opening URI for inaccessible portal', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
@@ -145,17 +156,6 @@ suite('TeletypePackage', function () {
       const guestPortal = await handleURI(guestPackage, uri)
       assert(!guestPortal)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
-    })
-
-    test('opening URI for nonexistent portal', async () => {
-      const pack = await buildPackage(buildAtomEnvironment())
-      const notifications = []
-      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
-
-      const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
-      const portal = await handleURI(pack, uri)
-      assert(!portal)
-      await condition(() => notifications.find((n) => n.message === 'Portal not found'))
     })
 
     test('opening malformed URI', async () => {
