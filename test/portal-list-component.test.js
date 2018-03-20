@@ -88,6 +88,7 @@ suite('PortalListComponent', function () {
     assert(!hostPortalBindingComponent.refs.creatingPortalSpinner)
   })
 
+  // TODO We probably want to add to and/or change these tests
   test('joining portals', async () => {
     const {component} = await buildComponent()
     const {joinPortalComponent, guestPortalBindingsContainer} = component.refs
@@ -177,6 +178,7 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 3))
   })
 
+  // TODO We probably want to change and/or add to these tests
   test('prefilling portal ID from clipboard', async () => {
     const {component} = await buildComponent()
     const {clipboard} = component.props
