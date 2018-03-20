@@ -50,12 +50,6 @@ And perhaps we can reduce the host's set-up process even further:
 
 Once a host creates a portal (e.g., by clicking the "share" toggle in Teletype's status bar popover), Teletype presents the host with the portal's URL. The host copies that URL to their clipboard (in the same way that they previously copied the portal ID).
 
-#### Early mockup
-
-<img width="314" src="https://user-images.githubusercontent.com/2988/37489877-6d0b0cfe-286f-11e8-87a3-a04da42994a3.png">
-
-Also consider [Slack's approach](https://github.com/atom/teletype/issues/109#issuecomment-337223084) for potential inspiration.
-
 #### Portal URL format
 
 Prior Teletype releases established a URI structure for identifying editors in Atom's workspace: `atom://teletype/portal/<portal-id>/editor/<editor-id>`
@@ -78,19 +72,45 @@ Teletype provides a list of your past collaborators (i.e., a "buddy list" of sor
 
 Teletype presents your list of past collaborators sorted alphabetically by username.
 
-When your past collaborators have Atom open and they're signed into Teletype, they appear as "online" in your list of past collaborators. You can select a past collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
+When your past collaborators have Atom open and they're signed into Teletype, they appear as "online" in your list of past collaborators.
 
-Inside the invitee's Atom instance, Teletype informs the invitee that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee chooses to join the portal, they see a notification confirming that they've joined the portal. If the invitee declines to join the portal, Teletype notifies the host that the guest declined the invitation.
+You can select a past collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
+
+Inside the invitee's Atom instance, Teletype informs the invitee that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee is offline when you invite them to join your portal, they'll see your invitation the next time they open Atom.
+
+If the invitee chooses to join the portal, they see a notification confirming that they've joined the portal. If the invitee declines to join the portal, Teletype notifies the host that the guest declined the invitation.
+
+If the invitee declines your invitation, you cannot re-invite to the same portal. There's probably a reason why they didn't join, so there's no need to bug them even more. If you think they declined by accident, reach out to them via a third-party chat service and send them the URL to join your portal.
 
 ### Prevent invitations from a past collaborator
 
 You can remove anyone from your list of past collaborators. To do so, right-click on them and remove them:
 
-![](https://user-images.githubusercontent.com/378023/37639861-67778f8e-2c56-11e8-994f-428802fa9191.png)
+![Mockup: Remove Past Collaborator](https://user-images.githubusercontent.com/378023/37639861-67778f8e-2c56-11e8-994f-428802fa9191.png)
 
 Once you've removed someone from your list of past collaborators, you will appear as "offline" in their list of past collaborators, and they can no longer invite you to their portal from directly within Atom.
 
 If you later decide that you want to collaborate with them again, you can send them a URL (via Slack, IRC, etc.) to join your portal, or you can ask them to send you a URL (via Slack, IRC, etc.) so that you can join their portal. Once you collaborate in a portal together again, Teletype adds them back to your list of past collaborators, and they can once again see your online/offline status in their list of past collaborators.
+
+### Mockups
+
+#### Inviting a past collaborator
+
+![](https://user-images.githubusercontent.com/378023/37643605-6947af84-2c64-11e8-94b6-849e81fd8cd0.png)
+
+### Collaborator states
+
+You can see the collaborators that are currently in your portal, the state of the other invitations that you've sent, and the online/offline state of all past and current collaborators:
+
+![](https://user-images.githubusercontent.com/378023/37642043-1d66797e-2c5f-11e8-8def-01f063888979.png)
+
+The list of past collaborators has a `max-height`. If the list exceeds the `max-height`, you can scroll. The scrolling area includes sent and rejected invitations.
+
+#### Simultaneously participating in multiple portals
+
+While probably not very common, it's possible to host a portal while also participating as a guest in other portals.
+
+![](https://user-images.githubusercontent.com/378023/37640529-6a5ddaac-2c59-11e8-82f5-9ee4c2ed42a5.png)
 
 ## Out of scope
 
