@@ -166,6 +166,7 @@ suite('TeletypePackage', function () {
       let portal = await handleURI(pack, 'atom://teletype/some-unsupported-uri')
       assert(!portal)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+      notifications.length = 0
 
       portal = await handleURI(pack, 'atom://teletype/portal/42')
       assert(!portal)
