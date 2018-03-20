@@ -153,7 +153,8 @@ suite('TeletypePackage', function () {
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
       const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
-      handleURI(pack, uri)
+      const portal = await handleURI(pack, uri)
+      assert(!portal)
       await condition(() => notifications.find((n) => n.message === 'Portal not found'))
     })
 
@@ -162,10 +163,12 @@ suite('TeletypePackage', function () {
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
-      handleURI(pack, 'atom://teletype/some-unsupported-uri')
+      let portal = await handleURI(pack, 'atom://teletype/some-unsupported-uri')
+      assert(!portal)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
 
-      handleURI(pack, 'atom://teletype/portal/42')
+      portal = await handleURI(pack, 'atom://teletype/portal/42')
+      assert(!portal)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
     })
 
