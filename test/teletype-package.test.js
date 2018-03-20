@@ -13,6 +13,7 @@ const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
+const url = require('url')
 
 suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
@@ -105,6 +106,70 @@ suite('TeletypePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
     assert.equal(observedGuestItems.size, 2)
+  })
+
+  suite('portal URIs', () => {
+    // TODO Can we replace this with something like `await guestEnv.workspace.open(uri)` ?
+    function joinPortal (pack, uri) {
+      pack.handleURI(url.parse(uri), uri)
+    }
+
+    test('opening URI for active portal', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const portal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${portal.id}`
+      await hostEnv.workspace.open()
+
+      joinPortal(guestPackage, uri)
+      await condition(() => getRemotePaneItems(guestEnv).length === 1)
+    })
+
+    // TODO This feels like it's worth testing, but the 'Failed to join portal' notification doesn't happen until _after_ the test times out. :-/
+    test.skip('opening URI for closed portal', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+      const notifications = []
+      guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      const portal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${portal.id}`
+      await hostPackage.closeHostPortal()
+
+      joinPortal(guestPackage, uri)
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+    })
+
+    test('opening URI for nonexistent portal', async () => {
+      const pack = await buildPackage(buildAtomEnvironment())
+      const notifications = []
+      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
+      joinPortal(pack, uri)
+      await condition(() => notifications.find((n) => n.message === 'Portal not found'))
+    })
+
+    test('opening malformed URI', async () => {
+      const pack = await buildPackage(buildAtomEnvironment())
+      const notifications = []
+      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      joinPortal(pack, 'atom://teletype/some-unsupported-uri')
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+
+      joinPortal(pack, 'atom://teletype/portal/42')
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+    })
+
+    // TODO Is this worth testing? Note that this is covered to some extent in the 'prompting for an auth token' tests
+    test('opening URI when not signed in')
   })
 
   suite('remote editor URIs', () => {
