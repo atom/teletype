@@ -109,8 +109,7 @@ suite('TeletypePackage', function () {
   })
 
   suite('portal URIs', () => {
-    // TODO Can we replace this with something like `await guestEnv.workspace.open(uri)` ?
-    function joinPortal (pack, uri) {
+    function handleURI (pack, uri) {
       pack.handleURI(url.parse(uri), uri)
     }
 
@@ -124,7 +123,7 @@ suite('TeletypePackage', function () {
       const uri = `atom://teletype/portal/${portal.id}`
       await hostEnv.workspace.open()
 
-      joinPortal(guestPackage, uri)
+      handleURI(guestPackage, uri)
       await condition(() => getRemotePaneItems(guestEnv).length === 1)
     })
 
@@ -142,7 +141,7 @@ suite('TeletypePackage', function () {
       const uri = `atom://teletype/portal/${portal.id}`
       await hostPackage.closeHostPortal()
 
-      joinPortal(guestPackage, uri)
+      handleURI(guestPackage, uri)
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
     })
 
@@ -152,7 +151,7 @@ suite('TeletypePackage', function () {
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
       const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
-      joinPortal(pack, uri)
+      handleURI(pack, uri)
       await condition(() => notifications.find((n) => n.message === 'Portal not found'))
     })
 
@@ -161,10 +160,10 @@ suite('TeletypePackage', function () {
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
-      joinPortal(pack, 'atom://teletype/some-unsupported-uri')
+      handleURI(pack, 'atom://teletype/some-unsupported-uri')
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
 
-      joinPortal(pack, 'atom://teletype/portal/42')
+      handleURI(pack, 'atom://teletype/portal/42')
       await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
     })
 
