@@ -13,6 +13,7 @@ const FakeStatusBar = require('./helpers/fake-status-bar')
 const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
+const url = require('url')
 
 suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
@@ -105,6 +106,87 @@ suite('TeletypePackage', function () {
     await condition(() => deepEqual(getCursorDecoratedRanges(hostEditor1), getCursorDecoratedRanges(guestEditor1)))
 
     assert.equal(observedGuestItems.size, 2)
+  })
+
+  suite('portal URIs', () => {
+    function handleURI (pack, uri) {
+      return pack.handleURI(url.parse(uri), uri)
+    }
+
+    test('opening URI for active portal', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv)
+
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
+      await hostEnv.workspace.open()
+
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert.equal(guestPortal.id, hostPortal.id)
+      assert.equal(getRemotePaneItems(guestEnv).length, 1)
+    })
+
+    test('opening URI for nonexistent portal', async () => {
+      const pack = await buildPackage(buildAtomEnvironment())
+      const notifications = []
+      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      const uri = 'atom://teletype/portal/00000000-0000-0000-0000-000000000000'
+      const portal = await handleURI(pack, uri)
+      assert(!portal)
+      await condition(() => notifications.find((n) => n.message === 'Portal not found'))
+    })
+
+    test('opening URI for inaccessible portal', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+
+      const TIMEOUT_IN_MILLISECONDS = 1
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv, {peerConnectionTimeout: TIMEOUT_IN_MILLISECONDS})
+      const notifications = []
+      guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
+      await hostPackage.closeHostPortal()
+
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert(!guestPortal)
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+    })
+
+    test('opening malformed URI', async () => {
+      const pack = await buildPackage(buildAtomEnvironment())
+      const notifications = []
+      pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
+
+      let portal = await handleURI(pack, 'atom://teletype/some-unsupported-uri')
+      assert(!portal)
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+      notifications.length = 0
+
+      portal = await handleURI(pack, 'atom://teletype/portal/42')
+      assert(!portal)
+      await condition(() => notifications.find((n) => n.message === 'Failed to join portal'))
+    })
+
+    test('opening URI when not signed in', async () => {
+      const hostEnv = buildAtomEnvironment()
+      const hostPackage = await buildPackage(hostEnv)
+      const guestEnv = buildAtomEnvironment()
+      const guestPackage = await buildPackage(guestEnv, {signIn: false})
+
+      const hostPortal = await hostPackage.sharePortal()
+      const uri = `atom://teletype/portal/${hostPortal.id}`
+      await hostEnv.workspace.open()
+
+      const guestPortal = await handleURI(guestPackage, uri)
+      assert(!guestPortal)
+      assert.equal(getRemotePaneItems(guestEnv).length, 0)
+    })
   })
 
   suite('remote editor URIs', () => {
@@ -1190,6 +1272,7 @@ suite('TeletypePackage', function () {
       tooltipManager: env.tooltips,
       clipboard: new FakeClipboard(),
       getAtomVersion: function () { return 'x.y.z' },
+      peerConnectionTimeout: options.peerConnectionTimeout,
       tetherDisconnectWindow: 300,
       credentialCache
     })
