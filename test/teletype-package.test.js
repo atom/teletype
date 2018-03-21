@@ -474,7 +474,6 @@ suite('TeletypePackage', function () {
     assert(!env.workspace.element.classList.contains('teletype-Authenticated'))
   })
 
-  // TODO We probably want to update this test
   test('prompting for a portal URL when joining', async () => {
     const pack = await buildPackage(buildAtomEnvironment())
     await pack.consumeStatusBar(new FakeStatusBar())
