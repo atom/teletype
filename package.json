@@ -51,26 +51,33 @@
     "atom": ">=1.22.0"
   },
   "configSchema": {
+    "promptWhenJoiningPortalViaExternalApp": {
+      "title": "Prompt when joining a portal via external applications",
+      "description": "When set, you will be asked for confirmation every time you follow a portal URL in a third-party application.",
+      "type": "boolean",
+      "default": true,
+      "order": 1
+    },
     "baseURL": {
       "title": "API server base URL",
       "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
       "type": "string",
       "default": "https://api.teletype.atom.io",
-      "order": 1
+      "order": 2
     },
     "pusherKey": {
       "title": "Pusher service key",
       "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
       "type": "string",
       "default": "f119821248b7429bece3",
-      "order": 2
+      "order": 3
     },
     "pusherCluster": {
       "title": "Pusher cluster name",
       "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
       "type": "string",
       "default": "mt1",
-      "order": 3
+      "order": 4
     }
   },
   "standard": {
