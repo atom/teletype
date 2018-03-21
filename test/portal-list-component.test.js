@@ -88,7 +88,6 @@ suite('PortalListComponent', function () {
     assert(!hostPortalBindingComponent.refs.creatingPortalSpinner)
   })
 
-  // TODO We probably want to add to and/or change these tests
   test('joining portals', async () => {
     const {component} = await buildComponent()
     const {joinPortalComponent, guestPortalBindingsContainer} = component.refs
@@ -105,7 +104,7 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
 
-    // Attempt to join without inserting a portal id.
+    // Attempt to join without inserting a portal URI.
     await joinPortalComponent.joinPortal()
 
     assert.equal(component.props.notificationManager.errorCount, 1)
@@ -114,8 +113,8 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(joinPortalComponent.refs.joinButton.disabled)
 
-    // Insert an invalid portal id.
-    joinPortalComponent.refs.portalIdEditor.setText('invalid-portal-id')
+    // Insert an invalid portal URI.
+    joinPortalComponent.refs.portalIdEditor.setText('atom://invalid-portal-id')
     assert(joinPortalComponent.refs.joinButton.disabled)
 
     await joinPortalComponent.joinPortal()
@@ -125,11 +124,11 @@ suite('PortalListComponent', function () {
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(joinPortalComponent.refs.portalIdEditor)
 
-    // Insert a valid portal id.
+    // Insert a valid portal URI.
     const hostPortalBindingManager = await buildPortalBindingManager()
-    const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
+    const hostPortalBinding = await hostPortalBindingManager.createHostPortalBinding()
 
-    joinPortalComponent.refs.portalIdEditor.setText(hostPortal.id)
+    joinPortalComponent.refs.portalIdEditor.setText(hostPortalBinding.uri)
     assert(!joinPortalComponent.refs.joinButton.disabled)
 
     joinPortalComponent.joinPortal()
@@ -148,10 +147,30 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
     assert(queryParticipantElement(guestPortalBindingsContainer, 2))
 
-    // Insert a valid portal id but with leading and trailing whitespace.
+    // Insert a valid portal URI but with leading and trailing whitespace.
     await joinPortalComponent.showPrompt()
 
-    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortal.id + '\n\r\n')
+    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortalBinding.uri + '\n\r\n')
+    joinPortalComponent.joinPortal()
+
+    await condition(() => (
+      !joinPortalComponent.refs.joinPortalLabel &&
+      joinPortalComponent.refs.joiningSpinner &&
+      !joinPortalComponent.refs.portalIdEditor
+    ))
+    await condition(() => (
+      joinPortalComponent.refs.joinPortalLabel &&
+      !joinPortalComponent.refs.joiningSpinner &&
+      !joinPortalComponent.refs.portalIdEditor
+    ))
+    await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 2)
+    assert(queryParticipantElement(guestPortalBindingsContainer, 1))
+    assert(queryParticipantElement(guestPortalBindingsContainer, 2))
+
+    // Insert a valid portal ID.
+    await joinPortalComponent.showPrompt()
+
+    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortalBinding.portal.id + '\n\r\n')
     joinPortalComponent.joinPortal()
 
     await condition(() => (
@@ -170,7 +189,7 @@ suite('PortalListComponent', function () {
 
     // Simulate another guest joining the portal.
     const newGuestPortalBindingManager = await buildPortalBindingManager()
-    await newGuestPortalBindingManager.createGuestPortalBinding(hostPortal.id)
+    await newGuestPortalBindingManager.createGuestPortalBinding(hostPortalBinding.portal.id)
 
     await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 3)
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
