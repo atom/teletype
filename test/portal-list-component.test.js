@@ -104,7 +104,7 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(!joinPortalComponent.refs.joiningSpinner)
 
-    // Attempt to join without inserting a portal id.
+    // Attempt to join without inserting a portal URI.
     await joinPortalComponent.joinPortal()
 
     assert.equal(component.props.notificationManager.errorCount, 1)
@@ -113,8 +113,8 @@ suite('PortalListComponent', function () {
     assert(joinPortalComponent.refs.portalIdEditor)
     assert(joinPortalComponent.refs.joinButton.disabled)
 
-    // Insert an invalid portal id.
-    joinPortalComponent.refs.portalIdEditor.setText('invalid-portal-id')
+    // Insert an invalid portal URI.
+    joinPortalComponent.refs.portalIdEditor.setText('atom://invalid-portal-id')
     assert(joinPortalComponent.refs.joinButton.disabled)
 
     await joinPortalComponent.joinPortal()
@@ -124,11 +124,11 @@ suite('PortalListComponent', function () {
     assert(!joinPortalComponent.refs.joiningSpinner)
     assert(joinPortalComponent.refs.portalIdEditor)
 
-    // Insert a valid portal id.
+    // Insert a valid portal URI.
     const hostPortalBindingManager = await buildPortalBindingManager()
-    const {portal: hostPortal} = await hostPortalBindingManager.createHostPortalBinding()
+    const hostPortalBinding = await hostPortalBindingManager.createHostPortalBinding()
 
-    joinPortalComponent.refs.portalIdEditor.setText(hostPortal.id)
+    joinPortalComponent.refs.portalIdEditor.setText(hostPortalBinding.uri)
     assert(!joinPortalComponent.refs.joinButton.disabled)
 
     joinPortalComponent.joinPortal()
@@ -147,10 +147,30 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
     assert(queryParticipantElement(guestPortalBindingsContainer, 2))
 
-    // Insert a valid portal id but with leading and trailing whitespace.
+    // Insert a valid portal URI but with leading and trailing whitespace.
     await joinPortalComponent.showPrompt()
 
-    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortal.id + '\n\r\n')
+    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortalBinding.uri + '\n\r\n')
+    joinPortalComponent.joinPortal()
+
+    await condition(() => (
+      !joinPortalComponent.refs.joinPortalLabel &&
+      joinPortalComponent.refs.joiningSpinner &&
+      !joinPortalComponent.refs.portalIdEditor
+    ))
+    await condition(() => (
+      joinPortalComponent.refs.joinPortalLabel &&
+      !joinPortalComponent.refs.joiningSpinner &&
+      !joinPortalComponent.refs.portalIdEditor
+    ))
+    await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 2)
+    assert(queryParticipantElement(guestPortalBindingsContainer, 1))
+    assert(queryParticipantElement(guestPortalBindingsContainer, 2))
+
+    // Insert a valid portal ID.
+    await joinPortalComponent.showPrompt()
+
+    joinPortalComponent.refs.portalIdEditor.setText('\t  ' + hostPortalBinding.portal.id + '\n\r\n')
     joinPortalComponent.joinPortal()
 
     await condition(() => (
@@ -169,7 +189,7 @@ suite('PortalListComponent', function () {
 
     // Simulate another guest joining the portal.
     const newGuestPortalBindingManager = await buildPortalBindingManager()
-    await newGuestPortalBindingManager.createGuestPortalBinding(hostPortal.id)
+    await newGuestPortalBindingManager.createGuestPortalBinding(hostPortalBinding.portal.id)
 
     await condition(() => queryParticipantElements(guestPortalBindingsContainer).length === 3)
     assert(queryParticipantElement(guestPortalBindingsContainer, 1))
@@ -177,27 +197,27 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 3))
   })
 
-  test('prefilling portal ID from clipboard', async () => {
+  test('prefilling portal URI from clipboard', async () => {
     const {component} = await buildComponent()
     const {clipboard} = component.props
     const {joinPortalComponent} = component.refs
 
-    // Clipboard containing a portal ID
-    clipboard.write('bc282ad8-7643-42cb-80ca-c243771a618f')
+    // Clipboard containing a portal URI
+    clipboard.write('atom://teletype/portal/bc282ad8-7643-42cb-80ca-c243771a618f')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'atom://teletype/portal/bc282ad8-7643-42cb-80ca-c243771a618f')
 
-    // Clipboard containing a portal ID with surrounding whitespace
+    // Clipboard containing a portal URI with surrounding whitespace
     await joinPortalComponent.hidePrompt()
-    clipboard.write('\te40fa1b5-8144-4d09-9dff-c26e7b10b366  \n')
+    clipboard.write('\tatom://teletype/portal/e40fa1b5-8144-4d09-9dff-c26e7b10b366  \n')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'e40fa1b5-8144-4d09-9dff-c26e7b10b366')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'atom://teletype/portal/e40fa1b5-8144-4d09-9dff-c26e7b10b366')
 
-    // Clipboard containing something that is NOT a portal ID
+    // Clipboard containing something that is NOT a portal URI
     await joinPortalComponent.hidePrompt()
-    clipboard.write('not a portal id')
+    clipboard.write('atom://not-a-portal-uri')
     await joinPortalComponent.showPrompt()
 
     assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '')
