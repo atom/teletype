@@ -197,28 +197,27 @@ suite('PortalListComponent', function () {
     assert(queryParticipantElement(guestPortalBindingsContainer, 3))
   })
 
-  // TODO We probably want to change and/or add to these tests
-  test('prefilling portal ID from clipboard', async () => {
+  test('prefilling portal URI from clipboard', async () => {
     const {component} = await buildComponent()
     const {clipboard} = component.props
     const {joinPortalComponent} = component.refs
 
-    // Clipboard containing a portal ID
-    clipboard.write('bc282ad8-7643-42cb-80ca-c243771a618f')
+    // Clipboard containing a portal URI
+    clipboard.write('atom://teletype/portal/bc282ad8-7643-42cb-80ca-c243771a618f')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'bc282ad8-7643-42cb-80ca-c243771a618f')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'atom://teletype/portal/bc282ad8-7643-42cb-80ca-c243771a618f')
 
-    // Clipboard containing a portal ID with surrounding whitespace
+    // Clipboard containing a portal URI with surrounding whitespace
     await joinPortalComponent.hidePrompt()
-    clipboard.write('\te40fa1b5-8144-4d09-9dff-c26e7b10b366  \n')
+    clipboard.write('\tatom://teletype/portal/e40fa1b5-8144-4d09-9dff-c26e7b10b366  \n')
     await joinPortalComponent.showPrompt()
 
-    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'e40fa1b5-8144-4d09-9dff-c26e7b10b366')
+    assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), 'atom://teletype/portal/e40fa1b5-8144-4d09-9dff-c26e7b10b366')
 
-    // Clipboard containing something that is NOT a portal ID
+    // Clipboard containing something that is NOT a portal URI
     await joinPortalComponent.hidePrompt()
-    clipboard.write('not a portal id')
+    clipboard.write('atom://not-a-portal-uri')
     await joinPortalComponent.showPrompt()
 
     assert.equal(joinPortalComponent.refs.portalIdEditor.getText(), '')
