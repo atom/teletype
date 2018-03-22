@@ -58,26 +58,34 @@
       "default": true,
       "order": 1
     },
-    "baseURL": {
-      "title": "API server base URL",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "https://api.teletype.atom.io",
-      "order": 2
-    },
-    "pusherKey": {
-      "title": "Pusher service key",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "f119821248b7429bece3",
-      "order": 3
-    },
-    "pusherCluster": {
-      "title": "Pusher cluster name",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "mt1",
-      "order": 4
+    "dev": {
+      "title": "Development Settings",
+      "collapsed": true,
+      "type": "object",
+      "order": 2,
+      "properties": {
+        "baseURL": {
+          "title": "API server base URL",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "https://api.teletype.atom.io",
+          "order": 1
+        },
+        "pusherKey": {
+          "title": "Pusher service key",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "f119821248b7429bece3",
+          "order": 2
+        },
+        "pusherCluster": {
+          "title": "Pusher cluster name",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "mt1",
+          "order": 3
+        }
+      }
     }
   },
   "standard": {

@@ -7,11 +7,11 @@ module.exports = new TeletypePackage({
   commandRegistry: atom.commands,
   tooltipManager: atom.tooltips,
   clipboard: atom.clipboard,
-  pusherKey: atom.config.get('teletype.pusherKey'),
+  pusherKey: atom.config.get('teletype.dev.pusherKey'),
   pusherOptions: {
-    cluster: atom.config.get('teletype.pusherCluster'),
+    cluster: atom.config.get('teletype.dev.pusherCluster'),
     disableStats: true
   },
-  baseURL: atom.config.get('teletype.baseURL'),
+  baseURL: atom.config.get('teletype.dev.baseURL'),
   getAtomVersion: atom.getVersion.bind(atom)
 })
