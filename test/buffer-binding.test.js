@@ -71,9 +71,7 @@ suite('BufferBinding', function () {
   })
 
   suite('Syncs buffer path changes from host to guest', () => {
-
     test('setPathDidChange calls requestPathChanged with the correct uri', async () => {
-
       const buffer = new TextBuffer('test.')
       const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
