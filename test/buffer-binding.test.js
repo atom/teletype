@@ -4,7 +4,6 @@ const temp = require('temp')
 const {TextBuffer, Point} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 const BufferFile = require('../lib/buffer-file')
-const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 
 suite('BufferBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -72,24 +71,16 @@ suite('BufferBinding', function () {
   })
 
   suite('Syncs buffer path changes from host to guest', () => {
-    //destroys the atomevironments after each test
-    teardown(async () => {
-      await destroyAtomEnvironments()
-    })
 
     test('setPathDidChange calls requestPathChanged with the correct uri', async () => {
 
       const buffer = new TextBuffer('test.')
       const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
-
       binding.setBufferProxy(bufferProxy)
       const filePath = temp.path()
-
       await buffer.saveAs(filePath)
-
       assert.equal(bufferProxy.uri, binding.getBufferProxyURI())
-
     })
 
     test('addFile returns an appropriate instance of Buffer-File and calls buffer.setFile', () => {
@@ -97,12 +88,10 @@ suite('BufferBinding', function () {
       const binding = new BufferBinding({buffer, isHost: false})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
-
       const bufferFile = binding.addFile(bufferProxy)
       assert(bufferFile instanceof BufferFile)
       assert.notEqual(buffer.getPath(), undefined)
     })
-
   })
 
   suite('destroying the buffer', () => {
@@ -133,7 +122,7 @@ suite('BufferBinding', function () {
       this.delegate = delegate
       this.text = text
       this.disposed = false
-      this.uri = "TEST Not Changed"
+      this.uri = 'TEST Not Changed'
     }
 
     dispose () {
