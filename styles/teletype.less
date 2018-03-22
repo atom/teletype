@@ -384,13 +384,15 @@
       pointer-events: none;
 
       &::before {
-        z-index: 1;
+        position: relative;
+        z-index: 2;
       }
 
       // background cover
       &::after {
         content: "";
         position: absolute;
+        z-index: 1;
         left: -2px;
         top: 4px;
         width: 15px;
