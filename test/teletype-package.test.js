@@ -117,7 +117,7 @@ suite('TeletypePackage', function () {
     test('opening URI for active portal', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment({promptWhenJoiningPortalViaExternalApp: false})
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv)
 
       const hostPortal = await hostPackage.sharePortal()
@@ -130,7 +130,7 @@ suite('TeletypePackage', function () {
     })
 
     test('opening URI for nonexistent portal', async () => {
-      const env = buildAtomEnvironment({promptWhenJoiningPortalViaExternalApp: false})
+      const env = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const pack = await buildPackage(env)
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
@@ -146,7 +146,7 @@ suite('TeletypePackage', function () {
       const hostPackage = await buildPackage(hostEnv)
 
       const TIMEOUT_IN_MILLISECONDS = 1
-      const guestEnv = buildAtomEnvironment({promptWhenJoiningPortalViaExternalApp: false})
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv, {peerConnectionTimeout: TIMEOUT_IN_MILLISECONDS})
       const notifications = []
       guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
@@ -161,7 +161,7 @@ suite('TeletypePackage', function () {
     })
 
     test('opening malformed URI', async () => {
-      const env = buildAtomEnvironment({promptWhenJoiningPortalViaExternalApp: false})
+      const env = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const pack = await buildPackage(env)
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
@@ -179,7 +179,7 @@ suite('TeletypePackage', function () {
     test('opening URI when not signed in', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment({promptWhenJoiningPortalViaExternalApp: false})
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv, {signIn: false})
 
       const hostPortal = await hostPackage.sharePortal()
@@ -1329,10 +1329,10 @@ suite('TeletypePackage', function () {
       env.config.set('teletype.' + key, setting.default)
     }
 
-    if (options.promptWhenJoiningPortalViaExternalApp !== undefined) {
+    if (options.askBeforeJoiningPortalViaExternalApp !== undefined) {
       env.config.set(
-        'teletype.promptWhenJoiningPortalViaExternalApp',
-        options.promptWhenJoiningPortalViaExternalApp
+        'teletype.askBeforeJoiningPortalViaExternalApp',
+        options.askBeforeJoiningPortalViaExternalApp
       )
     }
 
