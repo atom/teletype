@@ -234,12 +234,25 @@
 }
 
 .JoinViaExternalAppDialog {
-  h1 {
-    display: inline;
+  padding: @component-padding;
+
+  &-cancel {
+    position: absolute;
+    padding: @component-padding;
+    top: 0;
+    right: 0;
+    text-align: right;
+    &::before {
+      margin-right: 0;
+    }
   }
 
-  a.cancel {
-    float: right;
+  &-uri {
+    padding: @component-padding/2 @component-padding;
+    color: @text-color-highlight;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @background-color-highlight;
   }
 }
 
