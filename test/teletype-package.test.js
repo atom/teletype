@@ -2,7 +2,7 @@ const TeletypePackage = require('../lib/teletype-package')
 const {Errors} = require('@atom/teletype-client')
 const {TextBuffer, TextEditor} = require('atom')
 
-const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
+const atomEnvironments = require('./helpers/atom-environments')
 const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
 const assert = require('assert')
 const condition = require('./helpers/condition')
@@ -14,6 +14,7 @@ const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const url = require('url')
+const {getPortalURI} = require('../lib/uri-helpers')
 
 suite('TeletypePackage', function () {
   this.timeout(process.env.TEST_TIMEOUT_IN_MS || 5000)
@@ -51,7 +52,7 @@ suite('TeletypePackage', function () {
     for (const pack of packages) {
       await pack.deactivate()
     }
-    await destroyAtomEnvironments()
+    await atomEnvironments.destroyAtomEnvironments()
   })
 
   test('sharing and joining a portal', async function () {
@@ -116,7 +117,7 @@ suite('TeletypePackage', function () {
     test('opening URI for active portal', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment()
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv)
 
       const hostPortal = await hostPackage.sharePortal()
@@ -129,7 +130,8 @@ suite('TeletypePackage', function () {
     })
 
     test('opening URI for nonexistent portal', async () => {
-      const pack = await buildPackage(buildAtomEnvironment())
+      const env = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
+      const pack = await buildPackage(env)
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
@@ -144,7 +146,7 @@ suite('TeletypePackage', function () {
       const hostPackage = await buildPackage(hostEnv)
 
       const TIMEOUT_IN_MILLISECONDS = 1
-      const guestEnv = buildAtomEnvironment()
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv, {peerConnectionTimeout: TIMEOUT_IN_MILLISECONDS})
       const notifications = []
       guestPackage.notificationManager.onDidAddNotification((n) => notifications.push(n))
@@ -159,7 +161,8 @@ suite('TeletypePackage', function () {
     })
 
     test('opening malformed URI', async () => {
-      const pack = await buildPackage(buildAtomEnvironment())
+      const env = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
+      const pack = await buildPackage(env)
       const notifications = []
       pack.notificationManager.onDidAddNotification((n) => notifications.push(n))
 
@@ -176,7 +179,7 @@ suite('TeletypePackage', function () {
     test('opening URI when not signed in', async () => {
       const hostEnv = buildAtomEnvironment()
       const hostPackage = await buildPackage(hostEnv)
-      const guestEnv = buildAtomEnvironment()
+      const guestEnv = buildAtomEnvironment({askBeforeJoiningPortalViaExternalApp: false})
       const guestPackage = await buildPackage(guestEnv, {signIn: false})
 
       const hostPortal = await hostPackage.sharePortal()
@@ -186,6 +189,63 @@ suite('TeletypePackage', function () {
       const guestPortal = await handleURI(guestPackage, uri)
       assert(!guestPortal)
       assert.equal(getRemotePaneItems(guestEnv).length, 0)
+    })
+
+    suite('prompting when opening URI', async () => {
+      test('canceling prompt', async () => {
+        const hostPackage = await buildPackage(buildAtomEnvironment())
+        const hostPortal = await hostPackage.sharePortal()
+        const guestEnv = buildAtomEnvironment()
+        const guestPackage = await buildPackage(guestEnv)
+
+        const guestPortalPromise = handleURI(guestPackage, getPortalURI(hostPortal.id))
+        await condition(() => guestEnv.workspace.getModalPanels().length === 1)
+        guestEnv.workspace.getModalPanels()[0].item.cancel()
+
+        assert(!await guestPortalPromise)
+        assert.equal(guestEnv.workspace.getModalPanels().length, 0)
+      })
+
+      test('allow joining once', async () => {
+        const hostPackage1 = await buildPackage(buildAtomEnvironment())
+        const hostPortal1 = await hostPackage1.sharePortal()
+        const hostPackage2 = await buildPackage(buildAtomEnvironment())
+        const hostPortal2 = await hostPackage2.sharePortal()
+        const guestEnv = buildAtomEnvironment()
+        const guestPackage = await buildPackage(guestEnv)
+
+        const guestPortal1Promise = handleURI(guestPackage, getPortalURI(hostPortal1.id))
+        await condition(() => guestEnv.workspace.getModalPanels().length === 1)
+        guestEnv.workspace.getModalPanels()[0].item.confirmOnce()
+
+        assert(await guestPortal1Promise)
+        assert.equal(guestEnv.workspace.getModalPanels().length, 0)
+
+        // Ensure dialog is shown again when joining another portal.
+        handleURI(guestPackage, getPortalURI(hostPortal2.id))
+        await condition(() => guestEnv.workspace.getModalPanels().length === 1)
+      })
+
+      test('allow joining always', async () => {
+        const hostPackage1 = await buildPackage(buildAtomEnvironment())
+        const hostPortal1 = await hostPackage1.sharePortal()
+        const hostPackage2 = await buildPackage(buildAtomEnvironment())
+        const hostPortal2 = await hostPackage2.sharePortal()
+        const guestEnv = buildAtomEnvironment()
+        const guestPackage = await buildPackage(guestEnv)
+
+        const guestPortal1Promise = handleURI(guestPackage, getPortalURI(hostPortal1.id))
+        await condition(() => guestEnv.workspace.getModalPanels().length === 1)
+        guestEnv.workspace.getModalPanels()[0].item.confirmAlways()
+
+        assert(await guestPortal1Promise)
+        assert.equal(guestEnv.workspace.getModalPanels().length, 0)
+
+        // Ensure dialog is NOT shown again when joining another portal.
+        const guestPortal2Promise = handleURI(guestPackage, getPortalURI(hostPortal2.id))
+        assert.equal(guestEnv.workspace.getModalPanels().length, 0)
+        assert(await guestPortal2Promise)
+      })
     })
   })
 
@@ -1260,6 +1320,25 @@ suite('TeletypePackage', function () {
     assert(description.includes('some error'))
   })
 
+  function buildAtomEnvironment (options = {}) {
+    const env = atomEnvironments.buildAtomEnvironment()
+
+    const {configSchema} = require('../package.json')
+    for (const key in configSchema) {
+      const setting = configSchema[key]
+      env.config.set('teletype.' + key, setting.default)
+    }
+
+    if (options.askBeforeJoiningPortalViaExternalApp !== undefined) {
+      env.config.set(
+        'teletype.askBeforeJoiningPortalViaExternalApp',
+        options.askBeforeJoiningPortalViaExternalApp
+      )
+    }
+
+    return env
+  }
+
   let nextTokenId = 0
   async function buildPackage (env, options = {}) {
     const credentialCache = new FakeCredentialCache()
@@ -1274,6 +1353,7 @@ suite('TeletypePackage', function () {
       getAtomVersion: function () { return 'x.y.z' },
       peerConnectionTimeout: options.peerConnectionTimeout,
       tetherDisconnectWindow: 300,
+      config: env.config,
       credentialCache
     })
     pack.registerRemoteEditorOpener()

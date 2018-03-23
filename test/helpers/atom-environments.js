@@ -1,7 +1,7 @@
 const environments = []
 
 exports.buildAtomEnvironment = function buildAtomEnvironment () {
-  const env = global.buildAtomEnvironment()
+  const env = global.buildAtomEnvironment({enablePersistence: false})
   environments.push(env)
   return env
 }
