@@ -71,14 +71,14 @@ suite('BufferBinding', function () {
   })
 
   suite('Syncs buffer path changes from host to guest', () => {
-    test('setPathDidChange calls requestPathChanged with the correct uri', async () => {
+    test('setPathDidChange calls setURI with the correct uri', async () => {
       const buffer = new TextBuffer('test.')
       const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
       const filePath = temp.path()
       await buffer.saveAs(filePath)
-      assert.equal(bufferProxy.uri, binding.getBufferProxyURI())
+      assert.equal(bufferProxy.uri, binding.bufferFile.getURI())
     })
 
     test('addFile returns an appropriate instance of Buffer-File and calls buffer.setFile', () => {
@@ -86,8 +86,8 @@ suite('BufferBinding', function () {
       const binding = new BufferBinding({buffer, isHost: false})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
-      const bufferFile = binding.addFile(bufferProxy)
-      assert(bufferFile instanceof BufferFile)
+      
+      assert(binding.bufferFile instanceof BufferFile)
       assert.notEqual(buffer.getPath(), undefined)
     })
   })
@@ -160,7 +160,7 @@ suite('BufferBinding', function () {
       return true
     }
 
-    requestPathChanged (newUri) {
+    setURI (newUri) {
       this.uri = newUri
     }
 
