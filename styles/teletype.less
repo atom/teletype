@@ -162,7 +162,7 @@
       }
     }
 
-    &-portal-id {
+    &-portal-url {
       display: flex;
       flex-direction: row;
       margin-bottom: 5px;
@@ -231,6 +231,45 @@
 
 .SignInComponent-GitHubLogo {
   .octicon(mark-github, 40px);
+}
+
+.JoinViaExternalAppDialog {
+  padding: @component-padding;
+
+  &-cancel {
+    position: absolute;
+    padding: @component-padding;
+    top: 0;
+    right: 0;
+    text-align: right;
+    &::before {
+      margin-right: 0;
+    }
+  }
+
+  &-uri {
+    padding: @component-padding/2 @component-padding;
+    color: @text-color-highlight;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @background-color-highlight;
+  }
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .input-label {
+    margin-left: 2em;
+    margin-right: 3em;
+  }
+
+  .input-checkbox {
+    margin-left: -2em;
+    margin-right: .5em;
+  }
 }
 
 .JoinPortalComponent--no-prompt,
@@ -384,13 +423,15 @@
       pointer-events: none;
 
       &::before {
-        z-index: 1;
+        position: relative;
+        z-index: 2;
       }
 
       // background cover
       &::after {
         content: "";
         position: absolute;
+        z-index: 1;
         left: -2px;
         top: 4px;
         width: 15px;
