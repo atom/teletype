@@ -1,9 +1,10 @@
 const assert = require('assert')
 const fs = require('fs')
 const temp = require('temp')
-const {TextBuffer, Point} = require('atom')
+const {TextBuffer} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
 const BufferFile = require('../lib/buffer-file')
+const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
 
 suite('BufferBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -76,9 +77,10 @@ suite('BufferBinding', function () {
       const binding = new BufferBinding({buffer, isHost: true})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
+      var prevUri = bufferProxy.uri
       const filePath = temp.path()
       await buffer.saveAs(filePath)
-      assert.equal(bufferProxy.uri, binding.bufferFile.getURI())
+      assert.notEqual(bufferProxy.uri, prevUri)
     })
 
     test('addFile returns an appropriate instance of Buffer-File and calls buffer.setFile', () => {
@@ -86,7 +88,7 @@ suite('BufferBinding', function () {
       const binding = new BufferBinding({buffer, isHost: false})
       const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
       binding.setBufferProxy(bufferProxy)
-      
+
       assert(binding.bufferFile instanceof BufferFile)
       assert.notEqual(buffer.getPath(), undefined)
     })
@@ -114,76 +116,4 @@ suite('BufferBinding', function () {
       assert(!bufferProxy.disposed)
     })
   })
-
-  class FakeBufferProxy {
-    constructor (delegate, text) {
-      this.delegate = delegate
-      this.text = text
-      this.disposed = false
-      this.uri = 'TEST Not Changed'
-    }
-
-    dispose () {
-      this.disposed = true
-    }
-
-    getHistory () {
-      return {undoStack: [], redoStack: [], nextCheckpointId: 1}
-    }
-
-    setTextInRange (oldStart, oldEnd, newText) {
-      const oldStartIndex = characterIndexForPosition(this.text, oldStart)
-      const oldEndIndex = characterIndexForPosition(this.text, oldEnd)
-      this.text = this.text.slice(0, oldStartIndex) + newText + this.text.slice(oldEndIndex)
-    }
-
-    simulateRemoteTextUpdate (changes) {
-      assert(changes.length > 0, 'Must update text with at least one change')
-
-      for (let i = changes.length - 1; i >= 0; i--) {
-        const {oldStart, oldEnd, newText} = changes[i]
-        this.setTextInRange(oldStart, oldEnd, newText)
-      }
-
-      this.delegate.updateText(changes)
-    }
-
-    createCheckpoint () {
-      return 1
-    }
-
-    groupChangesSinceCheckpoint () {
-      return []
-    }
-
-    groupLastChanges () {
-      return true
-    }
-
-    setURI (newUri) {
-      this.uri = newUri
-    }
-
-    applyGroupingInterval () {
-
-    }
-  }
-
-  function characterIndexForPosition (text, target) {
-    target = Point.fromObject(target)
-    const position = Point(0, 0)
-    let index = 0
-    while (position.compare(target) < 0 && index < text.length) {
-      if (text[index] === '\n') {
-        position.row++
-        position.column = 0
-      } else {
-        position.column++
-      }
-
-      index++
-    }
-
-    return index
-  }
 })

@@ -13,6 +13,8 @@ const {
   setEditorScrollLeftInChars
 } = require('./helpers/editor-helpers')
 const {FollowState} = require('@atom/teletype-client')
+const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
+const BufferBinding = require('../lib/buffer-binding')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -325,6 +327,8 @@ suite('EditorBinding', function () {
 
       const binding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
       const editorProxy = new FakeEditorProxy(binding)
+      editorProxy.addFakeBufferProxy(false, buffer)
+
       binding.setEditorProxy(editorProxy)
       assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
       assert.equal(editor.copy(), null)
@@ -468,6 +472,14 @@ class FakeEditorProxy {
     this.selections = {}
     this.siteId = (siteId == null) ? 1 : siteId
     this.disposed = false
+  }
+
+  // For Monkey Patch Tests
+  addFakeBufferProxy (isHost, buffer) {
+    const binding = new BufferBinding({buffer, isHost: isHost})
+    this.bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    this.bufferProxy.uri = 'fake-buffer-proxy-uri'
+    binding.setBufferProxy(this.bufferProxy)
   }
 
   dispose () {
