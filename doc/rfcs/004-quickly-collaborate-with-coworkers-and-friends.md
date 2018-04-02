@@ -1,3 +1,9 @@
+# TODO
+
+- [ ] Show presence status to trusted collaborators
+- [ ] Provide super easy ability to remove someone from your trusted collaborator list after you decline
+- [ ] Ensure UI explains that trusted collaborators can see your online/offline status
+
 # Quickly collaborate with coworkers and friends
 
 ## Status
