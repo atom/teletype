@@ -8,11 +8,7 @@ module.exports =
 class FakeEditorProxy {
   constructor (uri) {
     this.id = nextEditorProxyId++
-    const buffer = new TextBuffer('test?')
-    const binding = new BufferBinding({buffer, isHost: false})
-    this.bufferProxy = new FakeBufferProxy(binding, buffer.getText())
-    this.bufferProxy.uri = uri
-    binding.setBufferProxy(this.bufferProxy)
+    this.bufferProxy = new FakeBufferProxy({uri})
   }
 
   dispose () {

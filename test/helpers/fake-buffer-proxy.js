@@ -1,17 +1,22 @@
 const assert = require('assert')
 const {Point} = require('atom')
 
+let nextBufferProxyId = 1
+
 module.exports =
 class FakeBufferProxy {
-  constructor (delegate, text) {
+  constructor ({delegate, text, uri}) {
+    this.id = nextBufferProxyId++
     this.delegate = delegate
-    this.text = text
     this.disposed = false
-    this.uri = 'TEST Not Changed'
+    this.text = text
+    this.uri = uri || `uri-${this.id}`
     this.saveRequestCount = 0
   }
 
-  setDelegate () {}
+  setDelegate (delegate) {
+    this.delegate = delegate
+  }
 
   dispose () {
     this.disposed = true
