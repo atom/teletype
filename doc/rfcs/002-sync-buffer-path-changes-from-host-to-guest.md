@@ -51,7 +51,3 @@ We used the process in place in the Teletype package.
 When the host saves a new file, the host will see the the buffer's title and path updated to reflect the new filename, but guests will continue to see the buffer identified as "untitled" in their workspaces.
 
 Similarly, when the host renames a file (e.g., from `foo.txt` to `foo.md`), the host will see the new filename reflected in the UI, and the host will see the new grammar applied to the editor, but guests will continue to see the old filename and its old grammar.
-
-### Unresolved questions
-
--
