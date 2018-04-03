@@ -2,7 +2,7 @@
 
 ### Status
 
-Accepted
+Implemented. See [#352](https://github.com/atom/teletype/issues/352).
 
 ### Summary
 

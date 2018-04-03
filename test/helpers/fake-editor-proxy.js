@@ -1,20 +1,12 @@
+const FakeBufferProxy = require('./fake-buffer-proxy')
+
 let nextEditorProxyId = 1
 
 module.exports =
 class FakeEditorProxy {
   constructor (uri) {
     this.id = nextEditorProxyId++
-    this.bufferProxy = {
-      uri,
-      dispose () {},
-      setDelegate () {},
-      createCheckpoint () {},
-      groupChangesSinceCheckpoint () {},
-      applyGroupingInterval () {},
-      getHistory () {
-        return {undoStack: [], redoStack: [], nextCheckpointId: 1}
-      }
-    }
+    this.bufferProxy = new FakeBufferProxy({uri})
   }
 
   dispose () {
