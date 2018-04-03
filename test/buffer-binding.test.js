@@ -52,7 +52,7 @@ suite('BufferBinding', function () {
     // This line ensures saving works correctly even if the save function has been monkey-patched.
     buffer.save = () => {}
 
-    const binding = new BufferBinding({buffer})
+    const binding = new BufferBinding({buffer, isHost: true})
     const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
     binding.setBufferProxy(bufferProxy)
 
