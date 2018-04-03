@@ -1,5 +1,6 @@
 const assert = require('assert')
 const fs = require('fs')
+const path = require('path')
 const temp = require('temp')
 const {TextBuffer} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
@@ -71,27 +72,27 @@ suite('BufferBinding', function () {
     assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
   })
 
-  suite('Syncs buffer path changes from host to guest', () => {
-    test('setPathDidChange calls setURI with the correct uri', async () => {
-      const buffer = new TextBuffer('test.')
-      const binding = new BufferBinding({buffer, isHost: true})
-      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
-      binding.setBufferProxy(bufferProxy)
-      var prevUri = bufferProxy.uri
-      const filePath = temp.path()
-      await buffer.saveAs(filePath)
-      assert.notEqual(bufferProxy.uri, prevUri)
-    })
+  test('relays path changes from host to guest', async () => {
+    {
+      const hostBuffer = new TextBuffer('')
+      const hostBinding = new BufferBinding({buffer: hostBuffer, isHost: true})
+      const hostBufferProxy = new FakeBufferProxy(hostBinding, hostBuffer.getText())
+      hostBinding.setBufferProxy(hostBufferProxy)
 
-    test('addFile returns an appropriate instance of Buffer-File and calls buffer.setFile', () => {
-      const buffer = new TextBuffer('test.')
-      const binding = new BufferBinding({buffer, isHost: false})
-      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
-      binding.setBufferProxy(bufferProxy)
+      await hostBuffer.saveAs(path.join(temp.path(), 'new-filename'))
+      assert(hostBufferProxy.uri.includes('new-filename'))
+    }
 
-      assert(binding.bufferFile instanceof BufferFile)
-      assert.notEqual(buffer.getPath(), undefined)
-    })
+    {
+      const guestBuffer = new TextBuffer('')
+      const guestBinding = new BufferBinding({buffer: guestBuffer, isHost: false})
+      const guestBufferProxy = new FakeBufferProxy(guestBinding, guestBuffer.getText())
+      guestBinding.setBufferProxy(guestBufferProxy)
+
+      guestBufferProxy.simulateRemoteURIChange('some/uri/new-filename')
+      assert(guestBuffer.getPath().includes('new-filename'))
+      assert.equal(guestBufferProxy.uri, 'some/uri/new-filename')
+    }
   })
 
   suite('destroying the buffer', () => {

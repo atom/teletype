@@ -38,6 +38,11 @@ class FakeBufferProxy {
     this.delegate.updateText(changes)
   }
 
+  simulateRemoteURIChange (newURI) {
+    this.uri = newURI
+    this.delegate.didChangeURI(newURI)
+  }
+
   createCheckpoint () {
     return 1
   }
