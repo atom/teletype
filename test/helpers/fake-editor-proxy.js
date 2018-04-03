@@ -1,6 +1,4 @@
 const FakeBufferProxy = require('./fake-buffer-proxy')
-const BufferBinding = require('../../lib/buffer-binding')
-const {TextBuffer} = require('atom')
 
 let nextEditorProxyId = 1
 
