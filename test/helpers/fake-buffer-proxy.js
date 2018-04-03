@@ -5,11 +5,11 @@ let nextBufferProxyId = 1
 
 module.exports =
 class FakeBufferProxy {
-  constructor ({delegate, text, uri}) {
+  constructor ({delegate, text, uri} = {}) {
     this.id = nextBufferProxyId++
     this.delegate = delegate
     this.disposed = false
-    this.text = text
+    this.text = text || ''
     this.uri = uri || `uri-${this.id}`
     this.saveRequestCount = 0
   }
@@ -68,9 +68,9 @@ class FakeBufferProxy {
     this.uri = newUri
   }
 
-  applyGroupingInterval () {
+  applyGroupingInterval () {}
 
-  }
+  revertToCheckpoint () {}
 }
 
 function characterIndexForPosition (text, target) {
