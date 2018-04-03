@@ -4,7 +4,6 @@ const path = require('path')
 const temp = require('temp')
 const {TextBuffer} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
-const BufferFile = require('../lib/buffer-file')
 const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
 
 suite('BufferBinding', function () {
