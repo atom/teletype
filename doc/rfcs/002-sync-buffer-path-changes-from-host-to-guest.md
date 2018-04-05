@@ -20,17 +20,17 @@ There is a new class in _Teletype/buffer-binding.js_, called _RemoteFile_. This 
 2. `dispose()`
 3. `getPath()` returns the path using the uri configured by `getPathWithNativeSeparators`.
 4. `setURI(uri)` sets the new uri and emits `did-rename`.
-5. `onDidRename(callback)` allows _atom/Text-Buffer_ to listen to then emit `path-did-change` messages.
+5. `onDidRename(callback)` allows _atom/TextBuffer_ to listen to then emit `path-did-change` messages.
 6. `existsSync()` required function for filler file objects; returns `False`.
 
 This will add an additional workflow to the _Teletype_ process:
 
-1. When the guest initializes their workspace, _teletype/Buffer-Binding_'s `setBufferProxy` function makes a new `RemoteFile` with _BufferProxy_'s `uri`. It then calls `buffer.setFile()` on this new object.
-2. A subscription is added to _teletype/Buffer-Binding_ to capture when the _Text-Buffer_'s path changes. This subscription, when triggered will call `relayURIChange()`,  which will update the host's _Buffer-Proxy_'s URI. `relayURIChange` sets the new URI by calling `setURI` in _Buffer-Proxy_ using the results of `getBufferProxyURI`.
-3. The Host's _Buffer-Proxy_ will use the `BufferProxyUpdate` schema to relay changes to all of the Guest's _Buffer-Proxy_s to change their `URI`s. Then it will update its own `URI`.
-4. The Guest's _Buffer-Proxy_, upon getting the update message will invoke the _teletype/Buffer-Binding_'s `didChangeURI` function.
-5. This calls `setURI` in `RemoteFile` to update its `URI` and emits a `did-rename` message, which causes _atom/Text-Buffer_ to send a `did-change-path` message.
-6. The Guest's _teletype/Editor-Binding_'s monkey bindings are updated such that the URI constant is removed, and is updated when `getTitle()` is invoked.
+1. When the guest initializes their workspace, _teletype/BufferBinding_'s `setBufferProxy` function makes a new `RemoteFile` with _BufferProxy_'s `uri`. It then calls `buffer.setFile()` on this new object.
+2. A subscription is added to _teletype/BufferBinding_ to capture when the _TextBuffer_'s path changes. This subscription, when triggered will call `relayURIChange()`,  which will update the host's _BufferProxy_'s URI. `relayURIChange` sets the new URI by calling `setURI` in _BufferProxy_ using the results of `getBufferProxyURI`.
+3. The Host's _BufferProxy_ will use the `BufferProxyUpdate` schema to relay changes to all of the Guest's _BufferProxy_s to change their `URI`s. Then it will update its own `URI`.
+4. The Guest's _BufferProxy_, upon getting the update message will invoke the _teletype/BufferBinding_'s `didChangeURI` function.
+5. This calls `setURI` in `RemoteFile` to update its `URI` and emits a `did-rename` message, which causes _atom/TextBuffer_ to send a `did-change-path` message.
+6. The Guest's _teletype/EditorBinding_'s monkey bindings are updated such that the URI constant is removed, and is updated when `getTitle()` is invoked.
 
 ### Drawbacks
 
