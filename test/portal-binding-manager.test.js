@@ -70,12 +70,12 @@ suite('PortalBindingManager', () => {
       test('excludes portals that could not be joined', async () => {
         const manager = buildPortalBindingManager()
 
-        const portalBinding1Promise = manager.createGuestPortalBinding('1')
+        manager.createGuestPortalBinding('1')
         manager.client.resolveLastJoinPortalPromise(null)
-        const portalBinding2Promise = manager.createGuestPortalBinding('2')
+        const portal2BindingPromise = manager.createGuestPortalBinding('2')
         manager.client.resolveLastJoinPortalPromise(buildPortal())
 
-        assert.deepEqual(await manager.getGuestPortalBindings(), [await portalBinding2Promise])
+        assert.deepEqual(await manager.getGuestPortalBindings(), [await portal2BindingPromise])
       })
     })
   })
