@@ -401,6 +401,7 @@
   right: @corner-margin;
   bottom: @corner-margin;
   overflow: hidden;
+  pointer-events: none;
 
   img {
     cursor: pointer;
@@ -410,6 +411,7 @@
 
   .SitePositionsComponent-site {
     margin-left: @avatar-margin;
+    pointer-events: auto;
 
     &.viewing-non-portal-item {
       opacity: 0.5;
