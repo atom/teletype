@@ -78,7 +78,7 @@ If you decide that you want to collaborate with them again, you can send them a 
 
 You can see the collaborators that are currently in your portal, the state of the other invitations that you've sent, and the online/offline state of all your trusted collaborators:
 
-**TODO** - Update mockup to exclude "invite" button for offline collaborators
+*TODO* - Update mockup to exclude "invite" button for offline collaborators
 
 ![](https://user-images.githubusercontent.com/378023/37642043-1d66797e-2c5f-11e8-8def-01f063888979.png)
 
