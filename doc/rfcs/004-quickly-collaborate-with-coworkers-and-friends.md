@@ -1,9 +1,3 @@
-# TODO
-
-- [ ] Show presence status to trusted collaborators
-- [ ] Provide super easy ability to remove someone from your trusted collaborator list after you decline
-- [ ] Ensure UI explains that trusted collaborators can see your online/offline status
-
 # Quickly collaborate with coworkers and friends
 
 ## Status
@@ -38,35 +32,57 @@ With the ability to invite trusted collaborators to your portal from within Atom
 
 Teletype provides a list of your recent collaborators. Each time a guest joins your portal, Teletype adds them to your list of recent collaborators. Each time you join a portal, Teletype adds the host to your list of recent collaborators.
 
-You can select a past collaborator and inform Teletype that you're willing to receive portal invitations from them directly within Atom, thus identifying them as a "trusted collaborator."
+You can select a past collaborator and inform Teletype that you're willing to allow them to see when you're online [A], and that you're willing to receive portal invitations from them directly within Atom, thus identifying them as a "trusted collaborator."
 
-*TODO* - Add mockup
+*TODO* - Add mockup. Ensure UI explains that trusted collaborators can see your online/offline status.
 
 ## Invite a trusted collaborator to your portal
 
 Teletype presents your list of trusted collaborators sorted alphabetically by username.
 
-You can select a trusted collaborator (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
+If you have designated a person as a trusted collaborator, and they have also designated you as a trusted collaborator, then you can see whether they're online [A], and they can see whether you're online.
 
-If the invitee has added you as a trusted collaborator, they see an invitation inside Atom informing them that you have invited them to join your portal, and Teletype asks them if they want to join it. If the invitee is offline when you invite them to join your portal, they'll see your invitation the next time they're online. [A]
+You can select a trusted collaborator that is currently online (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
 
 If the invitee chooses to join the portal, the portal opens in the invitee's workspace (just as it does when joining a portal via a URL).
 
+If the invitee declines to join the portal, Teletype notifies you that the guest declined your invitation. You cannot re-invite that invitee to the same portal. (There's probably a reason why they didn't join, so there's no need to bug them even more. If you think they declined by accident, reach out to them via a third-party chat service and send them the URL to join your portal.)
+
 *TODO* - Add mockup
 
-## Privacy and safety considerations
+## Stop accepting invitations from a trusted collaborator
 
-1. **Safely decline invitations** - When a host invites you to join their portal, the host sees the invitation in a "pending" status. If you decline to join the portal, no change of status is communicated to the host; the host continues to see the invitation in a "pending" status. [[motivation](https://github.com/atom/teletype/pull/344#discussion_r175911322)]
-2. **Opt-in to receiving invitations (or don't)** - Choosing to accept in-Atom portal invitations is entirely opt-in.
-    1. Adding a person to your trusted collaborator list is a private action. Another user has no way of knowing whether or not they are one of your trusted collaborators. [[motivation](https://github.com/atom/teletype/pull/344#discussion_r175911322)]
-    2. You'll only receive portal invitations from trusted collaborators. You control this "whitelist" and can change it at any time. Teletype won't show you any kind of invitation or request from people outside your list of trusted collaborators. [[motivation](https://github.com/atom/teletype/pull/344#pullrequestreview-105405268)]
-3. **Opt-out safely at any time** - At any time, you can remove a person from your list of trusted collaborators.   
+To stop receiving invitations from a trusted collaborator, you can remove them from your list of trusted collaborators. Once you've removed someone from your list of trusted collaborators, you will appear as "offline" to them, and they can no longer invite you to their portal from directly within Atom.
+
+There are two ways to remove someone from your list of trusted collaborators:
+
+- When you decline an invitation to join a portal, Teletype presents the to option to block future invitations from that person (i.e., to remove them from your trusted collaborators).
+
+- At any time, you can right-click a person in your list of trusted collaborators and remove them:
+
+    ![](https://user-images.githubusercontent.com/378023/37639861-67778f8e-2c56-11e8-994f-428802fa9191.png)
+
+If you decide that you want to collaborate with them again, you can send them a URL (via Slack, IRC, etc.) to join your portal, or you can ask them to send you a URL (via Slack, IRC, etc.) so that you can join their portal, or you can add them back to your list of trusted collaborators.
+
+## Additional privacy and safety considerations
+
+1. **Opt-in to receiving invitations (or don't)** - Choosing to accept in-Atom portal invitations is entirely opt-in. You'll only receive portal invitations from trusted collaborators. You control this "whitelist" and can change it at any time. Teletype won't show you any kind of invitation or request from people outside your list of trusted collaborators. [[motivation](https://github.com/atom/teletype/pull/344#pullrequestreview-105405268)]
+2. **Opt-out safely at any time** - At any time, you can remove a person from your list of trusted collaborators.   
     1. You'll no longer receive invitations from them within Atom.
-    2. They observe no indication that you have removed them. [[motivation](https://github.com/atom/teletype/pull/344#discussion_r175911322)]
-    3. Because they observe no indication that you have removed them, they may still have you in their list of trusted collaborators (i.e., their list of people that _they_ are willing to accept in-Atom portal invitations from). If they invite you to a portal using their trusted collaborators list, they see the invitation in a "pending" status (i.e., the same status seen prior to you removing them from your trusted collaborators list).
-4. **Easily prevent future invitations** - When you decline an invitation from a trusted collaborator, Teletype presents the option to block future invitations from that person (i.e., to remove them from your trusted collaborators).
+    2. They observe no indication that you have removed them. You simply appear offline to them, just as you appeared when you were actually offline, and just as you appeared to them before you first added them as a trusted collaborator. [[motivation](https://github.com/atom/teletype/pull/344#discussion_r175911322)]
+    3. Because they observe no indication that you have removed them, they may still have you in their list of trusted collaborators (i.e., their list of people that _they_ are willing to accept in-Atom portal invitations from). But because you appear offline to them, they cannot invite you to join their portal.
 
 ### Mockups
+
+#### Viewing collaborator states
+
+You can see the collaborators that are currently in your portal, the state of the other invitations that you've sent, and the online/offline state of all your trusted collaborators:
+
+**TODO** - Update mockup to exclude "invite" button for offline collaborators
+
+![](https://user-images.githubusercontent.com/378023/37642043-1d66797e-2c5f-11e8-8def-01f063888979.png)
+
+The list of trusted collaborators has a `max-height`. If the list exceeds the `max-height`, you can scroll. The scrolling area includes sent and rejected invitations.
 
 #### Simultaneously participating in multiple portals
 
@@ -74,15 +90,13 @@ While probably not very common, it's possible to host a portal while also partic
 
 *TODO* - Add mockup
 
-#### Other mockups?
-
-*TODO*
-
 ## Out of scope
 
 In the interest of getting the highest impact functionality in users' hands as quickly as possible and then iterating based on real-world feedback, the following functionality is out of scope for this RFC, but may be addressed in follow-up releases.
 
-1. Showing online/offline status (i.e., presence) for recent collaborators and trusted collaborators [[discussion](https://github.com/atom/teletype/pull/344#pullrequestreview-105405268)]
+1. Changing your online/offline status [A]
+    - Setting your status to offline. (In the meantime, you can sign out of Teletype or disable Teletype in Atom's package settings when you want to use Atom while not accepting invitations from your trusted collaborators.)
+    - Setting your status to "away" or "busy"
 2. UX enhancements to the list of recent collaborators and trusted collaborators
     - Changing the sort order for your list of collaborators (e.g., sort by how recently you've collaborated)
     - Limiting the size of your list of trusted collaborators. (In the meantime, you can remove trusted collaborators to reduce the size of the list.)
@@ -95,9 +109,8 @@ In the interest of getting the highest impact functionality in users' hands as q
 
 ## Drawbacks
 
-1. Imagine you code together every day with a particular coworker. When you add them as a trusted collaborator, and you invite them to join your portal, and they don't join right away, you can't tell if it's because they're not online, or if they declined your invitation, or if they didn't see your invitation, or if they don't have you listed as a trusted collaborator. If you were expecting them to join your portal, you have to reach out to them via some other communication medium to find out why they haven't joined. (Unfortunately, we're unaware of an [alternative approach](#rationale-and-alternatives) that would allow us to improve this experience for you and your coworker without _also_ increasing the ability for bad actors to use Teletype as an avenue for harassment.)
-2. Once Teletype provides a list of past collaborators, people may want to be able to chat with those collaborators from within Teletype. While we may eventually want to support chat, any chat-related functionality must exist in service of Teletype's primary vision of "making it as easy to code together as it is to code alone." We'll need to be diligent to avoid scope creep.
-3. Today, when a host shares a portal, the host sends their peer information to Teletype so that guests can query Teletype to determine how to connect to the host. Teletype has no peering information for other users (e.g., users that a host might want to invite to their portal). In order for Teletype to communicate a portal invitation to a user, Teletype will need some way of sending a message to the user. Depending on the technical solution we choose, we may incur increased server-side resource consumption and/or we may take on additional operational complexity.
+1. Once Teletype allows you to designate a list of trusted collaborators, people may want to be able to chat with those collaborators from within Teletype. While we may eventually want to support chat, any chat-related functionality must exist in service of Teletype's primary vision of "making it as easy to code together as it is to code alone." We'll need to be diligent to avoid scope creep.
+2. Today, when a host shares a portal, the host sends their peer information to Teletype so that guests can query Teletype to determine how to connect to the host. Teletype has no peering information for other users (e.g., users that a host might want to invite to their portal). In order for Teletype to communicate a portal invitation to a user, Teletype will need some way of sending a message to the user. Depending on the technical solution we choose, we may incur increased server-side resource consumption and/or we may take on additional operational complexity.
 
 ## Rationale and alternatives
 
@@ -125,8 +138,8 @@ People will collaborate less often. Given the additional steps needed to start c
 
 ##### What unresolved questions do you expect to resolve through the RFC process before this gets merged?
 
-- If I invite a past collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
-- If I invite a past collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
+- If I invite a trusted collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
+- If I invite a trusted collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
 - Where will the lists of recent and trusted collaborators appear in the UI? How do I show/hide these lists?
 
 ##### What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
