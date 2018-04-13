@@ -26,14 +26,7 @@ Today, the transition from A to B involves the following steps:
 4. Host pastes portal URL into third-party communication tool
 5. Guest clicks portal URL, and the operating system hands control to Atom, and Atom joins the portal
 
-With the ability to invite trusted collaborators to your portal from within Atom, we reduce the host's set-up process from 4 steps to 3 steps:
-
-1. Host shares a portal
-2. Host selects person in their list of trusted collaborators
-3. Host invites person to join the portal
-4. Guest accepts invitation to join portal, and Atom joins the portal
-
-And perhaps we can reduce the host's set-up process even further:
+With the ability to invite trusted collaborators to your portal from within Atom, we reduce the set-up process from 5 steps to just 3 steps:
 
 1. Host selects a person in their list of trusted collaborators
 2. Host invites the selected person to a portal, and Atom automatically shares a portal for the host and invites the selected person
