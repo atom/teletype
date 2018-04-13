@@ -13,6 +13,8 @@ const {
   setEditorScrollLeftInChars
 } = require('./helpers/editor-helpers')
 const {FollowState} = require('@atom/teletype-client')
+const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
+const BufferBinding = require('../lib/buffer-binding')
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -323,9 +325,11 @@ suite('EditorBinding', function () {
       const buffer = new TextBuffer({text: SAMPLE_TEXT})
       const editor = new TextEditor({buffer})
 
-      const binding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
-      const editorProxy = new FakeEditorProxy(binding)
-      binding.setEditorProxy(editorProxy)
+      const editorBinding = new EditorBinding({editor, portal: new FakePortal(), isHost: false})
+      const editorProxy = new FakeEditorProxy(editorBinding)
+      const bufferBinding = new BufferBinding({buffer})
+      bufferBinding.setBufferProxy(editorProxy.bufferProxy)
+      editorBinding.setEditorProxy(editorProxy)
       assert.equal(editor.getTitle(), '@site-1: fake-buffer-proxy-uri')
       assert.equal(editor.copy(), null)
       assert.equal(editor.serialize(), null)
@@ -458,13 +462,7 @@ suite('EditorBinding', function () {
 class FakeEditorProxy {
   constructor (delegate, {siteId} = {}) {
     this.delegate = delegate
-    this.bufferProxy = {
-      uri: 'fake-buffer-proxy-uri',
-      saveRequestCount: 0,
-      requestSave () {
-        this.saveRequestCount++
-      }
-    }
+    this.bufferProxy = new FakeBufferProxy({uri: 'fake-buffer-proxy-uri'})
     this.selections = {}
     this.siteId = (siteId == null) ? 1 : siteId
     this.disposed = false

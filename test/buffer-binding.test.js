@@ -1,8 +1,10 @@
 const assert = require('assert')
 const fs = require('fs')
+const path = require('path')
 const temp = require('temp')
-const {TextBuffer, Point} = require('atom')
+const {TextBuffer} = require('atom')
 const BufferBinding = require('../lib/buffer-binding')
+const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
 
 suite('BufferBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -10,7 +12,7 @@ suite('BufferBinding', function () {
   test('relays changes to and from the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding({buffer})
-    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    const bufferProxy = new FakeBufferProxy({delegate: binding, text: buffer.getText()})
     binding.setBufferProxy(bufferProxy)
 
     bufferProxy.simulateRemoteTextUpdate([
@@ -36,7 +38,7 @@ suite('BufferBinding', function () {
   test('does not relay empty changes to the shared buffer', () => {
     const buffer = new TextBuffer('hello\nworld')
     const binding = new BufferBinding({buffer})
-    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    const bufferProxy = new FakeBufferProxy({delegate: binding, text: buffer.getText()})
     binding.setBufferProxy(bufferProxy)
 
     buffer.setTextInRange([[0, 0], [0, 0]], '')
@@ -49,8 +51,8 @@ suite('BufferBinding', function () {
     // This line ensures saving works correctly even if the save function has been monkey-patched.
     buffer.save = () => {}
 
-    const binding = new BufferBinding({buffer})
-    const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+    const binding = new BufferBinding({buffer, isHost: true})
+    const bufferProxy = new FakeBufferProxy({delegate: binding, text: buffer.getText()})
     binding.setBufferProxy(bufferProxy)
 
     // Calling binding.save with an in-memory buffer is ignored.
@@ -69,11 +71,34 @@ suite('BufferBinding', function () {
     assert.equal(fs.readFileSync(filePath, 'utf8'), 'changed')
   })
 
+  test('relays path changes from host to guest', async () => {
+    {
+      const hostBuffer = new TextBuffer('')
+      const hostBinding = new BufferBinding({buffer: hostBuffer, isHost: true})
+      const hostBufferProxy = new FakeBufferProxy({delegate: hostBinding, text: hostBuffer.getText()})
+      hostBinding.setBufferProxy(hostBufferProxy)
+
+      await hostBuffer.saveAs(path.join(temp.path(), 'new-filename'))
+      assert(hostBufferProxy.uri.includes('new-filename'))
+    }
+
+    {
+      const guestBuffer = new TextBuffer('')
+      const guestBinding = new BufferBinding({buffer: guestBuffer, isHost: false})
+      const guestBufferProxy = new FakeBufferProxy({delegate: guestBinding, text: guestBuffer.getText()})
+      guestBinding.setBufferProxy(guestBufferProxy)
+
+      guestBufferProxy.simulateRemoteURIChange('some/uri/new-filename')
+      assert(guestBuffer.getPath().includes('new-filename'))
+      assert.equal(guestBufferProxy.uri, 'some/uri/new-filename')
+    }
+  })
+
   suite('destroying the buffer', () => {
     test('on the host, disposes the underlying buffer proxy', () => {
       const buffer = new TextBuffer('')
       const binding = new BufferBinding({buffer, isHost: true})
-      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+      const bufferProxy = new FakeBufferProxy({delegate: binding, text: buffer.getText()})
       binding.setBufferProxy(bufferProxy)
 
       buffer.destroy()
@@ -83,7 +108,7 @@ suite('BufferBinding', function () {
     test('on guests, disposes the buffer binding', () => {
       const buffer = new TextBuffer('')
       const binding = new BufferBinding({buffer, isHost: false})
-      const bufferProxy = new FakeBufferProxy(binding, buffer.getText())
+      const bufferProxy = new FakeBufferProxy({delegate: binding, text: buffer.getText()})
       binding.setBufferProxy(bufferProxy)
 
       buffer.destroy()
@@ -91,71 +116,4 @@ suite('BufferBinding', function () {
       assert(!bufferProxy.disposed)
     })
   })
-
-  class FakeBufferProxy {
-    constructor (delegate, text) {
-      this.delegate = delegate
-      this.text = text
-      this.disposed = false
-    }
-
-    dispose () {
-      this.disposed = true
-    }
-
-    getHistory () {
-      return {undoStack: [], redoStack: [], nextCheckpointId: 1}
-    }
-
-    setTextInRange (oldStart, oldEnd, newText) {
-      const oldStartIndex = characterIndexForPosition(this.text, oldStart)
-      const oldEndIndex = characterIndexForPosition(this.text, oldEnd)
-      this.text = this.text.slice(0, oldStartIndex) + newText + this.text.slice(oldEndIndex)
-    }
-
-    simulateRemoteTextUpdate (changes) {
-      assert(changes.length > 0, 'Must update text with at least one change')
-
-      for (let i = changes.length - 1; i >= 0; i--) {
-        const {oldStart, oldEnd, newText} = changes[i]
-        this.setTextInRange(oldStart, oldEnd, newText)
-      }
-
-      this.delegate.updateText(changes)
-    }
-
-    createCheckpoint () {
-      return 1
-    }
-
-    groupChangesSinceCheckpoint () {
-      return []
-    }
-
-    groupLastChanges () {
-      return true
-    }
-
-    applyGroupingInterval () {
-
-    }
-  }
-
-  function characterIndexForPosition (text, target) {
-    target = Point.fromObject(target)
-    const position = Point(0, 0)
-    let index = 0
-    while (position.compare(target) < 0 && index < text.length) {
-      if (text[index] === '\n') {
-        position.row++
-        position.column = 0
-      } else {
-        position.column++
-      }
-
-      index++
-    }
-
-    return index
-  }
 })

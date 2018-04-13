@@ -1,4 +1,5 @@
 const {FollowState} = require('@atom/teletype-client')
+const FakeBufferProxy = require('./fake-buffer-proxy')
 const FakeEditorProxy = require('./fake-editor-proxy')
 
 module.exports =
@@ -11,15 +12,7 @@ class FakePortal {
   dispose () {}
 
   createBufferProxy () {
-    return {
-      dispose () {},
-      setDelegate () {},
-      createCheckpoint () {},
-      groupChangesSinceCheckpoint () {},
-      applyGroupingInterval () {},
-      revertToCheckpoint () {},
-      setTextInRange () {}
-    }
+    return new FakeBufferProxy()
   }
 
   createEditorProxy () {

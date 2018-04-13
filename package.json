@@ -1,6 +1,6 @@
 {
   "name": "teletype",
-  "version": "0.10.0",
+  "version": "0.12.2",
   "description": "Share your workspace with team members and collaborate on code in real time",
   "keywords": [
     "collaboration",
@@ -25,7 +25,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.35.0",
+    "@atom/teletype-client": "^0.37.2",
     "etch": "^0.12.6"
   },
   "providedServices": {
@@ -43,30 +43,49 @@
       }
     }
   },
+  "uriHandler": {
+    "method": "handleURI",
+    "deferActivation": false
+  },
   "engines": {
     "atom": ">=1.22.0"
   },
   "configSchema": {
-    "baseURL": {
-      "title": "API server base URL",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "https://api.teletype.atom.io",
+    "askBeforeJoiningPortalViaExternalApp": {
+      "title": "Ask before joining a portal via an external application",
+      "description": "When set, you will be asked for confirmation every time you follow a portal URL in a third-party application.",
+      "type": "boolean",
+      "default": true,
       "order": 1
     },
-    "pusherKey": {
-      "title": "Pusher service key",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "f119821248b7429bece3",
-      "order": 2
-    },
-    "pusherCluster": {
-      "title": "Pusher cluster name",
-      "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
-      "type": "string",
-      "default": "mt1",
-      "order": 3
+    "dev": {
+      "title": "Development Settings",
+      "collapsed": true,
+      "type": "object",
+      "order": 2,
+      "properties": {
+        "baseURL": {
+          "title": "API server base URL",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "https://api.teletype.atom.io",
+          "order": 1
+        },
+        "pusherKey": {
+          "title": "Pusher service key",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "f119821248b7429bece3",
+          "order": 2
+        },
+        "pusherCluster": {
+          "title": "Pusher cluster name",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "mt1",
+          "order": 3
+        }
+      }
     }
   },
   "standard": {
