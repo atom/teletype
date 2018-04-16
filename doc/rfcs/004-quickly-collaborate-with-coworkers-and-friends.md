@@ -34,7 +34,7 @@ Teletype provides a list of your recent collaborators. Each time a guest joins y
 
 You can select a past collaborator and inform Teletype that you're willing to allow them to see when you're online [A], and that you're willing to receive portal invitations from them directly within Atom, thus identifying them as a "trusted collaborator."
 
-![image](https://user-images.githubusercontent.com/378023/38798126-a2ccb7f8-419b-11e8-92d2-df0b57f311ec.png)
+![](https://user-images.githubusercontent.com/378023/38798126-a2ccb7f8-419b-11e8-92d2-df0b57f311ec.png)
 
 ## Invite a trusted collaborator to your portal
 
@@ -44,13 +44,13 @@ If you have designated a person as a trusted collaborator, and they have also de
 
 You can select a trusted collaborator that is currently online (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
 
-![image](https://user-images.githubusercontent.com/378023/38798163-c1dc4226-419b-11e8-9b96-5db9a9c90221.png)
+![](https://user-images.githubusercontent.com/378023/38798163-c1dc4226-419b-11e8-9b96-5db9a9c90221.png)
 
 If the invitee chooses to join the portal, the portal opens in the invitee's workspace (just as it does when joining a portal via a URL).
 
 If the invitee declines to join the portal, Teletype notifies you that the guest declined your invitation. You cannot re-invite that invitee to the same portal. (There's probably a reason why they didn't join, so there's no need to bug them even more. If you think they declined by accident, reach out to them via a third-party chat service and send them the URL to join your portal.)
 
-![image](https://user-images.githubusercontent.com/378023/38798235-f85f6e86-419b-11e8-9508-8d6a97b541f1.png)
+![](https://user-images.githubusercontent.com/378023/38798235-f85f6e86-419b-11e8-9508-8d6a97b541f1.png)
 
 ## Stop accepting invitations from a trusted collaborator
 
@@ -59,10 +59,12 @@ To stop receiving invitations from a trusted collaborator, you can remove them f
 There are two ways to remove someone from your list of trusted collaborators:
 
 - When you decline an invitation to join a portal, Teletype presents the to option to block future invitations from that person (i.e., to remove them from your trusted collaborators).
+    
+    ![](https://user-images.githubusercontent.com/378023/38803217-79518b02-41a9-11e8-9f07-0f0085fc994f.png)
 
 - At any time, you can right-click a person in your list of trusted collaborators and remove them:
 
-    ![](https://user-images.githubusercontent.com/378023/37639861-67778f8e-2c56-11e8-994f-428802fa9191.png)
+    ![](https://user-images.githubusercontent.com/378023/38803345-e0087c3e-41a9-11e8-8c59-23c5a9a38bb9.png)
 
 If you decide that you want to collaborate with them again, you can send them a URL (via Slack, IRC, etc.) to join your portal, or you can ask them to send you a URL (via Slack, IRC, etc.) so that you can join their portal, or you can add them back to your list of trusted collaborators.
 
