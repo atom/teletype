@@ -34,7 +34,7 @@ Teletype provides a list of your recent collaborators. Each time a guest joins y
 
 You can select a past collaborator and inform Teletype that you're willing to allow them to see when you're online [A], and that you're willing to receive portal invitations from them directly within Atom, thus identifying them as a "trusted collaborator."
 
-*TODO* - Add mockup. Ensure UI explains that trusted collaborators can see your online/offline status.
+![image](https://user-images.githubusercontent.com/378023/38798126-a2ccb7f8-419b-11e8-92d2-df0b57f311ec.png)
 
 ## Invite a trusted collaborator to your portal
 
@@ -44,11 +44,13 @@ If you have designated a person as a trusted collaborator, and they have also de
 
 You can select a trusted collaborator that is currently online (an "invitee" in this context) and invite them to join your portal. If you're not already hosting a portal, Teletype automatically creates a portal for your workspace.
 
+![image](https://user-images.githubusercontent.com/378023/38798163-c1dc4226-419b-11e8-9b96-5db9a9c90221.png)
+
 If the invitee chooses to join the portal, the portal opens in the invitee's workspace (just as it does when joining a portal via a URL).
 
 If the invitee declines to join the portal, Teletype notifies you that the guest declined your invitation. You cannot re-invite that invitee to the same portal. (There's probably a reason why they didn't join, so there's no need to bug them even more. If you think they declined by accident, reach out to them via a third-party chat service and send them the URL to join your portal.)
 
-*TODO* - Add mockup
+![image](https://user-images.githubusercontent.com/378023/38798235-f85f6e86-419b-11e8-9508-8d6a97b541f1.png)
 
 ## Stop accepting invitations from a trusted collaborator
 
