@@ -59,7 +59,7 @@ To stop receiving invitations from a trusted collaborator, you can remove them f
 There are two ways to remove someone from your list of trusted collaborators:
 
 - When you decline an invitation to join a portal, Teletype presents the to option to block future invitations from that person (i.e., to remove them from your trusted collaborators).
-    
+
     ![](https://user-images.githubusercontent.com/378023/38803217-79518b02-41a9-11e8-9f07-0f0085fc994f.png)
 
 - At any time, you can right-click a person in your list of trusted collaborators and remove them:
@@ -145,8 +145,7 @@ People will collaborate less often. Given the additional steps needed to start c
 
 ##### What unresolved questions do you expect to resolve through the RFC process before this gets merged?
 
-- If I invite a trusted collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
-- If I invite a trusted collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
+- If I invite a trusted collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window? Similarly, if that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer? _Answer_: The invitation will appear in all open Atom windows where the user is signed into Teletype. Once the user accepts or declines the invitation on in one Atom window, Teletype will dismiss the invitation in the other Atom windows. [[discussion](https://github.com/atom/teletype/pull/344#pullrequestreview-105123633)]
 
 ##### What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
 
