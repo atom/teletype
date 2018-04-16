@@ -147,7 +147,6 @@ People will collaborate less often. Given the additional steps needed to start c
 
 - If I invite a trusted collaborator to join my portal, and that person has multiple Atom windows open, can we show the invitation only in the frontmost window?
 - If I invite a trusted collaborator to join my portal, and that person has Atom windows open on multiple computers, are we OK with showing the invitation on each computer?
-- Where will the lists of recent and trusted collaborators appear in the UI? How do I show/hide these lists?
 
 ##### What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
 
