@@ -82,17 +82,19 @@ If you decide that you want to collaborate with them again, you can send them a 
 
 You can see the collaborators that are currently in your portal, the state of the other invitations that you've sent, and the online/offline state of all your trusted collaborators:
 
-*TODO* - Update mockup to exclude "invite" button for offline collaborators
+![](https://user-images.githubusercontent.com/378023/38805994-dc3438ba-41b2-11e8-83b4-10c97a039e4e.png)
 
-![](https://user-images.githubusercontent.com/378023/37642043-1d66797e-2c5f-11e8-8def-01f063888979.png)
+#### Max height
 
-The list of trusted collaborators has a `max-height`. If the list exceeds the `max-height`, you can scroll. The scrolling area includes sent and rejected invitations.
+The list of trusted and rencent collaborators has a `max-height`. If both lists combined exceeds the `max-height`, you can scroll.
+
+![](https://user-images.githubusercontent.com/378023/38806124-32fb5412-41b3-11e8-9a11-4e921cb0a160.png)
 
 #### Simultaneously participating in multiple portals
 
 While probably not very common, it's possible to host a portal while also participating as a guest in other portals.
 
-*TODO* - Add mockup
+![](https://user-images.githubusercontent.com/378023/38806255-a5380bec-41b3-11e8-9c73-b1f598158120.png)
 
 ## Out of scope
 
