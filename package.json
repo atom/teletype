@@ -25,7 +25,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.37.2",
+    "@atom/teletype-client": "git+https://github.com/atom/teletype-client#include-follow-state-in-active-positions",
     "etch": "^0.12.6"
   },
   "providedServices": {
