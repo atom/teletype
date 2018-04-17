@@ -48,7 +48,7 @@
     "deferActivation": false
   },
   "engines": {
-    "atom": ">=1.22.0"
+    "atom": ">=1.25.0"
   },
   "configSchema": {
     "askBeforeJoiningPortalViaExternalApp": {
