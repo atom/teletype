@@ -36,6 +36,8 @@ You can select a past collaborator and inform Teletype that you're willing to al
 
 ![](https://user-images.githubusercontent.com/378023/38798126-a2ccb7f8-419b-11e8-92d2-df0b57f311ec.png)
 
+You can also choose to remove a person from your list of recent collaborators. [[motivation](https://github.com/atom/teletype/pull/344#discussion_r182509071)]
+
 ## Invite a trusted collaborator to your portal
 
 Teletype presents your list of trusted collaborators sorted alphabetically by username.
