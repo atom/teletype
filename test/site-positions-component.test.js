@@ -60,6 +60,12 @@ suite('SitePositionsComponent', () => {
     assert(element.querySelector('.SitePositionsComponent-site.site-2.viewing-current-editor'))
     assert(element.querySelector('.SitePositionsComponent-site.site-3.viewing-other-editor'))
     assert(element.querySelector('.SitePositionsComponent-site.site-4.viewing-non-portal-item'))
+  })
+
+  test('following and unfollowing a site', () => {
+    const {workspace} = buildAtomEnvironment()
+    const portal = new FakePortal({siteId: 1})
+    const component = new SitePositionsComponent({workspace, portal})
 
     // Selecting a site will follow them.
     component.onSelectSiteId(42)
