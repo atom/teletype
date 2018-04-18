@@ -25,7 +25,7 @@
     "temp": "^0.8.3"
   },
   "dependencies": {
-    "@atom/teletype-client": "^0.37.2",
+    "@atom/teletype-client": "^0.38.0",
     "etch": "^0.12.6"
   },
   "providedServices": {
