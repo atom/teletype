@@ -32,7 +32,7 @@ before_script:
   - createdb teletype-test
 
 script:
-  - curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+  - curl -s -O https://raw.githubusercontent.com/atom/ci/aw/npm-up/build-package.sh
   - chmod u+x build-package.sh
   - ./build-package.sh
 
