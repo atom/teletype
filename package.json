@@ -58,11 +58,18 @@
       "default": true,
       "order": 1
     },
+    "displayCollaboratorsOnScreen": {
+      "title": "Display collaborators on the text editor",
+      "description": "When set, you will be able to see your collaborators on the text editor lower-right corner.",
+      "type": "boolean",
+      "default": true,
+      "order": 2
+    },
     "dev": {
       "title": "Development Settings",
       "collapsed": true,
       "type": "object",
-      "order": 2,
+      "order": 3,
       "properties": {
         "baseURL": {
           "title": "API server base URL",
