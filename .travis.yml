@@ -32,6 +32,8 @@ before_script:
   - createdb teletype-test
 
 script:
+  - sudo apt-get clean
+  - sudo apt-get update
   - sudo apt-get install -y dpkg
   - curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
   - chmod u+x build-package.sh
