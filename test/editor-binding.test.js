@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const {TextEditor, TextBuffer, Range} = require('atom')
-const { Point } = TextBuffer;
+const { Point } = TextBuffer
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
@@ -99,10 +99,10 @@ suite('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: Point(10,0), head: Point(11,4)},
-        {tail: Point(20,5), head: Point(20,0)},
-        {tail: Point(3,0), head: Point(4,2)},
-        {tail: Point(6,0), head: Point(5,0)},
+        {tail: Point(10, 0), head: Point(11, 4)},
+        {tail: Point(20, 5), head: Point(20, 0)},
+        {tail: Point(3, 0), head: Point(4, 2)},
+        {tail: Point(6, 0), head: Point(5, 0)}
       ]
     )
 
@@ -140,9 +140,9 @@ suite('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: Point(10,0), head: Point(11,4)},
-        {tail: Point(20,0), head:Point(20,5)},
-        {tail: Point(3,0), head: Point(4,2)}
+        {tail: Point(10, 0), head: Point(11, 4)},
+        {tail: Point(20, 0), head: Point(20, 5)},
+        {tail: Point(3, 0), head: Point(4, 2)}
       ]
     )
 
@@ -230,8 +230,8 @@ suite('EditorBinding', function () {
     assert.deepEqual(
       getCursorDecoratedRanges(editor),
       [
-        {tail: Point(0,3), head: Point(0,3)},
-        {tail: Point(0,6), head: Point(0,6)}
+        {tail: Point(0, 3), head: Point(0, 3)},
+        {tail: Point(0, 6), head: Point(0, 6)}
       ]
     )
   })
