@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const SAMPLE_TEXT = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample.js'), 'utf8')
 const {TextEditor, TextBuffer, Range} = require('atom')
-// const {Point} = TextBuffer
+const {Point} = TextBuffer
 const EditorBinding = require('../lib/editor-binding')
 const {buildAtomEnvironment, destroyAtomEnvironments} = require('./helpers/atom-environments')
 const {loadPackageStyleSheets} = require('./helpers/ui-helpers')
@@ -24,7 +24,7 @@ changed. The stable and beta version of atom still uses electron 4 inorder to su
 versions, the assertions need to be made accordingly. In the future when stable and beta start compiling against
 electron 5, these assertions will be simplified.
 */
-// const isDevBuild = atom.getAppName().toLowerCase().indexOf('atom dev') > -1
+const isDevBuild = atom.getAppName().toLowerCase().indexOf('atom dev') > -1
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -107,17 +107,17 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    // if (isDevBuild) {
-    //   return assert.deepEqual(
-    //      cursorDecoratedRanges,
-    //     [
-    //        {tail: Point(10, 0), head: Point(11, 4)},
-    //        {tail: Point(20, 5), head: Point(20, 0)},
-    //        {tail: Point(3, 0), head: Point(4, 2)},
-    //        {tail: Point(6, 0), head: Point(5, 0)}
-    //     ]
-    //    )
-    // }
+    if (isDevBuild) {
+      return assert.deepEqual(
+         cursorDecoratedRanges,
+        [
+           {tail: Point(10, 0), head: Point(11, 4)},
+           {tail: Point(20, 5), head: Point(20, 0)},
+           {tail: Point(3, 0), head: Point(4, 2)},
+           {tail: Point(6, 0), head: Point(5, 0)}
+        ]
+       )
+    }
 
     assert.deepEqual(
       cursorDecoratedRanges,
@@ -163,16 +163,16 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    // if (isDevBuild) {
-    //   return assert.deepEqual(
-    //      cursorDecoratedRanges,
-    //     [
-    //        {tail: Point(10, 0), head: Point(11, 4)},
-    //        {tail: Point(20, 0), head: Point(20, 5)},
-    //        {tail: Point(3, 0), head: Point(4, 2)}
-    //     ]
-    //    )
-    // }
+    if (isDevBuild) {
+      return assert.deepEqual(
+         cursorDecoratedRanges,
+        [
+           {tail: Point(10, 0), head: Point(11, 4)},
+           {tail: Point(20, 0), head: Point(20, 5)},
+           {tail: Point(3, 0), head: Point(4, 2)}
+        ]
+       )
+    }
     assert.deepEqual(
       cursorDecoratedRanges,
       [
@@ -266,15 +266,15 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    // if (isDevBuild) {
-    //   return assert.deepEqual(
-    //      cursorDecoratedRanges,
-    //     [
-    //        {tail: Point(0, 3), head: Point(0, 3)},
-    //        {tail: Point(0, 6), head: Point(0, 6)}
-    //     ]
-    //    )
-    // }
+    if (isDevBuild) {
+      return assert.deepEqual(
+         cursorDecoratedRanges,
+        [
+           {tail: Point(0, 3), head: Point(0, 3)},
+           {tail: Point(0, 6), head: Point(0, 6)}
+        ]
+       )
+    }
 
     assert.deepEqual(
       cursorDecoratedRanges,
