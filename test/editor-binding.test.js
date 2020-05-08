@@ -24,7 +24,8 @@ changed. The stable and beta version of atom still uses electron 4 inorder to su
 versions, the assertions need to be made accordingly. In the future when stable and beta start compiling against
 electron 5, these assertions will be simplified.
 */
-const isDevBuild = atom.getAppName().toLowerCase().indexOf('atom dev') > -1
+const appName = atom.getAppName().toLowerCase()
+const isDevOrBetaBuild = appName.indexOf('atom dev') > -1 || appName.indexOf('atom beta') > -1
 
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
@@ -107,7 +108,7 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
+    if (isDevOrBetaBuild) {
       return assert.deepEqual(
          cursorDecoratedRanges,
         [
@@ -163,7 +164,7 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
+    if (isDevOrBetaBuild) {
       return assert.deepEqual(
          cursorDecoratedRanges,
         [
@@ -266,7 +267,7 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
+    if (isDevOrBetaBuild) {
       return assert.deepEqual(
          cursorDecoratedRanges,
         [
