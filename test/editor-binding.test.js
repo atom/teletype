@@ -17,15 +17,6 @@ const {FollowState} = require('@atom/teletype-client')
 const FakeBufferProxy = require('./helpers/fake-buffer-proxy')
 const BufferBinding = require('../lib/buffer-binding')
 
-/*
-We are currently checking if teletype is trying to build against the dev version of atom which uses electron 5.
-This is because there is a slight change in electron 5s API and some of the assertions in this tests need to be
-changed. The stable and beta version of atom still uses electron 4 inorder to support both electron
-versions, the assertions need to be made accordingly. In the future when stable and beta start compiling against
-electron 5, these assertions will be simplified.
-*/
-const isDevBuild = atom.getAppName().toLowerCase().indexOf('atom dev') > -1
-
 suite('EditorBinding', function () {
   if (process.env.CI) this.timeout(process.env.TEST_TIMEOUT_IN_MS)
 
@@ -107,31 +98,20 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
-      return assert.deepEqual(
-         cursorDecoratedRanges,
-        [
-           {tail: Point(10, 0), head: Point(11, 4)},
-           {tail: Point(20, 5), head: Point(20, 0)},
-           {tail: Point(3, 0), head: Point(4, 2)},
-           {tail: Point(6, 0), head: Point(5, 0)}
-        ]
-       )
-    }
-
     assert.deepEqual(
       cursorDecoratedRanges,
       [
-        {tail: {row: 3, column: 0}, head: {row: 4, column: 2}},
-        {tail: {row: 6, column: 0}, head: {row: 5, column: 0}},
-        {tail: {row: 10, column: 0}, head: {row: 11, column: 4}},
-        {tail: {row: 20, column: 5}, head: {row: 20, column: 0}}
+        {tail: Point(10, 0), head: Point(11, 4)},
+        {tail: Point(20, 5), head: Point(20, 0)},
+        {tail: Point(3, 0), head: Point(4, 2)},
+        {tail: Point(6, 0), head: Point(5, 0)}
       ]
     )
 
     editor.setSelectedBufferRanges([
       [[0, 0], [0, 4]]
     ])
+
     assert.deepEqual(
       editorProxy.selections,
       {
@@ -163,22 +143,12 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
-      return assert.deepEqual(
-         cursorDecoratedRanges,
-        [
-           {tail: Point(10, 0), head: Point(11, 4)},
-           {tail: Point(20, 0), head: Point(20, 5)},
-           {tail: Point(3, 0), head: Point(4, 2)}
-        ]
-       )
-    }
     assert.deepEqual(
       cursorDecoratedRanges,
       [
-        {tail: {row: 3, column: 0}, head: {row: 4, column: 2}},
-        {tail: {row: 10, column: 0}, head: {row: 11, column: 4}},
-        {tail: {row: 20, column: 0}, head: {row: 20, column: 5}}
+        {tail: Point(10, 0), head: Point(11, 4)},
+        {tail: Point(20, 0), head: Point(20, 5)},
+        {tail: Point(3, 0), head: Point(4, 2)}
       ]
     )
 
@@ -266,21 +236,11 @@ suite('EditorBinding', function () {
 
     const cursorDecoratedRanges = getCursorDecoratedRanges(editor)
 
-    if (isDevBuild) {
-      return assert.deepEqual(
-         cursorDecoratedRanges,
-        [
-           {tail: Point(0, 3), head: Point(0, 3)},
-           {tail: Point(0, 6), head: Point(0, 6)}
-        ]
-       )
-    }
-
     assert.deepEqual(
       cursorDecoratedRanges,
       [
-        {tail: {row: 0, column: 6}, head: {row: 0, column: 6}},
-        {tail: {row: 0, column: 3}, head: {row: 0, column: 3}}
+        {tail: Point(0, 3), head: Point(0, 3)},
+        {tail: Point(0, 6), head: Point(0, 6)}
       ]
     )
   })
