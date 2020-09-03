@@ -11,12 +11,12 @@ module.exports = function condition (fn, shouldLog = false) {
 
       if (result) {
         if (shouldLog) {
-          console.log('I got here');
+          console.log('I got here')
         }
         global.clearTimeout(timeout)
         global.clearInterval(intervalId)
         if (shouldLog) {
-          console.log('I got here and resolved');
+          console.log('I got here and resolved')
         }
         resolve()
       }
