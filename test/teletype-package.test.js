@@ -1376,6 +1376,7 @@ suite('TeletypePackage', function () {
     const getTitles = (paneItems) => paneItems.map((item) => item.getTitle())
 
     const originalRemotePaneItems = getRemotePaneItems(environment)
+    console.log('LOGS', originalRemotePaneItems, getTitles(originalRemotePaneItems), getTitles(getRemotePaneItems(environment));
     await condition(() => {
       return !deepEqual(
         getTitles(originalRemotePaneItems),
