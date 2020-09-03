@@ -1,4 +1,4 @@
-module.exports = function condition (fn, shouldLog = false) {
+module.exports = function condition (fn) {
   const timeoutError = new Error('Condition timed out: ' + fn.toString())
   Error.captureStackTrace(timeoutError, condition)
 
@@ -10,14 +10,8 @@ module.exports = function condition (fn, shouldLog = false) {
       }
 
       if (result) {
-        if (shouldLog) {
-          console.log('I got here')
-        }
         global.clearTimeout(timeout)
         global.clearInterval(intervalId)
-        if (shouldLog) {
-          console.log('I got here and resolved')
-        }
         resolve()
       }
     }, 5)
@@ -25,6 +19,6 @@ module.exports = function condition (fn, shouldLog = false) {
     const timeout = global.setTimeout(() => {
       global.clearInterval(intervalId)
       reject(timeoutError)
-    }, 500)
+    }, 1000)
   })
 }
