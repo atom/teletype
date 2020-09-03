@@ -1,12 +1,16 @@
-module.exports = function condition (fn) {
+module.exports = function condition (fn, shouldLog = false) {
   const timeoutError = new Error('Condition timed out: ' + fn.toString())
   Error.captureStackTrace(timeoutError, condition)
 
   return new Promise((resolve, reject) => {
     const intervalId = global.setInterval(async () => {
       let result = fn()
+      if(shouldLog) {
+        console.log({result}, fn.toString());
+      }
       if (result instanceof Promise) {
         result = await result
+        console.log({result}, fn.toString());
       }
 
       if (result) {

@@ -1006,9 +1006,8 @@ suite('TeletypePackage', function () {
       const hostEditor2 = await hostEnv.workspace.open()
       hostEditor2.setText(('y'.repeat(30) + '\n').repeat(30))
       hostEditor2.setCursorBufferPosition([2, 2])
-      console.log('LOGS', guestEnv.workspace.getTextEditors())
 
-      await condition(() => guestEnv.workspace.getTextEditors().length === 2)
+      await condition(() => guestEnv.workspace.getTextEditors().length === 2, true)
 
       await verifyTetheringRules({
         leaderEnv: hostEnv,
