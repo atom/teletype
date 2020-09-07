@@ -14,7 +14,7 @@ module.exports = function condition (fn) {
         global.clearInterval(intervalId)
         resolve()
       }
-    }, 5)
+    }, 10)
 
     const timeout = global.setTimeout(() => {
       global.clearInterval(intervalId)
