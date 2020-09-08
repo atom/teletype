@@ -14,11 +14,11 @@ module.exports = function condition (fn) {
         global.clearInterval(intervalId)
         resolve()
       }
-    }, 10)
+    }, 5)
 
     const timeout = global.setTimeout(() => {
       global.clearInterval(intervalId)
       reject(timeoutError)
-    }, 1000)
+    }, 500)
   })
 }
