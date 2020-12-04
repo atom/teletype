@@ -1,4 +1,6 @@
 # Teletype for Atom
+[![StyleCI](https://github.styleci.io/repos/291478590/shield?branch=master)](https://github.styleci.io/repos/291478590?branch=master)
+
 
 An Atom package that lets developers share their workspace with team members and collaborate on code in real time.
 
