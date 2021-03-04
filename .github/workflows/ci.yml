@@ -9,11 +9,11 @@ jobs:
       matrix:
         ATOM_CHANNEL: ['stable','beta','dev']
     steps:
-      - uses: actions/setup-node@v1
-      with:
-        node-version: 12
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
       - name: Potgresql
       - uses: harmon758/postgresql-action@v1
         with:
