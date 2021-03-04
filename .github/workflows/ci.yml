@@ -9,5 +9,20 @@ jobs:
       matrix:
         ATOM_CHANNEL: ['stable','beta','dev']
     steps:
-      - name: Checkout code
+      - uses: actions/setup-node@v1
+      with:
+        node-version: 12
+      - name: Checkout
         uses: actions/checkout@v2
+      - name: Potgresql
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '11'
+      - name: Create DB
+        run: createdb teletype-test
+      - name: Build Atom
+        run: |
+          sudo apt-get --only-upgrade install libnss3
+          curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+          chmod u+x build-package.sh
+          ./build-package.sh
