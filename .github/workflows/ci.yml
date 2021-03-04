@@ -31,7 +31,7 @@ jobs:
       - name: Create DB
         run: |
           sudo service postgresql start
-          sudo su postgres -c 'createuser -P --superuser runner
+          sudo su postgres -c 'createuser -P --superuser runner'
           createdb teletype-test
       - name: Build Atom
         run: |
