@@ -28,9 +28,7 @@ jobs:
         with:
           node-version: '12'
       - name: Create DB
-        run: |
-          sudo service postgresql start
-          createdb teletype-test
+        run: createdb teletype-test
       - name: Build Atom
         run: |
           sudo apt-get --only-upgrade install libnss3
