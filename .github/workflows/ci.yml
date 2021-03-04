@@ -20,7 +20,9 @@ jobs:
         with:
           postgresql version: '11'
       - name: Create DB
-        run: createdb teletype-test
+        run: |
+          sudo service postgresql start
+          createdb teletype-test
       - name: Build Atom
         run: |
           sudo apt-get --only-upgrade install libnss3
