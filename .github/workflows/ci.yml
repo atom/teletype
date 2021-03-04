@@ -6,7 +6,7 @@ jobs:
   runs-on: ubuntu-latest
   strategy:
     matrix:
-      ATOM_CHANNEL:[stable, beta, dev]
+      ATOM_CHANNEL: ['stable','beta','dev']
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
