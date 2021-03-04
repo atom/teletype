@@ -9,6 +9,7 @@ jobs:
       postgres:
         image: postgres
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         options: >-
           --health-cmd pg_isready
@@ -28,7 +29,9 @@ jobs:
         with:
           node-version: '12'
       - name: Create DB
-        run: createdb teletype-test
+        run: |
+          sudo service postgresql start
+          createdb teletype-test
       - name: Build Atom
         run: |
           sudo apt-get --only-upgrade install libnss3
