@@ -9,7 +9,7 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_USER: runner
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         options: >-
           --health-cmd pg_isready
@@ -31,6 +31,7 @@ jobs:
       - name: Create DB
         run: |
           sudo service postgresql start
+          sudo su postgres -c 'createuser -P --superuser runner
           createdb teletype-test
       - name: Build Atom
         run: |
