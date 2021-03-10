@@ -84,6 +84,13 @@
           "type": "string",
           "default": "mt1",
           "order": 3
+        },
+        "activePubSubGateway": {
+          "title": "The pubSubGateway that should be used for teletype (pusher or socketcluster)",
+          "description": "This should only be changed for development purposes. Changes take effect on the next package activation.",
+          "type": "string",
+          "default": "pusher",
+          "order": 4
         }
       }
     }

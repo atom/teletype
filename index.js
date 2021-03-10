@@ -7,6 +7,7 @@ module.exports = new TeletypePackage({
   commandRegistry: atom.commands,
   tooltipManager: atom.tooltips,
   clipboard: atom.clipboard,
+  activePubSubGateway: atom.config.get('teletype.dev.activePubSubGateway'),
   pusherKey: atom.config.get('teletype.dev.pusherKey'),
   pusherOptions: {
     cluster: atom.config.get('teletype.dev.pusherCluster'),
