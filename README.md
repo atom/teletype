@@ -1,4 +1,5 @@
 # Teletype for Atom
+![CI Status](https://github.com/atom/teletype/actions/workflows/main.yml/badge.svg)
 
 An Atom package that lets developers share their workspace with team members and collaborate on code in real time.
 
