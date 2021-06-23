@@ -24,7 +24,7 @@
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^2.0.5",
     "standard": "^12.0.0",
-    "temp": "^0.8.3"
+    "temp": "^0.9.4"
   },
   "dependencies": {
     "@atom/teletype-client": "^0.38.4",
