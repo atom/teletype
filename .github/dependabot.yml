@@ -1,0 +1,28 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "18:00"
+    timezone: America/New_York
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: snyk
+    versions:
+    - 1.518.0
+    - 1.521.0
+    - 1.522.0
+    - 1.526.0
+    - 1.528.0
+    - 1.529.0
+    - 1.530.0
+    - 1.532.0
+    - 1.538.0
+    - 1.541.0
+    - 1.563.0
+    - 1.566.0
+    - 1.570.0
+  - dependency-name: acorn
+    versions:
+    - 6.4.2
