@@ -23,7 +23,7 @@
     "@atom/teletype-server": "^0.18.2",
     "atom-mocha-test-runner": "^1.0.1",
     "deep-equal": "^2.0.5",
-    "standard": "^16.0.3",
+    "standard": "^16.0.4",
     "temp": "^0.9.4"
   },
   "dependencies": {
