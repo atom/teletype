@@ -1,6 +1,6 @@
 # Teletype for Atom
 
-An Atom package that lets developers share their workspace with team members and collaborate on code in real time.
+An Atom package that lets developers share their workspace with team members and collaborate on code in real-time.
 
 Learn more at [teletype.atom.io](https://teletype.atom.io).
 
