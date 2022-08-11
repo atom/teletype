@@ -29,7 +29,7 @@
   "dependencies": {
     "@atom/teletype-client": "^0.38.4",
     "etch": "^0.14.1",
-    "snyk": "^1.982.0"
+    "snyk": "^1.986.0"
   },
   "providedServices": {
     "teletype": {
