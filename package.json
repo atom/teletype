@@ -12,7 +12,9 @@
   "repository": "https://github.com/atom/teletype",
   "scripts": {
     "lint": "standard --verbose",
-    "test": "atom --test test"
+    "test": "atom --test test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "author": "",
   "license": "MIT",
@@ -20,13 +22,14 @@
   "devDependencies": {
     "@atom/teletype-server": "^0.18.2",
     "atom-mocha-test-runner": "^1.0.1",
-    "deep-equal": "^1.0.1",
-    "standard": "^10.0.3",
-    "temp": "^0.8.3"
+    "deep-equal": "^2.0.5",
+    "standard": "^17.0.0",
+    "temp": "^0.9.4"
   },
   "dependencies": {
     "@atom/teletype-client": "^0.38.4",
-    "etch": "^0.12.6"
+    "etch": "^0.14.1",
+    "snyk": "^1.986.0"
   },
   "providedServices": {
     "teletype": {
@@ -99,5 +102,6 @@
     "ignore": [
       "test/fixtures"
     ]
-  }
+  },
+  "snyk": true
 }
