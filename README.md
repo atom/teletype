@@ -1,4 +1,5 @@
-# Teletype for Atom
+##### Atom and all repositories under Atom will be archived on December 15, 2022. Learn more in our [official announcement](https://github.blog/2022-06-08-sunsetting-atom/)
+ # Teletype for Atom
 
 An Atom package that lets developers share their workspace with team members and collaborate on code in real time.
 
