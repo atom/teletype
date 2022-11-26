@@ -22,7 +22,7 @@
   "devDependencies": {
     "@atom/teletype-server": "^0.18.2",
     "atom-mocha-test-runner": "^1.0.1",
-    "deep-equal": "^2.0.5",
+    "deep-equal": "^2.1.0",
     "standard": "^17.0.0",
     "temp": "^0.9.4"
   },
