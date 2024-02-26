@@ -386,9 +386,26 @@
   }
 }
 
+.avatar-below-cursor {
+  pointer-events: none;
+
+  img {
+    height: 44px;
+    border: 2px solid transparent;
+    border-radius: 50%
+  }
+
+  .avatar-below-cursor-site {
+    border: solid 2px transparent;
+    border-radius: 50%;
+    position: relative;
+    left: -50%;
+  }
+}
 // Site colors
 .cursor.ParticipantCursor, // cursor
-.SitePositionsComponent-site.color  { // avatar
+.SitePositionsComponent-site.color, // avatar
+.avatar-below-cursor-site.color {
   &--site-1  { border-color: @ui-site-color-1; }
   &--site-2  { border-color: @ui-site-color-2; }
   &--site-3  { border-color: @ui-site-color-3; }
